@@ -1,3 +1,4 @@
+#include <nexus/app.hh>
 #include <nexus/test.hh>
 
 #include <fstream>
@@ -5,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <vector>
 
 #if defined(TG_IMPLEMENTATION_REPORT)
 
@@ -362,6 +364,86 @@ TEST("implementation report")
     test_object_type_nested_boundary_caps<tg::pyramid, tg::box2in3>("pyramid", "box2in3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::triangle3>("pyramid", "triangle3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
+}
+
+template <class ObjT>
+std::vector<std::pair<std::string, bool>> test_single_object_type_intersects3D_tex(std::string name)
+{
+    static auto constexpr domainD = tg::object_traits<ObjT>::domain_dimension;
+    static auto constexpr objectD = tg::object_traits<ObjT>::object_dimension;
+
+    std::vector<std::pair<std::string, bool>> intersect_vals;
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_segment3_of, ObjT>)
+        intersect_vals.push_back({"segment3", false});
+    else
+        intersect_vals.push_back({"segment3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_box3_of, ObjT>)
+        intersect_vals.push_back({"box3", false});
+    else
+        intersect_vals.push_back({"box3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_sphere3_of, ObjT>)
+        intersect_vals.push_back({"sphere3", false});
+    else
+        intersect_vals.push_back({"sphere3", true});
+
+    return intersect_vals;
+}
+
+APP("ImplReport_LATEX")
+{
+    // file generation
+    std::ofstream("impl_report.tex");
+    std::fstream f;
+    f.open("impl_report.tex", std::ios::trunc);
+    f.close();
+    f.open("impl_report.tex", std::ios::out);
+
+    // header
+    f << "\\documentclass{scrartcl}\n";
+    f << "\\usepackage[utf8]{inputenc}\n";
+    f << "\\usepackage[table]{xcolor}\n";
+    f << "\\setlength{\\arrayrulewidth}{1mm}\n";
+    f << "\\setlength{\\tabcolsep}{18pt}\n";
+    f << "\\renewcommand{\\arraystretch}{2.5}\n";
+    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{AAACED}} p{3cm}}\n";
+    f << "\\arrayrulecolor[HTML]{DB5800}\n";
+    f << "\\title{IMPL REPORT}\n";
+    f << "\\date{\\today}\n";
+    f << "\\begin{document}\n";
+    f << "\\maketitle" << std::endl;
+    f.close();
+
+    // test tables
+
+    // intersects 3D
+
+    auto segment3intersects = test_single_object_type_intersects3D_tex<tg::segment3>("segment3");
+
+    // static int nbr_elements = segment3intersects.size();
+
+    std::vector<std::pair<std::string, bool>>* intersects_matrix{new std::vector<std::pair<std::string, bool>>[segment3intersects.size()] {}};
+
+    intersects_matrix[0] = segment3intersects;
+
+    /*
+     *for(auto& x : segment3intersects)...
+     *
+     */
+    // for now just hardcoded..
+    intersects_matrix[1] = test_single_object_type_intersects3D_tex<tg::box3>("box3");
+    intersects_matrix[2] = test_single_object_type_intersects3D_tex<tg::sphere3>("sphere3");
+
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    // f << "\\begin{tabular}{ |s|p{3cm}|p{3cm}| }\n \\hline"
+    f.close();
+
+    // end
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    f << "\\end{document}" << std::endl;
+    f.close();
 }
 
 #endif
