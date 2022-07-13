@@ -405,11 +405,11 @@ APP("ImplReport_LATEX")
     f << "\\documentclass{scrartcl}\n";
     f << "\\usepackage[utf8]{inputenc}\n";
     f << "\\usepackage[table]{xcolor}\n";
-    f << "\\setlength{\\arrayrulewidth}{1mm}\n";
-    f << "\\setlength{\\tabcolsep}{18pt}\n";
-    f << "\\renewcommand{\\arraystretch}{2.5}\n";
-    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{AAACED}} p{3cm}}\n";
-    f << "\\arrayrulecolor[HTML]{DB5800}\n";
+    f << "\\setlength{\\arrayrulewidth}{0.5mm}\n";
+    f << "\\renewcommand{\\arraystretch}{1.5}\n";
+    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{E6E6E6}} p{3cm}}\n" << std::endl;
+    f << "\\newcommand{\\nondefCol}[1]{\\cellcolor[HTML]{FF3F16}}\n";
+    f << "\\newcommand{\\defCol}[1]{\\cellcolor[HTML]{97E26F}}\n" << std::endl;
     f << "\\title{IMPL REPORT}\n";
     f << "\\date{\\today}\n";
     f << "\\begin{document}\n";
@@ -428,7 +428,7 @@ APP("ImplReport_LATEX")
 
     intersects_matrix[0] = segment3intersects;
 
-    /*
+    /* TODO
      *for(auto& x : segment3intersects)...
      *
      */
@@ -436,9 +436,48 @@ APP("ImplReport_LATEX")
     intersects_matrix[1] = test_single_object_type_intersects3D_tex<tg::box3>("box3");
     intersects_matrix[2] = test_single_object_type_intersects3D_tex<tg::sphere3>("sphere3");
 
+    float cell_width = 0.8f / (segment3intersects.size() + 1);
+    std::string cell_width_str = std::to_string(cell_width);
+
+    // write TABLE (tabular)
     f.open("impl_report.tex", std::ios::out | std::ios::app);
-    // f << "\\begin{tabular}{ |s|p{3cm}|p{3cm}| }\n \\hline"
+    f << "\\begin{tabular}{ |s|";
+
+    for (auto i = 0; i < segment3intersects.size(); i++)
+        f << "p{" << cell_width_str << "\\linewidth}|";
+
+    f << "} \\hline" << std::endl;
+
+    // header row
+    f << "\\cellcolor[HTML]{FF9D88} intersects ";
+
+    for (auto const& e : segment3intersects)
+        f << "& \\cellcolor[HTML]{E6E6E6} " << e.first;
+
+    f << " \\\\ \\hline" << std::endl;
+
+    // data rows
+    for (auto i = 0; i < segment3intersects.size(); i++)
+    {
+        auto data = intersects_matrix[i];
+
+        f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
+
+        for (auto d : data)
+        {
+            if (d.second)
+                f << "& \\defCol{} true ";
+            else
+                f << "& \\nondefCol{} false ";
+        }
+
+        f << "\\\\ \\hline" << std::endl;
+    }
+
+    // end of TABLE
+    f << "\\end{tabular}" << std::endl;
     f.close();
+
 
     // end
     f.open("impl_report.tex", std::ios::out | std::ios::app);
