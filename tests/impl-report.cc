@@ -117,6 +117,54 @@ using try_intersects_sphere2in3_of = decltype(intersects(std::declval<T const&>(
 template <class T>
 using try_solid_of = decltype(solid_of(std::declval<T const&>()));
 
+template <class T>
+using try_distance_line3_of = decltype(distance(std::declval<T const&>(), tg::line3()));
+
+template <class T>
+using try_distance_segment3_of = decltype(distance(std::declval<T const&>(), tg::segment3()));
+
+template <class T>
+using try_distance_aabb2_of = decltype(distance(std::declval<T const&>(), tg::aabb2()));
+
+template <class T>
+using try_distance_aabb3_of = decltype(distance(std::declval<T const&>(), tg::aabb3()));
+
+template <class T>
+using try_distance_sphere3_of = decltype(distance(std::declval<T const&>(), tg::sphere3()));
+
+template <class T>
+using try_distance_box3_of = decltype(distance(std::declval<T const&>(), tg::box3()));
+
+template <class T>
+using try_distance_capsule3_of = decltype(distance(std::declval<T const&>(), tg::capsule3()));
+
+template <class T>
+using try_distance_cone3_of = decltype(distance(std::declval<T const&()>, tg::cone3()));
+
+template <class T>
+using try_distance_cylinder3_of = decltype(distance(std::declval<T const&>(), tg::cylinder3()));
+
+template <class T>
+using try_distance_ellipse3_of = decltype(distance(std::declval<T const&>(), tg::ellipse3()));
+
+template <class T>
+using try_distance_halfspace3_of = decltype(distance(std::declval<T const&>(), tg::halfspace3()));
+
+template <class T>
+using try_distance_hemisphere3_of = decltype(distance(std::declval<T const&>(), tg::hemisphere3()));
+
+template <class T>
+using try_distance_triangle3_of = decltype(distance(std::declval<T const&>(), tg::triangle3()));
+
+template <class T>
+using try_distance_plane3_of = decltype(distance(std::declval<T const&>(), tg::plane3()));
+
+template <class T>
+using try_distance_tube3_of = decltype(distance(std::declval<T const&>(), tg::tube3()));
+
+template <class T>
+using try_distance_sphere2in3_of = decltype(distance(std::declval<T const&>(), tg::sphere2in3()));
+
 template <class ObjT>
 void test_single_object_type(std::string name)
 {
@@ -470,6 +518,95 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_intersects3D_t
     return intersect_vals;
 }
 
+template <class ObjT>
+std::vector<std::pair<std::string, bool>> test_single_object_type_distance3D_tex(std::string name)
+{
+    static auto constexpr domainD = tg::object_traits<ObjT>::domain_dimension;
+    static auto constexpr objectD = tg::object_traits<ObjT>::object_dimension;
+
+    std::vector<std::pair<std::string, bool>> distance_vals;
+
+    // if constexpr (domainD != 3)
+    //     return distance_vals;
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_segment3_of, ObjT>)
+        distance_vals.push_back({"segment3", false});
+    else
+        distance_vals.push_back({"segment3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_line3_of, ObjT>)
+        distance_vals.push_back({"line3", false});
+    else
+        distance_vals.push_back({"line3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_box3_of, ObjT>)
+        distance_vals.push_back({"box3", false});
+    else
+        distance_vals.push_back({"box3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_sphere3_of, ObjT>)
+        distance_vals.push_back({"sphere3", false});
+    else
+        distance_vals.push_back({"sphere3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_aabb3_of, ObjT>)
+        distance_vals.push_back({"aabb3", false});
+    else
+        distance_vals.push_back({"aabb3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_capsule3_of, ObjT>)
+        distance_vals.push_back({"capsule3", false});
+    else
+        distance_vals.push_back({"capsule3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_cone3_of, ObjT>)
+        distance_vals.push_back({"cone3", false});
+    else
+        distance_vals.push_back({"cone3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_cylinder3_of, ObjT>)
+        distance_vals.push_back({"cylinder3", false});
+    else
+        distance_vals.push_back({"cylinder3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_ellipse3_of, ObjT>)
+        distance_vals.push_back({"ellipse3", false});
+    else
+        distance_vals.push_back({"ellipse3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_halfspace3_of, ObjT>)
+        distance_vals.push_back({"halfspace3", false});
+    else
+        distance_vals.push_back({"halfspace3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_hemisphere3_of, ObjT>)
+        distance_vals.push_back({"hemisphere3", false});
+    else
+        distance_vals.push_back({"hemisphere3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_triangle3_of, ObjT>)
+        distance_vals.push_back({"triangle3", false});
+    else
+        distance_vals.push_back({"triangle3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_plane3_of, ObjT>)
+        distance_vals.push_back({"plane3", false});
+    else
+        distance_vals.push_back({"plane3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_tube3_of, ObjT>)
+        distance_vals.push_back({"tube3", false});
+    else
+        distance_vals.push_back({"tube3", true});
+
+    if constexpr (domainD == 3 && !tg::can_apply<try_distance_sphere2in3_of, ObjT>)
+        distance_vals.push_back({"sphere2in3", false});
+    else
+        distance_vals.push_back({"sphere2in3", true});
+
+    return distance_vals;
+}
+
 APP("ImplReport_LATEX")
 {
     // file generation
@@ -484,10 +621,10 @@ APP("ImplReport_LATEX")
     f << "\\usepackage[utf8]{inputenc}\n";
     f << "\\usepackage[table]{xcolor}\n";
     f << "\\usepackage{graphicx}\n";
+    f << "\\usepackage{multirow}\n";
     f << "\\usepackage{geometry}\n";
     f << "\\geometry{\n"
       << "a4paper,\n"
-      //<< "total={190mm, 257mm},\n"
       << "left=10mm,\n"
       << "right=10mm,\n"
       << "top=20mm,\n"
@@ -500,15 +637,26 @@ APP("ImplReport_LATEX")
     f << "\\setlength{\\arrayrulewidth}{0.5mm}\n";
     f << "\\renewcommand{\\arraystretch}{1.5}\n" << std::endl;
     f << "\\newcolumntype{s}{>{\\columncolor[HTML]{E6E6E6}} p{2cm}}\n" << std::endl;
+    f << "\\newcolumntype{e}{>{\\columncolor[HTML]{E6E6E6}} p{3cm}}\n" << std::endl;
     f << "\\newcommand{\\nondefCol}[1]{\\cellcolor[HTML]{FF3F16}}\n";
-    f << "\\newcommand{\\defCol}[1]{\\cellcolor[HTML]{97E26F}}\n" << std::endl;
+    f << "\\newcommand{\\defCol}[1]{\\cellcolor[HTML]{97E26F}}\n";
+    f << "\\newcommand{\\notplannedCol}[1]{\\cellcolor[HTML]{3B3B3B}}\n" << std::endl;
     f << "\\title{IMPL REPORT}\n";
-    // f << "\\date{\\today}\n";
     f << "\\begin{document}\n" << std::endl;
-    // f << "\\maketitle" << std::endl;
     f.close();
 
     // test tables
+
+    // legend
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    f << "\\begin{tabular}{|e|e|e|} \\hline \n";
+    f << "\\cellcolor[HTML]{E6E6E6} DEFINED & \\cellcolor[HTML]{E6E6E6} UNDEFINED & \\cellcolor[HTML]{E6E6E6} SHOULD NOT \\\\ \n";
+    f << "\\defCol{} & \\nondefCol{} & \\notplannedCol{} \\\\ \\hline \n";
+    f << "\\end{tabular}" << std::endl;
+    f << "\\vspace{1.5cm} \n" << std::endl;
+
+    f.close();
+
 
     // TABLE intersects 3D
 
@@ -587,7 +735,7 @@ APP("ImplReport_LATEX")
     f.open("impl_report.tex", std::ios::out | std::ios::app);
     f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
 
-    for (auto i = 0; i < segment3intersects.size(); i++)
+    for (auto i = 0; i < int(segment3intersects.size()); i++)
         f << "p{" << cell_width_str << "\\linewidth}|";
 
     f << "} \\hline" << std::endl;
@@ -621,15 +769,169 @@ APP("ImplReport_LATEX")
 
     // end of TABLE
     f << "\\end{tabular}" << std::endl;
+    f << "\\newline" << std::endl;
+    f << "\\vspace{1.5cm} \n" << std::endl;
     f.close();
 
     // TABLE distance 3D
+    auto segment3distance = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
+    std::vector<std::pair<std::string, bool>>* distance_matrix{new std::vector<std::pair<std::string, bool>>[segment3distance.size()] {}};
 
+    auto const get_distance_data = [&](std::vector<std::pair<std::string, bool>>& distance_data, std::string class_name) -> void
+    {
+        if (class_name == "segment3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
+            return;
+        }
+        if (class_name == "line3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::line3>("line3");
+            return;
+        }
+        if (class_name == "box3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::box3>("box3");
+            return;
+        }
+
+        if (class_name == "sphere3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::sphere3>("sphere3");
+            return;
+        }
+
+        if (class_name == "aabb3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::aabb3>("aabb3");
+            return;
+        }
+
+        if (class_name == "capsule3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::capsule3>("capsule3");
+            return;
+        }
+
+        if (class_name == "cone3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::cone3>("cone3");
+            return;
+        }
+
+        if (class_name == "cylinder3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::cylinder3>("cylinder3");
+            return;
+        }
+
+        if (class_name == "ellipse3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::ellipse3>("ellipse3");
+            return;
+        }
+
+        if (class_name == "halfspace3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::halfspace3>("halfspace3");
+            return;
+        }
+
+        if (class_name == "hemisphere3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::hemisphere3>("hemisphere3");
+            return;
+        }
+
+        if (class_name == "triangle3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::triangle3>("triangle3");
+            return;
+        }
+
+        if (class_name == "plane3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::plane3>("plane3");
+            return;
+        }
+
+        if (class_name == "tube3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::tube3>("tube3");
+            return;
+        }
+
+        if (class_name == "sphere2in3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::sphere2in3>("sphere2in3");
+            return;
+        }
+
+        std::cout << "ERROR: " << class_name << std::endl;
+    };
+
+
+    int index_dist = 0;
+    for (auto& x : segment3distance)
+    {
+        get_distance_data(distance_matrix[index_dist], x.first);
+        index_dist++;
+    }
+
+    float cell_width_dist = 0.5f / (segment3distance.size() + 1);
+    std::string cell_width_str_dist = std::to_string(cell_width);
+
+    // write distance table
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    f << "\\begin{tabular}{|s|";
+
+    for (auto i = 0; i < int(segment3distance.size()); i++)
+        f << "p{" << cell_width_str_dist << "\\linewidth}|";
+
+    f << "} \\hline" << std::endl;
+
+    // header row
+    f << "\\cellcolor[HTML]{FF9D88} distance";
+
+    for (auto const& e : segment3distance)
+        f << "& \\cellcolor[HTML]{E6E6E6} "
+          << "\\rotatebox{90}{" << e.first << "}";
+
+    f << " \\\\ \\hline" << std::endl;
+
+    // data rows
+    for (auto i = 0; i < segment3distance.size(); i++)
+    {
+        auto data = distance_matrix[i];
+
+        f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
+
+        std::cout << data[0].first << std::endl;
+
+        for (auto d : data)
+        {
+            if (d.second)
+                f << "& \\defCol{} "; // true ";
+            else
+                f << "& \\nondefCol{} "; // false ";
+        }
+
+        f << "\\\\ \\hline" << std::endl;
+    }
+
+    // end of TABLE
+    f << "\\end{tabular}" << std::endl;
+    f << "\\vspace{1.5cm}" << std::endl;
+    f.close();
 
     // end
     f.open("impl_report.tex", std::ios::out | std::ios::app);
     f << "\\end{document}" << std::endl;
     f.close();
+
+
+    // compile
+    std::system("pdflatex impl_report.tex");
 }
 
 #endif
