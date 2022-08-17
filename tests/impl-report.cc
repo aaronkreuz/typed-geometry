@@ -70,6 +70,12 @@ template <class T>
 using try_closest_ray3_intersect_of = decltype(closest_intersection_parameter(tg::ray3(), std::declval<T const&>()));
 
 template <class T>
+using try_intersects_line3_of = decltype(intersects(std::declval<T const&>(), tg::line3()));
+
+template <class T>
+using try_intersects_ray3_of = decltype(intersects(std::declval<T const&>(), tg::ray3()));
+
+template <class T>
 using try_intersects_aabb2_of = decltype(intersects(std::declval<T const&>(), tg::aabb2()));
 
 template <class T>
@@ -119,6 +125,9 @@ using try_solid_of = decltype(solid_of(std::declval<T const&>()));
 
 template <class T>
 using try_distance_line3_of = decltype(distance(std::declval<T const&>(), tg::line3()));
+
+template <class T>
+using try_distance_ray3_of = decltype(distance(std::declval<T const&>(), tg::ray3()));
 
 template <class T>
 using try_distance_segment3_of = decltype(distance(std::declval<T const&>(), tg::segment3()));
@@ -277,6 +286,7 @@ void test_single_object_type(std::string name)
     {
         if constexpr (domainD == 2 && !tg::can_apply<try_closest_ray2_intersect_of, ObjT>)
             std::cerr << "no closest_intersection_parameter(tg::ray2, tg::" << name << ")" << std::endl;
+
         if constexpr (domainD == 3 && !tg::can_apply<try_closest_ray3_intersect_of, ObjT>)
             std::cerr << "no closest_intersection_parameter(tg::ray3, tg::" << name << ")" << std::endl;
 
@@ -422,97 +432,93 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_intersects3D_t
 
     std::vector<std::pair<std::string, bool>> intersect_vals;
 
-    if constexpr (domainD == 3)
-    {
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_segment3_of, ObjT>)
-            intersect_vals.push_back({"segment3", false});
-        else
-            intersect_vals.push_back({"segment3", true});
+    if constexpr (domainD != 3)
+        return intersect_vals;
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_box3_of, ObjT>)
-            intersect_vals.push_back({"box3", false});
-        else
-            intersect_vals.push_back({"box3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_segment3_of, ObjT>)
+        intersect_vals.push_back({"segment3", false});
+    else
+        intersect_vals.push_back({"segment3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_sphere3_of, ObjT>)
-            intersect_vals.push_back({"sphere3", false});
-        else
-            intersect_vals.push_back({"sphere3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_line3_of, ObjT>)
+        intersect_vals.push_back({"line3", false});
+    else
+        intersect_vals.push_back({"line3", true});
 
-        // if constexpr (domainD == 3 && !tg::can_apply<try_intersects_ray3_of, ObjT>)
-        //     intersect_vals.push_back({"ray3", false});
-        // else
-        //     intersect_vals.push_back({"ray3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_ray3_of, ObjT>)
+        intersect_vals.push_back({"ray3", false});
+    else
+        intersect_vals.push_back({"ray3", true});
 
-        // if constexpr (domainD == 3 && !tg::can_apply<try_intersects_line3_of, ObjT>)
-        //     intersect_vals.push_back({"line3", false});
-        // else
-        //     intersect_vals.push_back({"line3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_box3_of, ObjT>)
+        intersect_vals.push_back({"box3", false});
+    else
+        intersect_vals.push_back({"box3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_aabb3_of, ObjT>)
-            intersect_vals.push_back({"aabb3", false});
-        else
-            intersect_vals.push_back({"aabb3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_sphere3_of, ObjT>)
+        intersect_vals.push_back({"sphere3", false});
+    else
+        intersect_vals.push_back({"sphere3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_capsule3_of, ObjT>)
-            intersect_vals.push_back({"capsule3", false});
-        else
-            intersect_vals.push_back({"capsule3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_aabb3_of, ObjT>)
+        intersect_vals.push_back({"aabb3", false});
+    else
+        intersect_vals.push_back({"aabb3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_cone3_of, ObjT>)
-            intersect_vals.push_back({"cone3", false});
-        else
-            intersect_vals.push_back({"cone3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_capsule3_of, ObjT>)
+        intersect_vals.push_back({"capsule3", false});
+    else
+        intersect_vals.push_back({"capsule3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_cylinder3_of, ObjT>)
-            intersect_vals.push_back({"cylinder3", false});
-        else
-            intersect_vals.push_back({"cylinder3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_cone3_of, ObjT>)
+        intersect_vals.push_back({"cone3", false});
+    else
+        intersect_vals.push_back({"cone3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_ellipse3_of, ObjT>)
-            intersect_vals.push_back({"ellipse3", false});
-        else
-            intersect_vals.push_back({"ellipse3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_cylinder3_of, ObjT>)
+        intersect_vals.push_back({"cylinder3", false});
+    else
+        intersect_vals.push_back({"cylinder3", true});
 
-        if constexpr (!tg::can_apply<try_intersects_halfspace3_of, ObjT>)
-            intersect_vals.push_back({"halfspace3", false});
-        else
-            intersect_vals.push_back({"halfspace3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_ellipse3_of, ObjT>)
+        intersect_vals.push_back({"ellipse3", false});
+    else
+        intersect_vals.push_back({"ellipse3", true});
 
-        if constexpr (!tg::can_apply<try_intersects_hemisphere3_of, ObjT>)
-            intersect_vals.push_back({"hemisphere3", false});
-        else
-            intersect_vals.push_back({"hemisphere3", true});
+    if constexpr (!tg::can_apply<try_intersects_halfspace3_of, ObjT>)
+        intersect_vals.push_back({"halfspace3", false});
+    else
+        intersect_vals.push_back({"halfspace3", true});
 
-        if constexpr (!tg::can_apply<try_intersects_triangle3_of, ObjT>)
-            intersect_vals.push_back({"triangle3", false});
-        else
-            intersect_vals.push_back({"triangle3", true});
+    if constexpr (!tg::can_apply<try_intersects_hemisphere3_of, ObjT>)
+        intersect_vals.push_back({"hemisphere3", false});
+    else
+        intersect_vals.push_back({"hemisphere3", true});
 
-        if constexpr (!tg::can_apply<try_intersects_plane3_of, ObjT>)
-            intersect_vals.push_back({"plane3", false});
-        else
-            intersect_vals.push_back({"plane3", true});
+    if constexpr (!tg::can_apply<try_intersects_triangle3_of, ObjT>)
+        intersect_vals.push_back({"triangle3", false});
+    else
+        intersect_vals.push_back({"triangle3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_tube3_of, ObjT>)
-            intersect_vals.push_back({"tube3", false});
-        else
-            intersect_vals.push_back({"tube3", true});
+    if constexpr (!tg::can_apply<try_intersects_plane3_of, ObjT>)
+        intersect_vals.push_back({"plane3", false});
+    else
+        intersect_vals.push_back({"plane3", true});
 
-        if constexpr (domainD == 3 && !tg::can_apply<try_intersects_sphere2in3_of, ObjT>)
-            intersect_vals.push_back({"sphere2in3", false});
-        else
-            intersect_vals.push_back({"sphere2in3", true});
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_tube3_of, ObjT>)
+        intersect_vals.push_back({"tube3", false});
+    else
+        intersect_vals.push_back({"tube3", true});
 
-        // if constexpr (domainD == 3 && !tg::can_apply<try_intersects_inf_cylinder3_of, ObjT>)
-        //     intersect_vals.push_back({"inf_cylinder3", false});
-        // else
-        //     intersect_vals.push_back({"inf_cylinder3", true});
-    }
+    if constexpr (domainD == 3 && !tg::can_apply<try_intersects_sphere2in3_of, ObjT>)
+        intersect_vals.push_back({"sphere2in3", false});
+    else
+        intersect_vals.push_back({"sphere2in3", true});
 
-    else // TODO 2D -> in different function?
-    {
-    }
+    // if constexpr (domainD == 3 && !tg::can_apply<try_intersects_inf_cylinder3_of, ObjT>)
+    //     intersect_vals.push_back({"inf_cylinder3", false});
+    // else
+    //     intersect_vals.push_back({"inf_cylinder3", true});
 
 
     return intersect_vals;
@@ -526,80 +532,85 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_distance3D_tex
 
     std::vector<std::pair<std::string, bool>> distance_vals;
 
-    // if constexpr (domainD != 3)
-    //     return distance_vals;
+    if constexpr (domainD != 3)
+        return distance_vals;
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_segment3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_segment3_of, ObjT>)
         distance_vals.push_back({"segment3", false});
     else
         distance_vals.push_back({"segment3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_line3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_line3_of, ObjT>)
         distance_vals.push_back({"line3", false});
     else
         distance_vals.push_back({"line3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_box3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_ray3_of, ObjT>)
+        distance_vals.push_back({"ray3", false});
+    else
+        distance_vals.push_back({"ray3", true});
+
+    if constexpr (!tg::can_apply<try_distance_box3_of, ObjT>)
         distance_vals.push_back({"box3", false});
     else
         distance_vals.push_back({"box3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_sphere3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_sphere3_of, ObjT>)
         distance_vals.push_back({"sphere3", false});
     else
         distance_vals.push_back({"sphere3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_aabb3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_aabb3_of, ObjT>)
         distance_vals.push_back({"aabb3", false});
     else
         distance_vals.push_back({"aabb3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_capsule3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_capsule3_of, ObjT>)
         distance_vals.push_back({"capsule3", false});
     else
         distance_vals.push_back({"capsule3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_cone3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_cone3_of, ObjT>)
         distance_vals.push_back({"cone3", false});
     else
         distance_vals.push_back({"cone3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_cylinder3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_cylinder3_of, ObjT>)
         distance_vals.push_back({"cylinder3", false});
     else
         distance_vals.push_back({"cylinder3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_ellipse3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_ellipse3_of, ObjT>)
         distance_vals.push_back({"ellipse3", false});
     else
         distance_vals.push_back({"ellipse3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_halfspace3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_halfspace3_of, ObjT>)
         distance_vals.push_back({"halfspace3", false});
     else
         distance_vals.push_back({"halfspace3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_hemisphere3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_hemisphere3_of, ObjT>)
         distance_vals.push_back({"hemisphere3", false});
     else
         distance_vals.push_back({"hemisphere3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_triangle3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_triangle3_of, ObjT>)
         distance_vals.push_back({"triangle3", false});
     else
         distance_vals.push_back({"triangle3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_plane3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_plane3_of, ObjT>)
         distance_vals.push_back({"plane3", false});
     else
         distance_vals.push_back({"plane3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_tube3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_tube3_of, ObjT>)
         distance_vals.push_back({"tube3", false});
     else
         distance_vals.push_back({"tube3", true});
 
-    if constexpr (domainD == 3 && !tg::can_apply<try_distance_sphere2in3_of, ObjT>)
+    if constexpr (!tg::can_apply<try_distance_sphere2in3_of, ObjT>)
         distance_vals.push_back({"sphere2in3", false});
     else
         distance_vals.push_back({"sphere2in3", true});
@@ -609,6 +620,49 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_distance3D_tex
 
 APP("ImplReport_LATEX")
 {
+    // TODO: outsource into JSON file? -> Ask Julius
+    // WARNING: should_not_implement_X must match Layout (i.e. order) of "test_single_object_type_distance3D_tex"
+    // true -> pair should not be implemented, must be defined both ways.
+    bool** should_not_implement_intersects;
+    should_not_implement_intersects = new bool*[16];
+    should_not_implement_intersects[0] = new bool[16]{/*segment3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[1] = new bool[16]{/*line3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[2] = new bool[16]{/*ray3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[3] = new bool[16]{/*box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[4] = new bool[16]{/*sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[5] = new bool[16]{/*aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[6] = new bool[16]{/*capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[7] = new bool[16]{/*cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[8] = new bool[16]{/*cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[9] = new bool[16]{/*ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[10] = new bool[16]{/*halfspace3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[11] = new bool[16]{/*hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[12] = new bool[16]{/*triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[13] = new bool[16]{/*plane3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[14] = new bool[16]{/*tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_intersects[15] = new bool[16]{/*sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+
+    // = {{/*segment3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*line3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*ray3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},       {/*box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*halfspace3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {/*hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*plane3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    //    {/*tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},      {/*sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    const bool should_not_implement_distance[16][16]
+        = {{/*1 segment3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*2 line3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0},
+           {/*3 ray3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},        {/*4 box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*5 sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},     {/*6 aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*7 capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*8 cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*9 cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*10 ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {/*12 hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*13 triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+           {/*15 tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},      {/*16 sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+
     // file generation
     std::ofstream("impl_report.tex");
     std::fstream f;
@@ -657,6 +711,54 @@ APP("ImplReport_LATEX")
 
     f.close();
 
+    // TODO: Lambda writing tabular based on arguments
+    auto const write_tabular = [&](std::vector<std::pair<std::string, bool>>* matrix, std::string cell_width, std::string tabular_name, bool** should_not_impl)
+    {
+        f.open("impl_report.tex", std::ios::out | std::ios::app);
+        f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
+
+        for (auto i = 0; i < int(matrix[0].size()); i++)
+            f << "p{" << cell_width << "\\linewidth}|";
+
+        f << "} \\hline" << std::endl;
+
+        // header row
+        f << "\\cellcolor[HTML]{FF9D88} " << tabular_name;
+
+        for (auto const& e : matrix[0])
+            f << "& \\cellcolor[HTML]{E6E6E6} "
+              << "\\rotatebox{90}{" << e.first << "}";
+
+        f << " \\\\ \\hline" << std::endl;
+
+        // data rows
+        for (auto i = 0; i < int(matrix[0].size()); i++)
+        {
+            auto data = matrix[i];
+
+            f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
+
+            auto row_it = 0;
+            for (auto d : data)
+            {
+                if (d.second)
+                    f << "& \\defCol{} ";
+                else if (!d.second && should_not_impl[i][row_it])
+                    f << "& \\notplannedCol{} ";
+                else
+                    f << "& \\nondefCol{} ";
+                row_it++;
+            }
+
+            f << "\\\\ \\hline" << std::endl;
+        }
+
+        // end of TABLE
+        f << "\\end{tabular}" << std::endl;
+        f << "\\newline" << std::endl;
+        f << "\\vspace{1.5cm} \n" << std::endl;
+        f.close();
+    };
 
     // TABLE intersects 3D
 
@@ -731,47 +833,54 @@ APP("ImplReport_LATEX")
     float cell_width = 0.5f / (segment3intersects.size() + 1);
     std::string cell_width_str = std::to_string(cell_width);
 
+    // write tabular
+    write_tabular(intersects_matrix, cell_width_str, "intersects", should_not_implement_intersects);
+
     // write TABLE (tabular)
-    f.open("impl_report.tex", std::ios::out | std::ios::app);
-    f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
+    // f.open("impl_report.tex", std::ios::out | std::ios::app);
+    // f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
 
-    for (auto i = 0; i < int(segment3intersects.size()); i++)
-        f << "p{" << cell_width_str << "\\linewidth}|";
+    // for (auto i = 0; i < int(segment3intersects.size()); i++)
+    //     f << "p{" << cell_width_str << "\\linewidth}|";
 
-    f << "} \\hline" << std::endl;
+    // f << "} \\hline" << std::endl;
 
-    // header row
-    f << "\\cellcolor[HTML]{FF9D88} intersects";
+    //// header row
+    // f << "\\cellcolor[HTML]{FF9D88} intersects";
 
-    for (auto const& e : segment3intersects)
-        f << "& \\cellcolor[HTML]{E6E6E6} "
-          << "\\rotatebox{90}{" << e.first << "}";
+    // for (auto const& e : segment3intersects)
+    //     f << "& \\cellcolor[HTML]{E6E6E6} "
+    //       << "\\rotatebox{90}{" << e.first << "}";
 
-    f << " \\\\ \\hline" << std::endl;
+    // f << " \\\\ \\hline" << std::endl;
 
-    // data rows
-    for (auto i = 0; i < segment3intersects.size(); i++)
-    {
-        auto data = intersects_matrix[i];
+    //// data rows
+    // for (auto i = 0; i < segment3intersects.size(); i++)
+    //{
+    //     auto data = intersects_matrix[i];
 
-        f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
+    //    f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
 
-        for (auto d : data)
-        {
-            if (d.second)
-                f << "& \\defCol{} "; // true ";
-            else
-                f << "& \\nondefCol{} "; // false ";
-        }
+    //    auto row_it = 0;
+    //    for (auto d : data)
+    //    {
+    //        if (d.second)
+    //            f << "& \\defCol{} ";
+    //        else if (!d.second && should_not_implement_intersects[i][row_it])
+    //            f << "& \\notplannedCol{} ";
+    //        else
+    //            f << "& \\nondefCol{} ";
+    //        row_it++;
+    //    }
 
-        f << "\\\\ \\hline" << std::endl;
-    }
+    //    f << "\\\\ \\hline" << std::endl;
+    //}
 
-    // end of TABLE
-    f << "\\end{tabular}" << std::endl;
-    f << "\\newline" << std::endl;
-    f << "\\vspace{1.5cm} \n" << std::endl;
-    f.close();
+    //// end of TABLE
+    // f << "\\end{tabular}" << std::endl;
+    // f << "\\newline" << std::endl;
+    // f << "\\vspace{1.5cm} \n" << std::endl;
+    // f.close();
 
     // TABLE distance 3D
     auto segment3distance = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
@@ -787,6 +896,11 @@ APP("ImplReport_LATEX")
         if (class_name == "line3")
         {
             distance_data = test_single_object_type_distance3D_tex<tg::line3>("line3");
+            return;
+        }
+        if (class_name == "ray3")
+        {
+            distance_data = test_single_object_type_distance3D_tex<tg::line3>("ray3");
             return;
         }
         if (class_name == "box3")
@@ -870,7 +984,6 @@ APP("ImplReport_LATEX")
         std::cout << "ERROR: " << class_name << std::endl;
     };
 
-
     int index_dist = 0;
     for (auto& x : segment3distance)
     {
@@ -879,7 +992,10 @@ APP("ImplReport_LATEX")
     }
 
     float cell_width_dist = 0.5f / (segment3distance.size() + 1);
-    std::string cell_width_str_dist = std::to_string(cell_width);
+    std::string cell_width_str_dist = std::to_string(cell_width_dist);
+
+    // TODO write distance table
+    // write_tabular(distance_matrix, cell_width_str_dist, "distance", should_not_implement_distance);
 
     // write distance table
     f.open("impl_report.tex", std::ios::out | std::ios::app);
@@ -906,14 +1022,17 @@ APP("ImplReport_LATEX")
 
         f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
 
-        std::cout << data[0].first << std::endl;
-
+        auto row_it = 0;
         for (auto d : data)
         {
             if (d.second)
-                f << "& \\defCol{} "; // true ";
+                f << "& \\defCol{} ";
+            else if (!d.second && should_not_implement_distance[i][row_it])
+                f << "& \\notplannedCol{} ";
             else
-                f << "& \\nondefCol{} "; // false ";
+                f << "& \\nondefCol{} ";
+
+            row_it++;
         }
 
         f << "\\\\ \\hline" << std::endl;
