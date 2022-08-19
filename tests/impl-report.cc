@@ -634,11 +634,38 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_intersects2D_t
     std::vector<std::pair<std::string, bool>> intersects_vals;
 
     // CHECK for domains
+    if constexpr (domainD != 2 && objectD != 2)
+        return intersects_vals;
 
     if constexpr (!tg::can_apply<try_intersects, ObjT, tg::segment2>)
         intersects_vals.push_back({"segment2", false});
     else
         intersects_vals.push_back({"segment2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::ray2>)
+        intersects_vals.push_back({"ray2", false});
+    else
+        intersects_vals.push_back({"ray2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::line2>)
+        intersects_vals.push_back({"line2", false});
+    else
+        intersects_vals.push_back({"line2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::circle2>)
+        intersects_vals.push_back({"circle2", false});
+    else
+        intersects_vals.push_back({"circle2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::box2>)
+        intersects_vals.push_back({"box2", false});
+    else
+        intersects_vals.push_back({"box2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::triangle2>)
+        intersects_vals.push_back({"triangle2", false});
+    else
+        intersects_vals.push_back({"triangle2", true});
 
     if constexpr (!tg::can_apply<try_intersects, ObjT, tg::aabb2>)
         intersects_vals.push_back({"aabb2", false});
@@ -654,10 +681,10 @@ APP("ImplReport_LATEX")
     // WARNING: should_not_implement_X must match Layout (i.e. order) of "test_single_object_type_distance3D_tex"
 
     // true -> pair should not be implemented, must be defined both ways.
+    // Initially all pair should be implementable -> init with 0
 
     // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
     // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
-    // Initially all pair should be implementable -> init with 0
     bool** should_not_implement_intersects = new bool*[16];
     for (auto i = 0; i < 16; i++)
         should_not_implement_intersects[i] = new bool[16]{0};
@@ -669,7 +696,6 @@ APP("ImplReport_LATEX")
 
     // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
     // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
-    // Initially all pair should be implementable -> init with 0
     bool** should_not_implement_distance = new bool*[16];
     for (auto i = 0; i < 16; i++)
         should_not_implement_distance[i] = new bool[16]{0};
@@ -679,9 +705,10 @@ APP("ImplReport_LATEX")
     should_not_implement_distance[10] = new bool[16]{/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     should_not_implement_distance[13] = new bool[16]{/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    bool** should_not_implement_intersects2D = new bool*[2];
-    for (auto i = 0; i < 2; i++)
-        should_not_implement_intersects2D[i] = new bool[2]{0};
+    // Format of should_not_implement_intersects2D: {0: segment2, 1: line2, 2: ray2, 3: aabb2, 4: circle2, 5: box2, 6: triangle2}
+    bool** should_not_implement_intersects2D = new bool*[7];
+    for (auto i = 0; i < 7; i++)
+        should_not_implement_intersects2D[i] = new bool[7]{0};
 
     // file generation
     std::ofstream("impl_report.tex");
@@ -710,7 +737,7 @@ APP("ImplReport_LATEX")
     f << "\\ihead{\\today}\n";
     f << "\\setlength{\\arrayrulewidth}{0.5mm}\n";
     f << "\\renewcommand{\\arraystretch}{1.5}\n" << std::endl;
-    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{E6E6E6}} p{2cm}}\n" << std::endl;
+    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{E6E6E6}} p{2.3cm}}\n" << std::endl;
     f << "\\newcolumntype{e}{>{\\columncolor[HTML]{E6E6E6}} p{3cm}}\n" << std::endl;
     f << "\\newcommand{\\nondefCol}[1]{\\cellcolor[HTML]{FF3F16}}\n";
     f << "\\newcommand{\\defCol}[1]{\\cellcolor[HTML]{97E26F}}\n";
@@ -983,15 +1010,25 @@ APP("ImplReport_LATEX")
     auto const get_intersect2D_data = [&](std::vector<std::pair<std::string, bool>>& intersects2D_data, std::string class_name) -> void
     {
         if (class_name == "segment2")
-        {
             intersects2D_data = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
-            return;
-        }
-        if (class_name == "aabb2")
-        {
+
+        else if (class_name == "line2")
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::line2>("line2");
+
+        else if (class_name == "ray2")
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::ray2>("ray2");
+
+        else if (class_name == "aabb2")
             intersects2D_data = test_single_object_type_intersects2D_tex<tg::aabb2>("aabb2");
-            return;
-        }
+
+        else if (class_name == "circle2")
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::circle2>("circle2");
+
+        else if (class_name == "box2")
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::box2>("box2");
+
+        else if (class_name == "triangle2")
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::triangle2>("triangle2");
 
         return;
     };
