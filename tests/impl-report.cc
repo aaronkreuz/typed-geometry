@@ -63,6 +63,10 @@ using try_volume_of = decltype(volume_of(std::declval<T const&>()));
 template <class T>
 using try_perimeter_of = decltype(perimeter_of(std::declval<T const&>()));
 
+// TEST: Double template -> Does not work?
+template <class T, class F>
+using try_intersects = decltype(intersects(std::declval<T const&>(), std::declval<F const&>()));
+
 template <class T>
 using try_closest_ray2_intersect_of = decltype(closest_intersection_parameter(tg::ray2(), std::declval<T const&>()));
 
@@ -74,6 +78,9 @@ using try_intersects_line3_of = decltype(intersects(std::declval<T const&>(), tg
 
 template <class T>
 using try_intersects_ray3_of = decltype(intersects(std::declval<T const&>(), tg::ray3()));
+
+template <class T>
+using try_intersects_segment2_of = decltype(intersects(std::declval<T const&>(), tg::aabb2()));
 
 template <class T>
 using try_intersects_aabb2_of = decltype(intersects(std::declval<T const&>(), tg::aabb2()));
@@ -618,50 +625,63 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_distance3D_tex
     return distance_vals;
 }
 
+template <class ObjT>
+std::vector<std::pair<std::string, bool>> test_single_object_type_intersects2D_tex(std::string name)
+{
+    static auto constexpr domainD = tg::object_traits<ObjT>::domain_dimension;
+    static auto constexpr objectD = tg::object_traits<ObjT>::object_dimension;
+
+    std::vector<std::pair<std::string, bool>> intersects_vals;
+
+    // CHECK for domains
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::segment2>)
+        intersects_vals.push_back({"segment2", false});
+    else
+        intersects_vals.push_back({"segment2", true});
+
+    if constexpr (!tg::can_apply<try_intersects, ObjT, tg::aabb2>)
+        intersects_vals.push_back({"aabb2", false});
+    else
+        intersects_vals.push_back({"aabb2", true});
+
+    return intersects_vals;
+}
+
 APP("ImplReport_LATEX")
 {
     // TODO: outsource into JSON file? -> Ask Julius
     // WARNING: should_not_implement_X must match Layout (i.e. order) of "test_single_object_type_distance3D_tex"
+
     // true -> pair should not be implemented, must be defined both ways.
-    bool** should_not_implement_intersects;
-    should_not_implement_intersects = new bool*[16];
+
+    // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
+    // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
+    // Initially all pair should be implementable -> init with 0
+    bool** should_not_implement_intersects = new bool*[16];
+    for (auto i = 0; i < 16; i++)
+        should_not_implement_intersects[i] = new bool[16]{0};
+
+    // Overwrites
     should_not_implement_intersects[0] = new bool[16]{/*segment3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     should_not_implement_intersects[1] = new bool[16]{/*line3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     should_not_implement_intersects[2] = new bool[16]{/*ray3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[3] = new bool[16]{/*box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[4] = new bool[16]{/*sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[5] = new bool[16]{/*aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[6] = new bool[16]{/*capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[7] = new bool[16]{/*cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[8] = new bool[16]{/*cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[9] = new bool[16]{/*ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[10] = new bool[16]{/*halfspace3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[11] = new bool[16]{/*hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[12] = new bool[16]{/*triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[13] = new bool[16]{/*plane3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[14] = new bool[16]{/*tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[15] = new bool[16]{/*sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+    // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
+    // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
+    // Initially all pair should be implementable -> init with 0
+    bool** should_not_implement_distance = new bool*[16];
+    for (auto i = 0; i < 16; i++)
+        should_not_implement_distance[i] = new bool[16]{0};
 
-    // = {{/*segment3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*line3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*ray3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},       {/*box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*halfspace3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {/*hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*plane3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    //    {/*tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},      {/*sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    // Overwrites
+    should_not_implement_distance[1] = new bool[16]{/*2 line3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0};
+    should_not_implement_distance[10] = new bool[16]{/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    should_not_implement_distance[13] = new bool[16]{/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    const bool should_not_implement_distance[16][16]
-        = {{/*1 segment3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*2 line3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0},
-           {/*3 ray3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},        {/*4 box3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*5 sphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},     {/*6 aabb3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*7 capsule3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    {/*8 cone3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*9 cylinder3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   {/*10 ellipse3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {/*12 hemisphere3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*13 triangle3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  {/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-           {/*15 tube3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},      {/*16 sphere2in3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-
+    bool** should_not_implement_intersects2D = new bool*[2];
+    for (auto i = 0; i < 2; i++)
+        should_not_implement_intersects2D[i] = new bool[2]{0};
 
     // file generation
     std::ofstream("impl_report.tex");
@@ -711,14 +731,14 @@ APP("ImplReport_LATEX")
 
     f.close();
 
-    // TODO: Lambda writing tabular based on arguments
-    auto const write_tabular = [&](std::vector<std::pair<std::string, bool>>* matrix, std::string cell_width, std::string tabular_name, bool** should_not_impl)
+    // Func writing tabular based on arguments
+    auto const write_tabular = [&](std::vector<std::pair<std::string, bool>>* matrix, float cell_width, std::string tabular_name, bool** should_not_impl)
     {
         f.open("impl_report.tex", std::ios::out | std::ios::app);
         f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
 
         for (auto i = 0; i < int(matrix[0].size()); i++)
-            f << "p{" << cell_width << "\\linewidth}|";
+            f << "p{" << std::to_string(cell_width) << "\\linewidth}|";
 
         f << "} \\hline" << std::endl;
 
@@ -726,20 +746,25 @@ APP("ImplReport_LATEX")
         f << "\\cellcolor[HTML]{FF9D88} " << tabular_name;
 
         for (auto const& e : matrix[0])
-            f << "& \\cellcolor[HTML]{E6E6E6} "
-              << "\\rotatebox{90}{" << e.first << "}";
+        {
+            if (cell_width > 0.15)
+                f << "& \\cellcolor[HTML]{E6E6E6} " << e.first;
 
+            else
+                f << "& \\cellcolor[HTML]{E6E6E6} "
+                  << "\\rotatebox{90}{" << e.first << "}";
+        }
         f << " \\\\ \\hline" << std::endl;
 
         // data rows
         for (auto i = 0; i < int(matrix[0].size()); i++)
         {
-            auto data = matrix[i];
+            auto& data = matrix[i];
 
             f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
 
             auto row_it = 0;
-            for (auto d : data)
+            for (auto& d : data)
             {
                 if (d.second)
                     f << "& \\defCol{} ";
@@ -826,61 +851,15 @@ APP("ImplReport_LATEX")
     for (auto& x : segment3intersects)
     {
         // fill up intersects matrix
-        get_intersect_data(intersects_matrix[index], x.first);
-        index++;
+        get_intersect_data(intersects_matrix[index++], x.first);
     }
 
     float cell_width = 0.5f / (segment3intersects.size() + 1);
     std::string cell_width_str = std::to_string(cell_width);
 
-    // write tabular
-    write_tabular(intersects_matrix, cell_width_str, "intersects", should_not_implement_intersects);
+    // write tabular intersects 3D
+    write_tabular(intersects_matrix, cell_width, "intersects 3D", should_not_implement_intersects);
 
-    // write TABLE (tabular)
-    // f.open("impl_report.tex", std::ios::out | std::ios::app);
-    // f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
-
-    // for (auto i = 0; i < int(segment3intersects.size()); i++)
-    //     f << "p{" << cell_width_str << "\\linewidth}|";
-
-    // f << "} \\hline" << std::endl;
-
-    //// header row
-    // f << "\\cellcolor[HTML]{FF9D88} intersects";
-
-    // for (auto const& e : segment3intersects)
-    //     f << "& \\cellcolor[HTML]{E6E6E6} "
-    //       << "\\rotatebox{90}{" << e.first << "}";
-
-    // f << " \\\\ \\hline" << std::endl;
-
-    //// data rows
-    // for (auto i = 0; i < segment3intersects.size(); i++)
-    //{
-    //     auto data = intersects_matrix[i];
-
-    //    f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
-
-    //    auto row_it = 0;
-    //    for (auto d : data)
-    //    {
-    //        if (d.second)
-    //            f << "& \\defCol{} ";
-    //        else if (!d.second && should_not_implement_intersects[i][row_it])
-    //            f << "& \\notplannedCol{} ";
-    //        else
-    //            f << "& \\nondefCol{} ";
-    //        row_it++;
-    //    }
-
-    //    f << "\\\\ \\hline" << std::endl;
-    //}
-
-    //// end of TABLE
-    // f << "\\end{tabular}" << std::endl;
-    // f << "\\newline" << std::endl;
-    // f << "\\vspace{1.5cm} \n" << std::endl;
-    // f.close();
 
     // TABLE distance 3D
     auto segment3distance = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
@@ -987,61 +966,47 @@ APP("ImplReport_LATEX")
     int index_dist = 0;
     for (auto& x : segment3distance)
     {
-        get_distance_data(distance_matrix[index_dist], x.first);
-        index_dist++;
+        get_distance_data(distance_matrix[index_dist++], x.first);
     }
 
     float cell_width_dist = 0.5f / (segment3distance.size() + 1);
     std::string cell_width_str_dist = std::to_string(cell_width_dist);
 
-    // TODO write distance table
-    // write_tabular(distance_matrix, cell_width_str_dist, "distance", should_not_implement_distance);
+    // write tabular distance 3D
+    write_tabular(distance_matrix, cell_width_dist, "distance", should_not_implement_distance);
 
-    // write distance table
-    f.open("impl_report.tex", std::ios::out | std::ios::app);
-    f << "\\begin{tabular}{|s|";
+    // TABLE intersects 2D
+    auto segment2intersects = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
 
-    for (auto i = 0; i < int(segment3distance.size()); i++)
-        f << "p{" << cell_width_str_dist << "\\linewidth}|";
+    std::vector<std::pair<std::string, bool>>* intersects2D_matrix{new std::vector<std::pair<std::string, bool>>[segment2intersects.size()] {}};
 
-    f << "} \\hline" << std::endl;
-
-    // header row
-    f << "\\cellcolor[HTML]{FF9D88} distance";
-
-    for (auto const& e : segment3distance)
-        f << "& \\cellcolor[HTML]{E6E6E6} "
-          << "\\rotatebox{90}{" << e.first << "}";
-
-    f << " \\\\ \\hline" << std::endl;
-
-    // data rows
-    for (auto i = 0; i < segment3distance.size(); i++)
+    auto const get_intersect2D_data = [&](std::vector<std::pair<std::string, bool>>& intersects2D_data, std::string class_name) -> void
     {
-        auto data = distance_matrix[i];
-
-        f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
-
-        auto row_it = 0;
-        for (auto d : data)
+        if (class_name == "segment2")
         {
-            if (d.second)
-                f << "& \\defCol{} ";
-            else if (!d.second && should_not_implement_distance[i][row_it])
-                f << "& \\notplannedCol{} ";
-            else
-                f << "& \\nondefCol{} ";
-
-            row_it++;
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
+            return;
+        }
+        if (class_name == "aabb2")
+        {
+            intersects2D_data = test_single_object_type_intersects2D_tex<tg::aabb2>("aabb2");
+            return;
         }
 
-        f << "\\\\ \\hline" << std::endl;
+        return;
+    };
+
+    auto index_intersects2D = 0;
+    for (auto& x : segment2intersects)
+    {
+        get_intersect2D_data(intersects2D_matrix[index_intersects2D++], x.first);
     }
 
-    // end of TABLE
-    f << "\\end{tabular}" << std::endl;
-    f << "\\vspace{1.5cm}" << std::endl;
-    f.close();
+    float cell_width_intersects2D = 0.5f / (segment2intersects.size() + 1);
+    std::string cell_width_str_intersects2D = std::to_string(cell_width_intersects2D);
+
+    // write tabular intersects 2D
+    write_tabular(intersects2D_matrix, cell_width_intersects2D, "intersects 2D", should_not_implement_intersects2D);
 
     // end
     f.open("impl_report.tex", std::ios::out | std::ios::app);
