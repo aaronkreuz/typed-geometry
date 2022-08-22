@@ -191,6 +191,48 @@ template <class ScalarT>
     return distance(bb, t);
 }
 
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<3, ScalarT> const& s, triangle<3, ScalarT> const& t)
+{
+    if (intersects(s, t))
+        return fractional_result<ScalarT>(0);
+
+    auto d = tg::max<ScalarT>();
+
+    for (auto v : vertices_of(t))
+        d = min(d, distance(v, s));
+
+    for (auto e : edges_of(t))
+        d = min(d, distance(e, s));
+
+    return d;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(triangle<3, ScalarT> const& t, segment<3, ScalarT> const& s)
+{
+    return distance(s, t);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(line<3, ScalarT> const& l, triangle<3, ScalarT> const& t)
+{
+    if (intersects(l, t))
+        return fractional_result<ScalarT>(0);
+
+    auto d = tg::max<ScalarT>();
+
+    for (auto v : vertices_of(t))
+        d = min(d, distance(v, l));
+
+    return d;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(triangle<3, ScalarT> const& t, line<3, ScalarT> const& l)
+{
+    return distance(l, t);
+}
 
 // =========== Other Implementations ===========
 
