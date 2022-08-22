@@ -1126,7 +1126,7 @@ APP("ImplReport_LATEX")
         }
         if (class_name == "ray3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::line3>("ray3");
+            distance_data = test_single_object_type_distance3D_tex<tg::ray3>("ray3");
             return;
         }
         if (class_name == "box3")
