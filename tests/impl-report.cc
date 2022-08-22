@@ -63,7 +63,7 @@ using try_volume_of = decltype(volume_of(std::declval<T const&>()));
 template <class T>
 using try_perimeter_of = decltype(perimeter_of(std::declval<T const&>()));
 
-// TEST: Double template -> Does not work?
+// TEST: Double template
 template <class T, class F>
 using try_intersects = decltype(intersects(std::declval<T const&>(), std::declval<F const&>()));
 
@@ -180,6 +180,10 @@ using try_distance_tube3_of = decltype(distance(std::declval<T const&>(), tg::tu
 
 template <class T>
 using try_distance_sphere2in3_of = decltype(distance(std::declval<T const&>(), tg::sphere2in3()));
+
+// Can I do it like this?
+template <class T, class F>
+using try_distance_sqr = decltype(distance_sqr(std::declval<T const&>(), std::declval<F const&>()));
 
 template <class ObjT>
 void test_single_object_type(std::string name)
@@ -675,6 +679,100 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_intersects2D_t
     return intersects_vals;
 }
 
+template <class ObjT>
+std::vector<std::pair<std::string, bool>> test_single_object_type_distance_sqr3D_tex(std::string name)
+{
+    static auto constexpr domainD = tg::object_traits<ObjT>::domain_dimension;
+    static auto constexpr objectD = tg::object_traits<ObjT>::object_dimension;
+
+    std::vector<std::pair<std::string, bool>> distance_sqr_vals;
+
+    if constexpr (domainD != 3)
+        return distance_sqr_vals;
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::segment3>)
+        distance_sqr_vals.push_back({"segment3", false});
+    else
+        distance_sqr_vals.push_back({"segment3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::line3>)
+        distance_sqr_vals.push_back({"line3", false});
+    else
+        distance_sqr_vals.push_back({"line3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::ray3>)
+        distance_sqr_vals.push_back({"ray3", false});
+    else
+        distance_sqr_vals.push_back({"ray3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::box3>)
+        distance_sqr_vals.push_back({"box3", false});
+    else
+        distance_sqr_vals.push_back({"box3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::sphere3>)
+        distance_sqr_vals.push_back({"sphere3", false});
+    else
+        distance_sqr_vals.push_back({"sphere3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::aabb3>)
+        distance_sqr_vals.push_back({"aabb3", false});
+    else
+        distance_sqr_vals.push_back({"aabb3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::capsule3>)
+        distance_sqr_vals.push_back({"capsule3", false});
+    else
+        distance_sqr_vals.push_back({"capsule3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::cone3>)
+        distance_sqr_vals.push_back({"cone3", false});
+    else
+        distance_sqr_vals.push_back({"cone3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::cylinder3>)
+        distance_sqr_vals.push_back({"cylinder3", false});
+    else
+        distance_sqr_vals.push_back({"cylinder3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::ellipse3>)
+        distance_sqr_vals.push_back({"ellipse3", false});
+    else
+        distance_sqr_vals.push_back({"ellipse3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::halfspace3>)
+        distance_sqr_vals.push_back({"halfspace3", false});
+    else
+        distance_sqr_vals.push_back({"halfspace3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::hemisphere3>)
+        distance_sqr_vals.push_back({"hemisphere3", false});
+    else
+        distance_sqr_vals.push_back({"hemisphere3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::triangle3>)
+        distance_sqr_vals.push_back({"triangle3", false});
+    else
+        distance_sqr_vals.push_back({"triangle3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::plane3>)
+        distance_sqr_vals.push_back({"plane3", false});
+    else
+        distance_sqr_vals.push_back({"plane3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::tube3>)
+        distance_sqr_vals.push_back({"tube3", false});
+    else
+        distance_sqr_vals.push_back({"tube3", true});
+
+    if constexpr (!tg::can_apply<try_distance_sqr, ObjT, tg::sphere2in3>)
+        distance_sqr_vals.push_back({"sphere2in3", false});
+    else
+        distance_sqr_vals.push_back({"sphere2in3", true});
+
+    return distance_sqr_vals;
+}
+
 APP("ImplReport_LATEX")
 {
     // TODO: outsource into JSON file? -> Ask Julius
@@ -704,6 +802,12 @@ APP("ImplReport_LATEX")
     should_not_implement_distance[1] = new bool[16]{/*2 line3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0};
     should_not_implement_distance[10] = new bool[16]{/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     should_not_implement_distance[13] = new bool[16]{/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    // Format of should_not_implement_distance_sqr: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8:
+    // cylinder3, 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
+    bool** should_not_implement_distance_sqr = new bool*[16];
+    for (auto i = 0; i < 16; i++)
+        should_not_implement_distance_sqr[i] = new bool[16]{0};
 
     // Format of should_not_implement_intersects2D: {0: segment2, 1: line2, 2: ray2, 3: aabb2, 4: circle2, 5: box2, 6: triangle2}
     bool** should_not_implement_intersects2D = new bool*[7];
@@ -811,6 +915,122 @@ APP("ImplReport_LATEX")
         f << "\\vspace{1.5cm} \n" << std::endl;
         f.close();
     };
+
+    // TABLE distance_sqr 3D
+
+    auto segment3distance_sqr = test_single_object_type_distance_sqr3D_tex<tg::segment3>("segment3");
+
+    std::vector<std::pair<std::string, bool>>* distance_sqr_matrix{new std::vector<std::pair<std::string, bool>>[segment3distance_sqr.size()] {}};
+
+    auto const get_distance_sqr_data = [&](std::vector<std::pair<std::string, bool>>& distance_sqr_data, std::string class_name) -> void
+    {
+        if (class_name == "segment3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::segment3>("segment3");
+            return;
+        }
+        if (class_name == "line3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::line3>("line3");
+            return;
+        }
+        if (class_name == "ray3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::line3>("ray3");
+            return;
+        }
+        if (class_name == "box3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::box3>("box3");
+            return;
+        }
+
+        if (class_name == "sphere3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::sphere3>("sphere3");
+            return;
+        }
+
+        if (class_name == "aabb3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::aabb3>("aabb3");
+            return;
+        }
+
+        if (class_name == "capsule3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::capsule3>("capsule3");
+            return;
+        }
+
+        if (class_name == "cone3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::cone3>("cone3");
+            return;
+        }
+
+        if (class_name == "cylinder3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::cylinder3>("cylinder3");
+            return;
+        }
+
+        if (class_name == "ellipse3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::ellipse3>("ellipse3");
+            return;
+        }
+
+        if (class_name == "halfspace3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::halfspace3>("halfspace3");
+            return;
+        }
+
+        if (class_name == "hemisphere3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::hemisphere3>("hemisphere3");
+            return;
+        }
+
+        if (class_name == "triangle3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::triangle3>("triangle3");
+            return;
+        }
+
+        if (class_name == "plane3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::plane3>("plane3");
+            return;
+        }
+
+        if (class_name == "tube3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::tube3>("tube3");
+            return;
+        }
+
+        if (class_name == "sphere2in3")
+        {
+            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::sphere2in3>("sphere2in3");
+            return;
+        }
+
+        std::cout << "ERROR: " << class_name << std::endl;
+    };
+
+    // fill up data matrix
+    int index_dist_sqr = 0;
+    for (auto x : segment3distance_sqr)
+        get_distance_sqr_data(distance_sqr_matrix[index_dist_sqr++], x.first);
+
+    float cell_width_dist_sqr = 0.5f / (segment3distance_sqr.size() + 1);
+    std::string cell_width_dist_sqr_str = tg::to_string(cell_width_dist_sqr);
+
+    // wrtie tabular distance_sqr 3D
+    write_tabular(distance_sqr_matrix, cell_width_dist_sqr, "\\centering{distance sqr 3D}", should_not_implement_distance_sqr);
+
 
     // TABLE intersects 3D
 
