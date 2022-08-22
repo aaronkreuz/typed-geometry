@@ -191,6 +191,7 @@ template <class ScalarT>
     return distance(bb, t);
 }
 
+// TODO: Test required
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<3, ScalarT> const& s, triangle<3, ScalarT> const& t)
 {
@@ -214,6 +215,7 @@ template <class ScalarT>
     return distance(s, t);
 }
 
+// TODO: Test required
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(line<3, ScalarT> const& l, triangle<3, ScalarT> const& t)
 {
@@ -233,6 +235,43 @@ template <class ScalarT>
 {
     return distance(l, t);
 }
+
+// TODO: Test required
+template <class ScalarT, int D>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<D, ScalarT> const& seg, sphere<D, ScalarT> const& s)
+{
+    auto d = distance(seg, s.center);
+
+    if (d <= s.radius)
+        return fractional_result<ScalarT>(0);
+
+    return (d - s.radius);
+}
+
+template <class ScalarT, int D>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<D, ScalarT> const& s, segment<D, ScalarT> const& seg)
+{
+    return distance(seg, s);
+}
+
+// TODO: Test required
+template <class ScalarT, int D>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(line<D, ScalarT> const& l, sphere<D, ScalarT> const& s)
+{
+    auto d = distance(l, s.center);
+
+    if (d <= s.radius)
+        return fractional_result<ScalarT>(0);
+
+    return (d - s.radius);
+}
+
+template <class ScalarT, int D>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<D, ScalarT> const& s, line<D, ScalarT> const& l)
+{
+    return distance(l, s);
+}
+
 
 // =========== Other Implementations ===========
 
