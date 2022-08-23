@@ -278,6 +278,43 @@ template <class ScalarT>
     return abs(dot(r0.pos - r1.pos, n) / length(n));
 }
 
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(plane<3, ScalarT> const& p, segment<3, ScalarT> const& s)
+{
+    if (intersects(s, p))
+        return fractional_result<ScalarT>(0);
+
+    return min(distance(s.pos0, p), distance(s.pos1, p));
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<3, ScalarT> const& s, plane<3, ScalarT> const& p)
+{
+    return distance(p, s);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(plane<3, ScalarT> const& p, box<3, ScalarT> const& b)
+{
+    auto d = tg::max<ScalarT>();
+
+    // box vertices
+    for (auto v : vertices_of(b))
+        d = min(d, distance(v, p));
+
+    // box edges
+    for (auto e : edges_of(b))
+        d = min(d, distance(e, p));
+
+    return d;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(box<3, ScalarT> const& b, plane<3, ScalarT> const& p)
+{
+    return distance(p, b);
+}
+
 // template <class ScalarT>
 // [[nodiscard]] constexpr fractional_result<ScalarT> distance(box<3, ScalarT> const& b0, box<3, ScalarT> const& b1)
 // {
