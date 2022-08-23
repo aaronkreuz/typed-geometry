@@ -191,7 +191,6 @@ template <class ScalarT>
     return distance(bb, t);
 }
 
-// TODO: Test required
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<3, ScalarT> const& s, triangle<3, ScalarT> const& t)
 {
@@ -200,9 +199,11 @@ template <class ScalarT>
 
     auto d = tg::max<ScalarT>();
 
+    // tri vertices to seg
     for (auto v : vertices_of(t))
         d = min(d, distance(v, s));
 
+    // tri edges to seg
     for (auto e : edges_of(t))
         d = min(d, distance(e, s));
 
@@ -215,7 +216,6 @@ template <class ScalarT>
     return distance(s, t);
 }
 
-// TODO: Test required
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(line<3, ScalarT> const& l, triangle<3, ScalarT> const& t)
 {
@@ -224,6 +224,7 @@ template <class ScalarT>
 
     auto d = tg::max<ScalarT>();
 
+    // tri vertices to line
     for (auto v : vertices_of(t))
         d = min(d, distance(v, l));
 
@@ -236,7 +237,6 @@ template <class ScalarT>
     return distance(l, t);
 }
 
-// TODO: Test required
 template <class ScalarT, int D>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(segment<D, ScalarT> const& seg, sphere<D, ScalarT> const& s)
 {
@@ -254,7 +254,6 @@ template <class ScalarT, int D>
     return distance(seg, s);
 }
 
-// TODO: Test required
 template <class ScalarT, int D>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(line<D, ScalarT> const& l, sphere<D, ScalarT> const& s)
 {
@@ -270,6 +269,53 @@ template <class ScalarT, int D>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<D, ScalarT> const& s, line<D, ScalarT> const& l)
 {
     return distance(l, s);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(ray<3, ScalarT> const& r0, ray<3, ScalarT> const& r1)
+{
+    auto n = cross(r0.dir, r1.dir);
+    return abs(dot(r0.pos - r1.pos, n) / length(n));
+}
+
+// template <class ScalarT>
+// [[nodiscard]] constexpr fractional_result<ScalarT> distance(box<3, ScalarT> const& b0, box<3, ScalarT> const& b1)
+// {
+//     if (intersects(b0, b1))
+//         return fractional_result<ScalarT>(0);
+//
+//     auto d = tg::max<ScalarT>();
+//
+//     for (auto v : vertices_of(b0))
+//         d = min(d, distance(v, b0));
+//
+//     for (auto v : vertices_of(b1))
+//         d = min(d, distance(v, b1));
+//
+//     if (d == 0)
+//         return fractional_result<ScalarT>(0);
+//
+//     for (auto e0 : edges_of(b0))
+//         for (auto e1 : edges_of(b1))
+//             d = min(d, distance(e0, e1));
+//
+//     // face - edge pairs
+//     //  for (auto e : edges_of(b0))
+//     //      for (auto f : faces_of(b1))
+//     //          d = min(d, distance(e, f));
+//
+//     //  for (auto e : edges_of(b1))
+//     //      for (auto f : faces_of(b0))
+//     //          d = min(d, distance(e, f));
+//
+//     return d;
+// }
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<3, ScalarT> const& s0, sphere<3, ScalarT> const& s1)
+{
+    auto s0s1 = s1.center - s0.center;
+    return dot(s0s1, s0s1);
 }
 
 
