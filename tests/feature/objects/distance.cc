@@ -535,6 +535,48 @@ FUZZ_TEST("Distance - LineSphereD")(tg::rng& rng)
         CHECK(!intersects(l1, sphere1));
 }
 
+FUZZ_TEST("Distance - SegmentPlane3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto seg = tg::segment3(uniform(rng, bounds), uniform(rng, bounds));
+    auto p = tg::plane3(tg::uniform<tg::dir3>(rng), uniform(rng, bounds));
+
+    auto dis = distance(seg, p);
+    CHECK(dis >= 0);
+    CHECK(dis == distance(p, seg));
+
+    if (dis == 0)
+        CHECK(intersects(seg, p));
+    else
+        CHECK(!intersects(seg, p));
+}
+
+FUZZ_TEST("Distance - BoxPlane3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto scalar_bounds = tg::aabb1(1, 5);
+
+    auto b = tg::box3();
+    b.center = uniform(rng, bounds);
+    b.half_extents[0] = uniform(rng, scalar_bounds).x * tg::uniform<tg::dir3>(rng);
+    b.half_extents[1].x = tg::uniform(rng, scalar_bounds).x;
+    b.half_extents[1].y = tg::uniform(rng, scalar_bounds).x;
+    b.half_extents[1].z = (-b.half_extents[0].x * b.half_extents[1].x - b.half_extents[0].y * b.half_extents[1].y) / b.half_extents[0].z;
+    b.half_extents[2] = tg::cross(b.half_extents[0], b.half_extents[1]);
+
+    auto p = tg::plane3(tg::uniform<tg::dir3>(rng), uniform(rng, bounds));
+
+    auto dis = distance(b, p);
+    CHECK(dis >= 0);
+    CHECK(dis == distance(p, b));
+
+    if (dis == 0)
+        CHECK(intersects(b, p));
+    else
+        CHECK(!intersects(b, p));
+}
+
 // FUZZ_TEST("Distance - BoxBox3")(tg::rng& rng)
 // {
 //     auto bounds = tg::aabb3(-10, 10);
