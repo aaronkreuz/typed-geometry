@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 #if defined(TG_IMPLEMENTATION_REPORT)
@@ -805,6 +806,21 @@ std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> con
     return should_not_impl;
 }
 
+// TODO: Experimental Meta-Programming
+template <class... Args1>
+struct table_types
+{
+    template <class... Args2>
+    struct with
+    {
+        typedef std::tuple<std::pair<Args1, Args2>...> type;
+        // Pair<Args1, Args2>... is the pack expansion
+        // Pair<Args1, Args2> is the pattern
+    };
+};
+
+typedef table_types<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::
+    with<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::type T_distance_sqr;
 
 APP("ImplReport_LATEX")
 {
@@ -935,6 +951,29 @@ APP("ImplReport_LATEX")
 
     // data matrix
     std::vector<std::pair<std::string, bool>> distance_sqr_matrix;
+
+    // TODO: Experimental Meta-Programming Type
+    auto distance_sqr_init = T_distance_sqr();
+    auto length_tuple = std::tuple_size_v<T_distance_sqr>;
+
+    // auto const on_tuple = [&](auto&&... ps)
+    // {
+    //     if (!tg::can_apply<try_distance_sqr, decltype(ps.first), decltype(ps.second)>)
+    //         distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name, false});
+    //     else
+    //         distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name, true});
+    // };
+
+    std::apply(
+        [&](auto&&... ps)
+        {
+            if (!tg::can_apply<try_distance_sqr, decltype(ps.first), decltype(ps.second)>)
+                distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name(), false});
+            else
+                distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name(), true});
+        },
+        distance_sqr_init);
+
 
     // auto const foo = [](auto&& t){
     //     test_single_object_type_distance_sqr3D_tex<std::decay_t<decltype(t)>>("");
