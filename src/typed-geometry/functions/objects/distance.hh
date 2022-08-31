@@ -315,6 +315,29 @@ template <class ScalarT>
     return distance(p, b);
 }
 
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(triangle<3, ScalarT> const& t1, triangle<3, ScalarT> const& t2)
+{
+    if (intersects(t1, t2))
+        return fractional_result<ScalarT>(0);
+
+    auto d = tg::max<ScalarT>();
+
+    for (auto const& v : vertices_of(t1))
+        d = min(d, distance(v, t2));
+
+    for (auto const& v : vertices_of(t2))
+        d = min(d, distance(v, t1));
+
+    for (auto const& e1 : edges_of(t1))
+        for (auto const& e2 : edges_of(t2))
+            d = min(d, distance(e1, e2));
+
+    // TODO: all cases?
+
+    return d;
+}
+
 // template <class ScalarT>
 // [[nodiscard]] constexpr fractional_result<ScalarT> distance(box<3, ScalarT> const& b0, box<3, ScalarT> const& b1)
 // {
