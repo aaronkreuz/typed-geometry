@@ -907,7 +907,7 @@ APP("ImplReport_LATEX")
             auto& data = matrix[i];
             int offset = nbr_elements * i;
 
-            f << "\\cellcolor[HTML]{E6E6E6} " << matrix[offset].first << " ";
+            f << "\\cellcolor[HTML]{E6E6E6} " << matrix[offset + i].first << " ";
 
             for (auto row_it = 0; row_it < nbr_elements; row_it++)
             {
