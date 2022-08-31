@@ -773,46 +773,59 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_distance_sqr3D
     return distance_sqr_vals;
 }
 
+
+// TODO: Function renaming?
+std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> const& data, std::vector<std::pair<std::string, std::string>> const& not_impl_pairs)
+{
+    auto const contains_pair = [&](std::string const& a, std::string const& b) -> bool
+    {
+        for (auto& z : not_impl_pairs)
+        {
+            if ((a == z.first && b == z.second) || (a == z.second && b == z.first))
+                return true;
+        }
+
+        return false;
+    };
+
+    std::vector<bool> should_not_impl;
+
+    for (auto& x : data)
+        for (auto& y : data)
+        {
+            if (contains_pair(x.first, y.first))
+            {
+                should_not_impl.push_back(true);
+                continue;
+            }
+
+            should_not_impl.push_back(false);
+        }
+
+    return should_not_impl;
+}
+
+
 APP("ImplReport_LATEX")
 {
-    // TODO: outsource into JSON file? -> Ask Julius
-    // WARNING: should_not_implement_X must match Layout (i.e. order) of "test_single_object_type_distance3D_tex"
+    // List of not-impl pairs -> build matrix from list
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersects_pairs = {
+        {"segment3", "segment3"}, //
+        {"segment3", "line3"},    //
+        {"segment3", "ray3"},     //
+        {"line3", "line3"},       //
+        {"line3", "ray3"},        //
+        {"ray3", "ray3"}          //
+    };
 
-    // true -> pair should not be implemented, must be defined both ways.
-    // Initially all pair should be implementable -> init with 0
+    std::vector<std::pair<std::string, std::string>> should_not_impl_distance_pairs = {
+        {"line3", "halfspace3"}, //
+        {"line3", "plane3"}      //
+    };
 
-    // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
-    // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
-    bool** should_not_implement_intersects = new bool*[16];
-    for (auto i = 0; i < 16; i++)
-        should_not_implement_intersects[i] = new bool[16]{0};
+    std::vector<std::pair<std::string, std::string>> should_not_impl_distance_sqr_pairs = {};
 
-    // Overwrites
-    should_not_implement_intersects[0] = new bool[16]{/*segment3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[1] = new bool[16]{/*line3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_intersects[2] = new bool[16]{/*ray3*/ 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    // Format of should_not_implement_distance: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8: cylinder3,
-    // 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
-    bool** should_not_implement_distance = new bool*[16];
-    for (auto i = 0; i < 16; i++)
-        should_not_implement_distance[i] = new bool[16]{0};
-
-    // Overwrites
-    should_not_implement_distance[1] = new bool[16]{/*2 line3*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0};
-    should_not_implement_distance[10] = new bool[16]{/*11 halfspace3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    should_not_implement_distance[13] = new bool[16]{/*14 plane3*/ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    // Format of should_not_implement_distance_sqr: {0: segment3, 1: line3, 2: ray3, 3: box3, 4: sphere3, 5: aabb3, 6: capsule3, 7: cone3, 8:
-    // cylinder3, 9: ellipse3, 10: halfspace3, 11: hemisphere3, 12: triangle3, 13: plane3, 14: tube3, 15: sphere2in3 }
-    bool** should_not_implement_distance_sqr = new bool*[16];
-    for (auto i = 0; i < 16; i++)
-        should_not_implement_distance_sqr[i] = new bool[16]{0};
-
-    // Format of should_not_implement_intersects2D: {0: segment2, 1: line2, 2: ray2, 3: aabb2, 4: circle2, 5: box2, 6: triangle2}
-    bool** should_not_implement_intersects2D = new bool*[7];
-    for (auto i = 0; i < 7; i++)
-        should_not_implement_intersects2D[i] = new bool[7]{0};
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersects2D_pairs = {};
 
     // file generation
     std::ofstream("impl_report.tex");
@@ -863,12 +876,13 @@ APP("ImplReport_LATEX")
     f.close();
 
     // Func writing tabular based on arguments
-    auto const write_tabular = [&](std::vector<std::pair<std::string, bool>>* matrix, float cell_width, std::string tabular_name, bool** should_not_impl)
+    auto const write_tabular
+        = [&](std::vector<std::pair<std::string, bool>> matrix, float cell_width, std::string tabular_name, std::vector<bool> should_not_impl, int nbr_elements)
     {
         f.open("impl_report.tex", std::ios::out | std::ios::app);
         f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
 
-        for (auto i = 0; i < int(matrix[0].size()); i++)
+        for (auto i = 0; i < int(nbr_elements); i++)
             f << "p{" << std::to_string(cell_width) << "\\linewidth}|";
 
         f << "} \\hline" << std::endl;
@@ -876,34 +890,33 @@ APP("ImplReport_LATEX")
         // header row
         f << "\\cellcolor[HTML]{FF9D88} " << tabular_name;
 
-        for (auto const& e : matrix[0])
+        for (auto i = 0; i < nbr_elements; i++)
         {
             if (cell_width > 0.15)
-                f << "& \\cellcolor[HTML]{E6E6E6} " << e.first;
+                f << "& \\cellcolor[HTML]{E6E6E6} " << matrix[i].first;
 
             else
                 f << "& \\cellcolor[HTML]{E6E6E6} "
-                  << "\\rotatebox{90}{" << e.first << "}";
+                  << "\\rotatebox{90}{" << matrix[i].first << "}";
         }
         f << " \\\\ \\hline" << std::endl;
 
         // data rows
-        for (auto i = 0; i < int(matrix[0].size()); i++)
+        for (auto i = 0; i < nbr_elements; i++)
         {
             auto& data = matrix[i];
+            int offset = nbr_elements * i;
 
-            f << "\\cellcolor[HTML]{E6E6E6} " << data[i].first << " ";
+            f << "\\cellcolor[HTML]{E6E6E6} " << matrix[offset].first << " ";
 
-            auto row_it = 0;
-            for (auto& d : data)
+            for (auto row_it = 0; row_it < nbr_elements; row_it++)
             {
-                if (d.second)
+                if (matrix[offset + row_it].second)
                     f << "& \\defCol{} ";
-                else if (!d.second && should_not_impl[i][row_it])
+                else if (!matrix[offset + row_it].second && should_not_impl[offset + row_it])
                     f << "& \\notplannedCol{} ";
                 else
                     f << "& \\nondefCol{} ";
-                row_it++;
             }
 
             f << "\\\\ \\hline" << std::endl;
@@ -920,100 +933,121 @@ APP("ImplReport_LATEX")
 
     auto segment3distance_sqr = test_single_object_type_distance_sqr3D_tex<tg::segment3>("segment3");
 
-    std::vector<std::pair<std::string, bool>>* distance_sqr_matrix{new std::vector<std::pair<std::string, bool>>[segment3distance_sqr.size()] {}};
+    // data matrix
+    std::vector<std::pair<std::string, bool>> distance_sqr_matrix;
+
+    // auto const foo = [](auto&& t){
+    //     test_single_object_type_distance_sqr3D_tex<std::decay_t<decltype(t)>>("");
+    // };
 
     auto const get_distance_sqr_data = [&](std::vector<std::pair<std::string, bool>>& distance_sqr_data, std::string class_name) -> void
     {
         if (class_name == "segment3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::segment3>("segment3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::segment3>("segment3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "line3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::line3>("line3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::line3>("line3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "ray3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::line3>("ray3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::line3>("ray3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "box3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::box3>("box3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::box3>("box3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "sphere3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::sphere3>("sphere3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::sphere3>("sphere3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "aabb3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::aabb3>("aabb3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::aabb3>("aabb3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "capsule3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::capsule3>("capsule3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::capsule3>("capsule3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "cone3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::cone3>("cone3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::cone3>("cone3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "cylinder3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::cylinder3>("cylinder3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::cylinder3>("cylinder3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "ellipse3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::ellipse3>("ellipse3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::ellipse3>("ellipse3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "halfspace3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::halfspace3>("halfspace3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::halfspace3>("halfspace3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "hemisphere3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::hemisphere3>("hemisphere3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::hemisphere3>("hemisphere3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "triangle3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::triangle3>("triangle3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::triangle3>("triangle3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "plane3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::plane3>("plane3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::plane3>("plane3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "tube3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::tube3>("tube3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::tube3>("tube3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "sphere2in3")
         {
-            distance_sqr_data = test_single_object_type_distance_sqr3D_tex<tg::sphere2in3>("sphere2in3");
+            auto vec = test_single_object_type_distance_sqr3D_tex<tg::sphere2in3>("sphere2in3");
+            distance_sqr_data.insert(distance_sqr_data.end(), vec.begin(), vec.end());
             return;
         }
 
@@ -1022,188 +1056,243 @@ APP("ImplReport_LATEX")
 
     // fill up data matrix
     int index_dist_sqr = 0;
-    for (auto x : segment3distance_sqr)
-        get_distance_sqr_data(distance_sqr_matrix[index_dist_sqr++], x.first);
+    for (const auto& x : segment3distance_sqr)
+        get_distance_sqr_data(distance_sqr_matrix, x.first);
 
     float cell_width_dist_sqr = 0.5f / (segment3distance_sqr.size() + 1);
     std::string cell_width_dist_sqr_str = tg::to_string(cell_width_dist_sqr);
 
     // wrtie tabular distance_sqr 3D
-    write_tabular(distance_sqr_matrix, cell_width_dist_sqr, "\\centering{distance sqr 3D}", should_not_implement_distance_sqr);
+    write_tabular(distance_sqr_matrix, cell_width_dist_sqr, "\\centering{distance sqr 3D}",
+                  make_mask_matrix(segment3distance_sqr, should_not_impl_distance_sqr_pairs), segment3distance_sqr.size());
 
 
     // TABLE intersects 3D
 
     auto segment3intersects = test_single_object_type_intersects3D_tex<tg::segment3>("segment3");
 
-    // static int nbr_elements = segment3intersects.size();
-
-    std::vector<std::pair<std::string, bool>>* intersects_matrix{new std::vector<std::pair<std::string, bool>>[segment3intersects.size()] {}};
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersects_matrix;
 
     auto const get_intersect_data = [&](std::vector<std::pair<std::string, bool>>& insec_data, std::string class_name) -> void
     {
         if (class_name == "segment3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::segment3>("segment3");
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::segment3>("segment3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
 
         if (class_name == "ray3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::ray3>("ray3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::ray3>("ray3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "line3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::line3>("line3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::line3>("line3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "box3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::box3>("box3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::box3>("box3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "sphere3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::sphere3>("sphere3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::sphere3>("sphere3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "aabb3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::aabb3>("aabb3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::aabb3>("aabb3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "capsule3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::capsule3>("capsule3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::capsule3>("capsule3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "cone3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::cone3>("cone3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::cone3>("cone3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "cylinder3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::cylinder3>("cylinder3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::cylinder3>("cylinder3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "ellipse3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::ellipse3>("ellipse3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::ellipse3>("ellipse3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "halfspace3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::halfspace3>("halfspace3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::halfspace3>("halfspace3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "hemisphere3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::hemisphere3>("hemisphere3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::hemisphere3>("hemisphere3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "triangle3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::triangle3>("triangle3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::triangle3>("triangle3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "plane3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::plane3>("plane3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::plane3>("plane3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "tube3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::tube3>("tube3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::tube3>("tube3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "sphere2in3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::sphere2in3>("sphere2in3");
-
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::sphere2in3>("sphere2in3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
         if (class_name == "inf_cylinder3")
-            insec_data = test_single_object_type_intersects3D_tex<tg::inf_cylinder3>("inf_cylinder3");
+        {
+            auto vec = test_single_object_type_intersects3D_tex<tg::inf_cylinder3>("inf_cylinder3");
+            insec_data.insert(insec_data.end(), vec.begin(), vec.end());
+        }
     };
 
     int index = 0;
     for (auto& x : segment3intersects)
     {
         // fill up intersects matrix
-        get_intersect_data(intersects_matrix[index++], x.first);
+        get_intersect_data(intersects_matrix, x.first);
     }
 
     float cell_width = 0.5f / (segment3intersects.size() + 1);
     std::string cell_width_str = std::to_string(cell_width);
 
     // write tabular intersects 3D
-    write_tabular(intersects_matrix, cell_width, "intersects 3D", should_not_implement_intersects);
+    write_tabular(intersects_matrix, cell_width, "intersects 3D", make_mask_matrix(segment3intersects, should_not_impl_intersects_pairs),
+                  segment3intersects.size());
 
 
     // TABLE distance 3D
     auto segment3distance = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
-    std::vector<std::pair<std::string, bool>>* distance_matrix{new std::vector<std::pair<std::string, bool>>[segment3distance.size()] {}};
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> distance_matrix;
 
     auto const get_distance_data = [&](std::vector<std::pair<std::string, bool>>& distance_data, std::string class_name) -> void
     {
         if (class_name == "segment3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
+            auto vec = test_single_object_type_distance3D_tex<tg::segment3>("segment3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "line3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::line3>("line3");
+            auto vec = test_single_object_type_distance3D_tex<tg::line3>("line3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "ray3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::ray3>("ray3");
+            auto vec = test_single_object_type_distance3D_tex<tg::ray3>("ray3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
         if (class_name == "box3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::box3>("box3");
+            auto vec = test_single_object_type_distance3D_tex<tg::box3>("box3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "sphere3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::sphere3>("sphere3");
+            auto vec = test_single_object_type_distance3D_tex<tg::sphere3>("sphere3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "aabb3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::aabb3>("aabb3");
+            auto vec = test_single_object_type_distance3D_tex<tg::aabb3>("aabb3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "capsule3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::capsule3>("capsule3");
+            auto vec = test_single_object_type_distance3D_tex<tg::capsule3>("capsule3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "cone3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::cone3>("cone3");
+            auto vec = test_single_object_type_distance3D_tex<tg::cone3>("cone3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "cylinder3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::cylinder3>("cylinder3");
+            auto vec = test_single_object_type_distance3D_tex<tg::cylinder3>("cylinder3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "ellipse3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::ellipse3>("ellipse3");
+            auto vec = test_single_object_type_distance3D_tex<tg::ellipse3>("ellipse3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "halfspace3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::halfspace3>("halfspace3");
+            auto vec = test_single_object_type_distance3D_tex<tg::halfspace3>("halfspace3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "hemisphere3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::hemisphere3>("hemisphere3");
+            auto vec = test_single_object_type_distance3D_tex<tg::hemisphere3>("hemisphere3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "triangle3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::triangle3>("triangle3");
+            auto vec = test_single_object_type_distance3D_tex<tg::triangle3>("triangle3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "plane3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::plane3>("plane3");
+            auto vec = test_single_object_type_distance3D_tex<tg::plane3>("plane3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "tube3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::tube3>("tube3");
+            auto vec = test_single_object_type_distance3D_tex<tg::tube3>("tube3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
         if (class_name == "sphere2in3")
         {
-            distance_data = test_single_object_type_distance3D_tex<tg::sphere2in3>("sphere2in3");
+            auto vec = test_single_object_type_distance3D_tex<tg::sphere2in3>("sphere2in3");
+            distance_data.insert(distance_data.end(), vec.begin(), vec.end());
             return;
         }
 
@@ -1213,57 +1302,73 @@ APP("ImplReport_LATEX")
     int index_dist = 0;
     for (auto& x : segment3distance)
     {
-        get_distance_data(distance_matrix[index_dist++], x.first);
+        get_distance_data(distance_matrix, x.first);
     }
 
     float cell_width_dist = 0.5f / (segment3distance.size() + 1);
     std::string cell_width_str_dist = std::to_string(cell_width_dist);
 
     // write tabular distance 3D
-    write_tabular(distance_matrix, cell_width_dist, "distance", should_not_implement_distance);
+    write_tabular(distance_matrix, cell_width_dist, "distance", make_mask_matrix(segment3distance, should_not_impl_distance_pairs), segment3distance.size());
 
     // TABLE intersects 2D
     auto segment2intersects = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
 
-    std::vector<std::pair<std::string, bool>>* intersects2D_matrix{new std::vector<std::pair<std::string, bool>>[segment2intersects.size()] {}};
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersects2D_matrix;
 
     auto const get_intersect2D_data = [&](std::vector<std::pair<std::string, bool>>& intersects2D_data, std::string class_name) -> void
     {
         if (class_name == "segment2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::segment2>("segment2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "line2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::line2>("line2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::line2>("line2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "ray2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::ray2>("ray2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::ray2>("ray2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "aabb2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::aabb2>("aabb2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::aabb2>("aabb2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "circle2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::circle2>("circle2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::circle2>("circle2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "box2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::box2>("box2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::box2>("box2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         else if (class_name == "triangle2")
-            intersects2D_data = test_single_object_type_intersects2D_tex<tg::triangle2>("triangle2");
-
+        {
+            auto vec = test_single_object_type_intersects2D_tex<tg::triangle2>("triangle2");
+            intersects2D_data.insert(intersects2D_data.end(), vec.begin(), vec.end());
+        }
         return;
     };
 
     auto index_intersects2D = 0;
     for (auto& x : segment2intersects)
     {
-        get_intersect2D_data(intersects2D_matrix[index_intersects2D++], x.first);
+        get_intersect2D_data(intersects2D_matrix, x.first);
     }
 
     float cell_width_intersects2D = 0.5f / (segment2intersects.size() + 1);
     std::string cell_width_str_intersects2D = std::to_string(cell_width_intersects2D);
 
     // write tabular intersects 2D
-    write_tabular(intersects2D_matrix, cell_width_intersects2D, "intersects 2D", should_not_implement_intersects2D);
+    write_tabular(intersects2D_matrix, cell_width_intersects2D, "intersects 2D",
+                  make_mask_matrix(segment2intersects, should_not_impl_intersects2D_pairs), segment2intersects.size());
 
     // end
     f.open("impl_report.tex", std::ios::out | std::ios::app);
