@@ -829,13 +829,16 @@ struct type_table_t
     using type = typename type_table_cols_t<Ts...>::template type_table_rows_t<Ts...>::type;
 };
 
-using type_table_distance
-    = type_table_t<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::type;
+// using type_table_distance
+//     = type_table_t<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::type;
+
+using types_table_distance_exp
+    = std::tuple<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>;
 
 // using type_table_2D = type_table_t<tg::segment2, tg::line2, tg::ray2, tg::circle2, tg::box2, tg::triangle2, tg::aabb2>::type;
 
 template <class T0, class T1>
-bool handle_pair_distance_sqr(std::pair<T0, T1> const& type_pair)
+bool handle_pair_distance_sqr(T0 const& t0, T1 const& t1)
 {
     bool x;
 
@@ -847,6 +850,12 @@ bool handle_pair_distance_sqr(std::pair<T0, T1> const& type_pair)
     std::cout << x << std::endl;
 
     return x;
+}
+
+template <class Tuple, class T0>
+void apply_expander(T0 const& type_pair)
+{
+    std::apply([](auto... tuple_args) { (handle_pair_distance_sqr(T0{}, tuple_args), ...); }, types_table_distance_exp{});
 }
 
 APP("ImplReport_LATEX")
@@ -992,7 +1001,9 @@ APP("ImplReport_LATEX")
     //         distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name, true});
     // };
 
-    std::apply([](auto... tuple_args) { (handle_pair_distance_sqr(tuple_args), ...); }, type_table_distance{});
+    // std::apply([](auto... tuple_args) { (handle_pair_distance_sqr(tuple_args), ...); }, type_table_distance{});
+
+    std::apply([](auto... tuple_args) { (apply_expander<types_table_distance_exp>(tuple_args), ...); }, types_table_distance_exp{});
 
 
     // auto const foo = [](auto&& t){
