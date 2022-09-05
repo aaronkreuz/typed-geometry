@@ -182,7 +182,6 @@ using try_distance_tube3_of = decltype(distance(std::declval<T const&>(), tg::tu
 template <class T>
 using try_distance_sphere2in3_of = decltype(distance(std::declval<T const&>(), tg::sphere2in3()));
 
-// Can I do it like this?
 template <class T, class F>
 using try_distance_sqr = decltype(distance_sqr(std::declval<T const&>(), std::declval<F const&>()));
 
@@ -433,7 +432,7 @@ TEST("implementation report")
     test_object_type_nested_boundary_caps<tg::pyramid, tg::sphere2in3>("pyramid", "sphere2in3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::box2in3>("pyramid", "box2in3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::triangle3>("pyramid", "triangle3");
-    test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
+    // test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
 }
 
 template <class ObjT>
@@ -526,12 +525,6 @@ std::vector<std::pair<std::string, bool>> test_single_object_type_intersects3D_t
         intersect_vals.push_back({"sphere2in3", false});
     else
         intersect_vals.push_back({"sphere2in3", true});
-
-    // if constexpr (domainD == 3 && !tg::can_apply<try_intersects_inf_cylinder3_of, ObjT>)
-    //     intersect_vals.push_back({"inf_cylinder3", false});
-    // else
-    //     intersect_vals.push_back({"inf_cylinder3", true});
-
 
     return intersect_vals;
 }
@@ -807,20 +800,54 @@ std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> con
 }
 
 // TODO: Experimental Meta-Programming
+template <typename... input_t>
+using tuple_cat_t = decltype(std::tuple_cat(std::declval<input_t>()...));
+
+template <class Head, class... Tail>
+struct help_expander_t
+{
+    using type = std::tuple<std::pair<Head, Tail>...>;
+};
+
+template <class Head, class... Tail>
+using help_expander = typename help_expander_t<Head, Tail...>::type;
+
+
 template <class... Args1>
-struct table_types
+struct type_table_cols_t
 {
     template <class... Args2>
-    struct with
+    struct type_table_rows_t
     {
-        typedef std::tuple<std::pair<Args1, Args2>...> type;
-        // Pair<Args1, Args2>... is the pack expansion
-        // Pair<Args1, Args2> is the pattern
+        using type = tuple_cat_t<help_expander<Args1, Args2...>...>;
     };
 };
 
-typedef table_types<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::
-    with<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::type T_distance_sqr;
+template <class... Ts>
+struct type_table_t
+{
+    using type = typename type_table_cols_t<Ts...>::template type_table_rows_t<Ts...>::type;
+};
+
+using type_table_distance
+    = type_table_t<tg::segment3, tg::line3, tg::ray3, tg::box3, tg::sphere3, tg::aabb3, tg::capsule3, tg::cone3, tg::cylinder3, tg::ellipse3, tg::halfspace3, tg::hemisphere3, tg::triangle3, tg::plane3, tg::tube3, tg::sphere2in3>::type;
+
+// using type_table_2D = type_table_t<tg::segment2, tg::line2, tg::ray2, tg::circle2, tg::box2, tg::triangle2, tg::aabb2>::type;
+
+template <class T0, class T1>
+bool handle_pair_distance_sqr(std::pair<T0, T1> const& type_pair)
+{
+    bool x;
+
+    if (!tg::can_apply<try_distance_sqr, T0, T1>)
+        x = false;
+    else
+        x = true;
+
+    std::cout << x << std::endl;
+
+    return x;
+}
 
 APP("ImplReport_LATEX")
 {
@@ -953,8 +980,9 @@ APP("ImplReport_LATEX")
     std::vector<std::pair<std::string, bool>> distance_sqr_matrix;
 
     // TODO: Experimental Meta-Programming Type
-    auto distance_sqr_init = T_distance_sqr();
-    auto length_tuple = std::tuple_size_v<T_distance_sqr>;
+    // auto distance_sqr_init = T_distance_sqr();
+    // auto length_tuple = std::tuple_size_v<T_distance_sqr>;
+    // auto table_instance = type_table_distance();
 
     // auto const on_tuple = [&](auto&&... ps)
     // {
@@ -964,15 +992,7 @@ APP("ImplReport_LATEX")
     //         distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name, true});
     // };
 
-    std::apply(
-        [&](auto&&... ps)
-        {
-            if (!tg::can_apply<try_distance_sqr, decltype(ps.first), decltype(ps.second)>)
-                distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name(), false});
-            else
-                distance_sqr_matrix.push_back({typeid(decltype(ps.first)).name(), true});
-        },
-        distance_sqr_init);
+    std::apply([](auto... tuple_args) { (handle_pair_distance_sqr(tuple_args), ...); }, type_table_distance{});
 
 
     // auto const foo = [](auto&& t){
