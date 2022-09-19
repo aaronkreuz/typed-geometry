@@ -64,6 +64,9 @@ using try_volume_of = decltype(volume_of(std::declval<T const&>()));
 template <class T>
 using try_perimeter_of = decltype(perimeter_of(std::declval<T const&>()));
 
+template <class T, class F>
+using try_intersection = decltype(intersection(std::declval<T const&>(), std::declval<F const&>()));
+
 // TEST: Double template
 template <class T, class F>
 using try_intersects = decltype(intersects(std::declval<T const&>(), std::declval<F const&>()));
@@ -441,48 +444,48 @@ TEST("implementation report")
 // LATEX FILE GENERATION
 
 template <class T>
-struct type_name;
-//{
-//      static_assert(tg::always_false<T>, "Type not supported");
-//};
+struct type_name
+{
+    char const* value = "undefined";
+};
 
-#define TG_TYPE_NAME_OF(name)       \
+#define TG_TYPE_NAME_OF(type, name) \
     template <>                     \
-    struct type_name<tg::name>      \
+    struct type_name<type>          \
     {                               \
-        char const* value = "name"; \
-    } // enforce ;
+        char const* value = name;   \
+    }; // enforce;
 
-TG_TYPE_NAME_OF(segment3);
-TG_TYPE_NAME_OF(line3);
-TG_TYPE_NAME_OF(ray3);
-TG_TYPE_NAME_OF(box3);
-TG_TYPE_NAME_OF(sphere3);
-TG_TYPE_NAME_OF(aabb3);
-TG_TYPE_NAME_OF(capsule3);
-TG_TYPE_NAME_OF(cone3);
-TG_TYPE_NAME_OF(cylinder3);
-TG_TYPE_NAME_OF(ellipse3);
-TG_TYPE_NAME_OF(halfspace3);
-TG_TYPE_NAME_OF(hemisphere3);
-TG_TYPE_NAME_OF(triangle3);
-TG_TYPE_NAME_OF(plane3);
-TG_TYPE_NAME_OF(tube3);
-TG_TYPE_NAME_OF(sphere2in3);
-TG_TYPE_NAME_OF(segment2);
-TG_TYPE_NAME_OF(ray2);
-TG_TYPE_NAME_OF(line2);
-TG_TYPE_NAME_OF(circle2);
-TG_TYPE_NAME_OF(box2);
-TG_TYPE_NAME_OF(triangle2);
-TG_TYPE_NAME_OF(aabb2);
+TG_TYPE_NAME_OF(tg::segment3, "segment3");
+TG_TYPE_NAME_OF(tg::line3, "line3");
+TG_TYPE_NAME_OF(tg::ray3, "ray3");
+TG_TYPE_NAME_OF(tg::box3, "box3");
+TG_TYPE_NAME_OF(tg::sphere3, "sphere3");
+TG_TYPE_NAME_OF(tg::aabb3, "aabb3");
+TG_TYPE_NAME_OF(tg::capsule3, "capusle3");
+TG_TYPE_NAME_OF(tg::cone3, "cone3");
+TG_TYPE_NAME_OF(tg::cylinder3, "cylinder3");
+TG_TYPE_NAME_OF(tg::ellipse3, "ellipse3");
+TG_TYPE_NAME_OF(tg::halfspace3, "halfspace3");
+TG_TYPE_NAME_OF(tg::hemisphere3, "hemisphere3");
+TG_TYPE_NAME_OF(tg::triangle3, "triangle3");
+TG_TYPE_NAME_OF(tg::plane3, "plane3");
+TG_TYPE_NAME_OF(tg::tube3, "tube3");
+TG_TYPE_NAME_OF(tg::sphere2in3, "sphere2in3");
+TG_TYPE_NAME_OF(tg::segment2, "segment2");
+TG_TYPE_NAME_OF(tg::ray2, "ray2");
+TG_TYPE_NAME_OF(tg::line2, "line2");
+TG_TYPE_NAME_OF(tg::circle2, "circle2");
+TG_TYPE_NAME_OF(tg::box2, "box2");
+TG_TYPE_NAME_OF(tg::triangle2, "triangle2");
+TG_TYPE_NAME_OF(tg::aabb2, "aabb2");
 
 #undef TG_TYPE_NAME_OF
 
 template <class T>
-char const* type_name_of(T)
+char const* type_name_of(T t)
 {
-    return type_name<T>::value;
+    return type_name<T>().value;
 }
 
 
@@ -553,9 +556,9 @@ std::pair<std::string, bool> handle_pair_distance_sqr(T0 const& t0, T1 const& t1
     if constexpr (!tg::can_apply<try_distance_sqr, T0, T1>)
         is_impl = false;
 
-    auto name = type_name_of(T1);
+    auto type_name = type_name_of(T1());
 
-    return std::pair<std::string, bool>(name, is_impl);
+    return std::pair<std::string, bool>(type_name, is_impl);
 }
 
 template <class T0, class T1>
@@ -566,7 +569,7 @@ std::pair<std::string, bool> handle_pair_intersects3D(T0 const& t0, T1 const& t1
     if constexpr (!tg::can_apply<try_intersects, T0, T1>)
         is_impl = false;
 
-    auto type_name = get_name_object<T1>();
+    auto type_name = type_name_of(T1());
 
     return std::pair<std::string, bool>(type_name, is_impl);
 }
@@ -579,7 +582,7 @@ std::pair<std::string, bool> handle_pair_distance(T0 const& t0, T1 const& t1)
     if constexpr (!tg::can_apply<try_distance, T0, T1>)
         is_impl = false;
 
-    auto type_name = get_name_object<T1>();
+    auto type_name = type_name_of(T1());
 
     return std::pair<std::string, bool>(type_name, is_impl);
 }
@@ -592,10 +595,44 @@ std::pair<std::string, bool> handle_pair_intersects2D(T0 const& t0, T1 const& t1
     if constexpr (!tg::can_apply<try_intersects, T0, T1>)
         is_impl = false;
 
-    auto type_name = get_name_object<T1>();
+    auto type_name = type_name_of(T1());
 
-    return {type_name, is_impl};
+    return std::pair<std::string, bool>{type_name, is_impl};
 }
+
+// template <class T0, class T1, typename F>
+// std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1, F f){
+//     bool is_impl = true;
+//
+//     if constexpr (!tg::can_apply<F, T0, T1>)
+// }
+
+
+template <class T0, class T1>
+std::pair<std::string, bool> handle_pair_intersection3D(T0 const& t0, T1 const& t1)
+{
+    bool is_impl = true;
+
+    if constexpr (!tg::can_apply<try_intersection, T0, T1>)
+        is_impl = false;
+
+    auto type_name = type_name_of(T1());
+
+    return std::pair<std::string, bool>(type_name, is_impl);
+}
+
+
+// TODO: Only one expander for all types?
+// TODO: template function, which is templated function itself?
+// template <class Tuple, class T0, typename F>
+// void apply_expander_3D(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair, F f)
+// {
+//     static auto constexpr domainD = tg::object_traits<T0>::domain_dimension;
+//
+//     // TODO: Check domain!
+//
+//     std::apply([&data_matrix, f](auto... tuple_args) { (data_matrix.push_back(f(T0{}, tuple_args)), ...); }, types_table_3D{});
+// }
 
 template <class Tuple, class T0>
 void apply_expander_distance_sqr(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair)
@@ -632,6 +669,14 @@ void apply_expander_intersects2D(std::vector<std::pair<std::string, bool>>& data
     std::apply([&data_matrix](auto... tuple_args) { (data_matrix.push_back(handle_pair_intersects2D(T0{}, tuple_args)), ...); }, types_table_2D{});
 }
 
+template <class Tuple, class T0>
+void apply_expander_intersection3D(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair)
+{
+    static auto constexpr domainD = tg::object_traits<T0>::domain_dimension;
+
+    std::apply([&data_matrix](auto... tuple_args) { (data_matrix.push_back(handle_pair_intersection3D(T0{}, tuple_args)), ...); }, types_table_3D{});
+}
+
 
 APP("ImplReport_LATEX")
 {
@@ -653,6 +698,8 @@ APP("ImplReport_LATEX")
     std::vector<std::pair<std::string, std::string>> should_not_impl_distance_sqr_pairs = {};
 
     std::vector<std::pair<std::string, std::string>> should_not_impl_intersects2D_pairs = {};
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersection3D_pairs = {};
 
     // file generation
     std::ofstream("impl_report.tex");
@@ -831,6 +878,26 @@ APP("ImplReport_LATEX")
     // write tabular intersects 2D
     write_tabular(intersects2D_matrix, cell_width_intersects2D, "intersects 2D",
                   make_mask_matrix(copy_intersects2D_matrix, should_not_impl_intersects2D_pairs), std::tuple_size_v<types_table_2D>);
+
+
+    // Table intersection 3D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersection3D_matrix;
+
+    std::apply([&intersection3D_matrix](auto... tuple_args)
+               { (apply_expander_intersection3D<types_table_3D>(intersection3D_matrix, tuple_args), ...); },
+               types_table_3D{});
+
+    float cell_width_intersection3D = 0.5f / (std::tuple_size_v<types_table_3D> + 1);
+    std::string cell_width_str_intersection3D = std::to_string(cell_width_intersects2D);
+
+    auto copy_intersection3D_matrix = std::vector<std::pair<std::string, bool>>(intersection3D_matrix);
+    copy_intersection3D_matrix.resize(std::tuple_size_v<types_table_3D>);
+
+    // write tabular intersects 2D
+    write_tabular(intersection3D_matrix, cell_width_intersection3D, "intersection 3D",
+                  make_mask_matrix(copy_intersection3D_matrix, should_not_impl_intersection3D_pairs), std::tuple_size_v<types_table_3D>);
 
     // end
     f.open("impl_report.tex", std::ios::out | std::ios::app);
