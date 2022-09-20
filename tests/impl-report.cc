@@ -489,9 +489,9 @@ char const* type_name_of(T t)
 }
 
 
-// returns vector containing information about which pairs to implement for a given function.
+// returns vector containing information about which pairs to implement for a given function
 // 0 -> do implement, 1 -> do NOT implement
-std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> const& data, std::vector<std::pair<std::string, std::string>> const& not_impl_pairs)
+std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> const& data, std::vector<std::pair<std::string, std::string>> const& not_impl_pairs, int nbr_types)
 {
     auto const contains_pair = [&](std::string const& a, std::string const& b) -> bool
     {
@@ -506,10 +506,12 @@ std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> con
 
     std::vector<bool> should_not_impl;
 
-    for (auto& x : data)
-        for (auto& y : data)
+    // for (auto& x : data)
+    //     for (auto& y : data)
+    for (auto x = 0; x < nbr_types; x++)
+        for (auto y = 0; y < nbr_types; y++)
         {
-            if (contains_pair(x.first, y.first))
+            if (contains_pair(data[x].first, data[y].first))
             {
                 should_not_impl.push_back(true);
                 continue;
@@ -624,14 +626,20 @@ std::pair<std::string, bool> handle_pair_intersection3D(T0 const& t0, T1 const& 
 
 // TODO: Only one expander for all types?
 // TODO: template function, which is templated function itself?
-// template <class Tuple, class T0, typename F>
-// void apply_expander_3D(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair, F f)
+// template <auto& Fn>
+// struct FnRef
+// {
+//     static decltype(Fn) get_ref() { return Fn; }
+// };
+//
+// template <class Tuple, class T0, auto& Fn>
+// void apply_expander_3D(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair, FnRef<Fn> const& f)
 // {
 //     static auto constexpr domainD = tg::object_traits<T0>::domain_dimension;
 //
 //     // TODO: Check domain!
 //
-//     std::apply([&data_matrix, f](auto... tuple_args) { (data_matrix.push_back(f(T0{}, tuple_args)), ...); }, types_table_3D{});
+//     std::apply([&data_matrix, f](auto... tuple_args) { (data_matrix.push_back(f.get_ref()(T0{}, tuple_args)), ...); }, types_table_3D{});
 // }
 
 template <class Tuple, class T0>
@@ -699,7 +707,14 @@ APP("ImplReport_LATEX")
 
     std::vector<std::pair<std::string, std::string>> should_not_impl_intersects2D_pairs = {};
 
-    std::vector<std::pair<std::string, std::string>> should_not_impl_intersection3D_pairs = {};
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersection3D_pairs = {
+        {"segment3", "segment3"}, //
+        {"segment3", "line3"},    //
+        {"segment3", "ray3"},     //
+        {"line3", "line3"},       //
+        {"line3", "ray3"},        //
+        {"ray3", "ray3"}          //
+    };
 
     // file generation
     std::ofstream("impl_report.tex");
@@ -751,8 +766,11 @@ APP("ImplReport_LATEX")
 
     // Func writing tabular based on arguments
     auto const write_tabular
-        = [&](std::vector<std::pair<std::string, bool>> matrix, float cell_width, std::string tabular_name, std::vector<bool> should_not_impl, int nbr_elements)
+        = [&](std::vector<std::pair<std::string, bool>> matrix, std::string tabular_name, std::vector<bool> should_not_impl, int nbr_elements)
     {
+        // cell_width
+        float cell_width = 0.5f / (nbr_elements + 1);
+
         f.open("impl_report.tex", std::ios::out | std::ios::app);
         f << "\\begin{tabular}{|s|"; //{" << cell_width_str << "\\linewidth}|";
 
@@ -803,6 +821,9 @@ APP("ImplReport_LATEX")
         f.close();
     };
 
+    // ### Writing Tables ###
+
+
     // TABLE distance_sqr 3D
 
     // data matrix
@@ -812,15 +833,10 @@ APP("ImplReport_LATEX")
     std::apply([&distance_sqr_matrix](auto... tuple_args) { (apply_expander_distance_sqr<types_table_3D>(distance_sqr_matrix, tuple_args), ...); },
                types_table_3D{});
 
-    float cell_width_dist_sqr = 0.5f / (std::tuple_size_v<types_table_3D> + 1);
-    std::string cell_width_dist_sqr_str = tg::to_string(cell_width_dist_sqr);
-
-    auto copy_distance_sqr_matrix = std::vector<std::pair<std::string, bool>>(distance_sqr_matrix);
-    copy_distance_sqr_matrix.resize(std::tuple_size_v<types_table_3D>);
-
-    // wrtie tabular distance_sqr 3D
-    write_tabular(distance_sqr_matrix, cell_width_dist_sqr, "\\centering{distance sqr 3D}",
-                  make_mask_matrix(copy_distance_sqr_matrix, should_not_impl_distance_sqr_pairs), std::tuple_size_v<types_table_3D>);
+    // write tabular distance_sqr 3D
+    write_tabular(distance_sqr_matrix, "\\centering{distance sqr 3D}",
+                  make_mask_matrix(distance_sqr_matrix, should_not_impl_distance_sqr_pairs, std::tuple_size_v<types_table_3D>),
+                  std::tuple_size_v<types_table_3D>);
 
 
     // TABLE intersects 3D
@@ -831,15 +847,9 @@ APP("ImplReport_LATEX")
     // fill up data matrix
     std::apply([&intersects_matrix](auto... tuple_args) { (apply_expander_intersects3D<types_table_3D>(intersects_matrix, tuple_args), ...); }, types_table_3D{});
 
-    float cell_width = 0.5f / (std::tuple_size_v<types_table_3D> + 1);
-    std::string cell_width_str = std::to_string(cell_width);
-
-    auto copy_intersects_matrix = std::vector<std::pair<std::string, bool>>(intersects_matrix);
-    copy_intersects_matrix.resize(std::tuple_size_v<types_table_3D>);
-
     // write tabular intersects 3D
-    write_tabular(intersects_matrix, cell_width, "intersects 3D", make_mask_matrix(copy_intersects_matrix, should_not_impl_intersects_pairs),
-                  std::tuple_size_v<types_table_3D>);
+    write_tabular(intersects_matrix, "intersects 3D",
+                  make_mask_matrix(intersects_matrix, should_not_impl_intersects_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
 
 
     // TABLE distance 3D
@@ -850,14 +860,8 @@ APP("ImplReport_LATEX")
     // fill up data matrix
     std::apply([&distance_matrix](auto... tuple_args) { (apply_expander_distance<types_table_3D>(distance_matrix, tuple_args), ...); }, types_table_3D{});
 
-    float cell_width_dist = 0.5f / (std::tuple_size_v<types_table_3D> + 1);
-    std::string cell_width_str_dist = std::to_string(cell_width_dist);
-
-    auto copy_distance_matrix = std::vector<std::pair<std::string, bool>>(distance_matrix);
-    copy_distance_matrix.resize(std::tuple_size_v<types_table_3D>);
-
     // write tabular distance 3D
-    write_tabular(distance_matrix, cell_width_dist, "distance", make_mask_matrix(copy_distance_matrix, should_not_impl_distance_pairs),
+    write_tabular(distance_matrix, "distance", make_mask_matrix(distance_matrix, should_not_impl_distance_pairs, std::tuple_size_v<types_table_3D>),
                   std::tuple_size_v<types_table_3D>);
 
 
@@ -866,18 +870,14 @@ APP("ImplReport_LATEX")
     // data matrix
     std::vector<std::pair<std::string, bool>> intersects2D_matrix;
 
+    // fill up data matrix
     std::apply([&intersects2D_matrix](auto... tuple_args) { (apply_expander_intersects2D<types_table_2D>(intersects2D_matrix, tuple_args), ...); },
                types_table_2D{});
 
-    float cell_width_intersects2D = 0.5f / (std::tuple_size_v<types_table_2D> + 1);
-    std::string cell_width_str_intersects2D = std::to_string(cell_width_intersects2D);
-
-    auto copy_intersects2D_matrix = std::vector<std::pair<std::string, bool>>(intersects2D_matrix);
-    copy_intersects2D_matrix.resize(std::tuple_size_v<types_table_2D>);
-
     // write tabular intersects 2D
-    write_tabular(intersects2D_matrix, cell_width_intersects2D, "intersects 2D",
-                  make_mask_matrix(copy_intersects2D_matrix, should_not_impl_intersects2D_pairs), std::tuple_size_v<types_table_2D>);
+    write_tabular(intersects2D_matrix, "intersects 2D",
+                  make_mask_matrix(intersects2D_matrix, should_not_impl_intersects2D_pairs, std::tuple_size_v<types_table_2D>),
+                  std::tuple_size_v<types_table_2D>);
 
 
     // Table intersection 3D
@@ -885,21 +885,17 @@ APP("ImplReport_LATEX")
     // data matrix
     std::vector<std::pair<std::string, bool>> intersection3D_matrix;
 
+    // fill up data matrix
     std::apply([&intersection3D_matrix](auto... tuple_args)
                { (apply_expander_intersection3D<types_table_3D>(intersection3D_matrix, tuple_args), ...); },
                types_table_3D{});
 
-    float cell_width_intersection3D = 0.5f / (std::tuple_size_v<types_table_3D> + 1);
-    std::string cell_width_str_intersection3D = std::to_string(cell_width_intersects2D);
+    // write tabular intersection 3D
+    write_tabular(intersection3D_matrix, "intersection 3D",
+                  make_mask_matrix(intersection3D_matrix, should_not_impl_intersection3D_pairs, std::tuple_size_v<types_table_3D>),
+                  std::tuple_size_v<types_table_3D>);
 
-    auto copy_intersection3D_matrix = std::vector<std::pair<std::string, bool>>(intersection3D_matrix);
-    copy_intersection3D_matrix.resize(std::tuple_size_v<types_table_3D>);
-
-    // write tabular intersects 2D
-    write_tabular(intersection3D_matrix, cell_width_intersection3D, "intersection 3D",
-                  make_mask_matrix(copy_intersection3D_matrix, should_not_impl_intersection3D_pairs), std::tuple_size_v<types_table_3D>);
-
-    // end
+    // end document
     f.open("impl_report.tex", std::ios::out | std::ios::app);
     f << "\\end{document}" << std::endl;
     f.close();
