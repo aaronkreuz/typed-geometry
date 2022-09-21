@@ -1,3 +1,4 @@
+#include <nexus/app.hh>
 #include <nexus/test.hh>
 
 #include <fstream>
@@ -5,6 +6,8 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <tuple>
+#include <vector>
 
 #if defined(TG_IMPLEMENTATION_REPORT)
 
@@ -61,11 +64,26 @@ using try_volume_of = decltype(volume_of(std::declval<T const&>()));
 template <class T>
 using try_perimeter_of = decltype(perimeter_of(std::declval<T const&>()));
 
+template <class T, class F>
+using try_intersection = decltype(intersection(std::declval<T const&>(), std::declval<F const&>()));
+
+template <class T, class F>
+using try_intersects = decltype(intersects(std::declval<T const&>(), std::declval<F const&>()));
+
 template <class T>
 using try_closest_ray2_intersect_of = decltype(closest_intersection_parameter(tg::ray2(), std::declval<T const&>()));
 
 template <class T>
 using try_closest_ray3_intersect_of = decltype(closest_intersection_parameter(tg::ray3(), std::declval<T const&>()));
+
+template <class T>
+using try_intersects_line3_of = decltype(intersects(std::declval<T const&>(), tg::line3()));
+
+template <class T>
+using try_intersects_ray3_of = decltype(intersects(std::declval<T const&>(), tg::ray3()));
+
+template <class T>
+using try_intersects_segment2_of = decltype(intersects(std::declval<T const&>(), tg::aabb2()));
 
 template <class T>
 using try_intersects_aabb2_of = decltype(intersects(std::declval<T const&>(), tg::aabb2()));
@@ -114,6 +132,63 @@ using try_intersects_sphere2in3_of = decltype(intersects(std::declval<T const&>(
 
 template <class T>
 using try_solid_of = decltype(solid_of(std::declval<T const&>()));
+
+template <class T>
+using try_distance_line3_of = decltype(distance(std::declval<T const&>(), tg::line3()));
+
+template <class T>
+using try_distance_ray3_of = decltype(distance(std::declval<T const&>(), tg::ray3()));
+
+template <class T>
+using try_distance_segment3_of = decltype(distance(std::declval<T const&>(), tg::segment3()));
+
+template <class T>
+using try_distance_aabb2_of = decltype(distance(std::declval<T const&>(), tg::aabb2()));
+
+template <class T>
+using try_distance_aabb3_of = decltype(distance(std::declval<T const&>(), tg::aabb3()));
+
+template <class T>
+using try_distance_sphere3_of = decltype(distance(std::declval<T const&>(), tg::sphere3()));
+
+template <class T>
+using try_distance_box3_of = decltype(distance(std::declval<T const&>(), tg::box3()));
+
+template <class T>
+using try_distance_capsule3_of = decltype(distance(std::declval<T const&>(), tg::capsule3()));
+
+template <class T>
+using try_distance_cone3_of = decltype(distance(std::declval<T const&()>, tg::cone3()));
+
+template <class T>
+using try_distance_cylinder3_of = decltype(distance(std::declval<T const&>(), tg::cylinder3()));
+
+template <class T>
+using try_distance_ellipse3_of = decltype(distance(std::declval<T const&>(), tg::ellipse3()));
+
+template <class T>
+using try_distance_halfspace3_of = decltype(distance(std::declval<T const&>(), tg::halfspace3()));
+
+template <class T>
+using try_distance_hemisphere3_of = decltype(distance(std::declval<T const&>(), tg::hemisphere3()));
+
+template <class T>
+using try_distance_triangle3_of = decltype(distance(std::declval<T const&>(), tg::triangle3()));
+
+template <class T>
+using try_distance_plane3_of = decltype(distance(std::declval<T const&>(), tg::plane3()));
+
+template <class T>
+using try_distance_tube3_of = decltype(distance(std::declval<T const&>(), tg::tube3()));
+
+template <class T>
+using try_distance_sphere2in3_of = decltype(distance(std::declval<T const&>(), tg::sphere2in3()));
+
+template <class T, class F>
+using try_distance = decltype(distance(std::declval<T const&>(), std::declval<F const&>()));
+
+template <class T, class F>
+using try_distance_sqr = decltype(distance_sqr(std::declval<T const&>(), std::declval<F const&>()));
 
 template <class ObjT>
 void test_single_object_type(std::string name)
@@ -227,6 +302,7 @@ void test_single_object_type(std::string name)
     {
         if constexpr (domainD == 2 && !tg::can_apply<try_closest_ray2_intersect_of, ObjT>)
             std::cerr << "no closest_intersection_parameter(tg::ray2, tg::" << name << ")" << std::endl;
+
         if constexpr (domainD == 3 && !tg::can_apply<try_closest_ray3_intersect_of, ObjT>)
             std::cerr << "no closest_intersection_parameter(tg::ray3, tg::" << name << ")" << std::endl;
 
@@ -361,7 +437,450 @@ TEST("implementation report")
     test_object_type_nested_boundary_caps<tg::pyramid, tg::sphere2in3>("pyramid", "sphere2in3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::box2in3>("pyramid", "box2in3");
     test_object_type_nested_boundary_caps<tg::pyramid, tg::triangle3>("pyramid", "triangle3");
-    test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
+    // test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
+}
+
+// ###- LATEX FILE GENERATION -###
+
+// structs for name retrieval of tg types
+template <class T>
+struct type_name
+{
+    char const* value = "undefined";
+};
+
+#define TG_TYPE_NAME_OF(type, name) \
+    template <>                     \
+    struct type_name<type>          \
+    {                               \
+        char const* value = name;   \
+    };
+
+TG_TYPE_NAME_OF(tg::segment3, "segment3");
+TG_TYPE_NAME_OF(tg::line3, "line3");
+TG_TYPE_NAME_OF(tg::ray3, "ray3");
+TG_TYPE_NAME_OF(tg::box3, "box3");
+TG_TYPE_NAME_OF(tg::sphere3, "sphere3");
+TG_TYPE_NAME_OF(tg::aabb3, "aabb3");
+TG_TYPE_NAME_OF(tg::capsule3, "capusle3");
+TG_TYPE_NAME_OF(tg::cone3, "cone3");
+TG_TYPE_NAME_OF(tg::cylinder3, "cylinder3");
+TG_TYPE_NAME_OF(tg::ellipse3, "ellipse3");
+TG_TYPE_NAME_OF(tg::halfspace3, "halfspace3");
+TG_TYPE_NAME_OF(tg::hemisphere3, "hemisphere3");
+TG_TYPE_NAME_OF(tg::triangle3, "triangle3");
+TG_TYPE_NAME_OF(tg::plane3, "plane3");
+TG_TYPE_NAME_OF(tg::tube3, "tube3");
+TG_TYPE_NAME_OF(tg::sphere2in3, "sphere2in3");
+TG_TYPE_NAME_OF(tg::pos3, "pos3");
+TG_TYPE_NAME_OF(tg::segment2, "segment2");
+TG_TYPE_NAME_OF(tg::ray2, "ray2");
+TG_TYPE_NAME_OF(tg::line2, "line2");
+TG_TYPE_NAME_OF(tg::circle2, "circle2");
+TG_TYPE_NAME_OF(tg::box2, "box2");
+TG_TYPE_NAME_OF(tg::triangle2, "triangle2");
+TG_TYPE_NAME_OF(tg::aabb2, "aabb2");
+TG_TYPE_NAME_OF(tg::pos2, "pos2");
+
+#undef TG_TYPE_NAME_OF
+
+template <class T>
+char const* type_name_of(T t)
+{
+    return type_name<T>().value;
+}
+
+using types_table_3D = std::tuple< //
+    tg::segment3,                  //
+    tg::line3,
+    tg::ray3,
+    tg::box3,
+    tg::sphere3,
+    tg::aabb3,
+    tg::capsule3,
+    tg::cone3,
+    tg::cylinder3,
+    tg::ellipse3,
+    tg::halfspace3,
+    tg::hemisphere3,
+    tg::triangle3,
+    tg::plane3,
+    tg::tube3,
+    tg::sphere2in3,
+    tg::pos3>;
+
+using types_table_2D = std::tuple< //
+    tg::segment2,
+    tg::line2,
+    tg::ray2,
+    tg::circle2,
+    tg::box2,
+    tg::triangle2,
+    tg::aabb2,
+    tg::pos2>;
+
+// returns vector containing information about which pairs to implement for a given function
+// 0 -> do implement, 1 -> do NOT implement
+std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> const& data, std::vector<std::pair<std::string, std::string>> const& not_impl_pairs, int nbr_types)
+{
+    auto const contains_pair = [&](std::string const& a, std::string const& b) -> bool
+    {
+        for (auto& z : not_impl_pairs)
+        {
+            if ((a == z.first && b == z.second) || (a == z.second && b == z.first) || ((a == z.first || b == z.first) && z.second == "*"))
+                return true;
+        }
+
+        return false;
+    };
+
+    std::vector<bool> should_not_impl;
+
+    for (auto x = 0; x < nbr_types; x++)
+        for (auto y = 0; y < nbr_types; y++)
+        {
+            std::cout << data[x].first << " " << data[y].first << std::endl;
+            if (contains_pair(data[x].first, data[y].first))
+            {
+                should_not_impl.push_back(true);
+                continue;
+            }
+
+            should_not_impl.push_back(false);
+        }
+
+    return should_not_impl;
+}
+
+// check if distance_sqr is implemented for types T0 and T1 in 2D/3D
+template <class T0>
+struct pair_distance_sqr_3D
+{
+    template <class T1>
+    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
+    {
+        bool is_impl = true;
+
+        if constexpr (!tg::can_apply<try_distance_sqr, T0, T1>)
+            is_impl = false;
+
+        auto type_name = type_name_of(T1());
+
+        return std::pair<std::string, bool>(type_name, is_impl);
+    }
+};
+
+// check if intersects is implemented for types T0 and T1 in 2D/3D
+template <class T0>
+struct pair_intersects
+{
+    template <class T1>
+    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
+    {
+        bool is_impl = true;
+
+        if constexpr (!tg::can_apply<try_intersects, T0, T1>)
+            is_impl = false;
+
+        auto type_name = type_name_of(T1());
+
+        return std::pair<std::string, bool>(type_name, is_impl);
+    }
+};
+
+// check if distance is implemented for types T0 and T1 in 2D/3D
+template <class T0>
+struct pair_distance
+{
+    template <class T1>
+    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
+    {
+        bool is_impl = true;
+
+        if constexpr (!tg::can_apply<try_distance, T0, T1>)
+            is_impl = false;
+
+        auto type_name = type_name_of(T1());
+
+        return std::pair<std::string, bool>(type_name, is_impl);
+    }
+};
+
+// check if intersection is implemented for types T0 and T1 in 2D/3D
+template <class T0>
+struct pair_intersection
+{
+    template <class T1>
+    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
+    {
+        bool is_impl = true;
+
+        if constexpr (!tg::can_apply<try_intersection, T0, T1>)
+            is_impl = false;
+
+        auto type_name = type_name_of(T1());
+
+        return std::pair<std::string, bool>(type_name, is_impl);
+    }
+};
+
+// expander function to enable testing certain method with every type_pair
+// check every type in Tuple with T0 according to function F
+template <class Tuple, class T0, template <typename P> class F>
+void apply_expander(std::vector<std::pair<std::string, bool>>& data_matrix, T0 const& type_pair, F<T0> const& f)
+{
+    std::apply([&data_matrix](auto... tuple_args) { (data_matrix.push_back(F<T0>::handle_pair(T0{}, tuple_args)), ...); }, Tuple{});
+}
+
+
+APP("ImplReport_LATEX")
+{
+    // List of not-impl pairs -> build not_impl matrix from list
+    // Gets overwritten when already implemented
+    // * -> wildcard (only applicable on 2nd position)
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersects3D_pairs = {
+        {"segment3", "segment3"}, //
+        {"segment3", "line3"},    //
+        {"segment3", "ray3"},     //
+        {"line3", "line3"},       //
+        {"line3", "ray3"},        //
+        {"ray3", "ray3"}          //
+    };
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_distance3D_pairs = {
+        {"line3", "halfspace3"}, //
+        {"line3", "plane3"}      //
+    };
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_distance_sqr3D_pairs = {};
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersects2D_pairs = {};
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersection3D_pairs = {
+        {"segment3", "segment3"}, //
+        {"segment3", "line3"},    //
+        {"segment3", "ray3"},     //
+        {"line3", "line3"},       //
+        {"line3", "ray3"},        //
+        {"ray3", "ray3"},         //
+        {"pos3", "*"}             //
+    };
+
+    std::vector<std::pair<std::string, std::string>> should_not_impl_intersection2D_pairs = {
+        {"pos2", "*"} //
+    };
+
+    // file generation
+    std::ofstream("impl_report.tex");
+    std::fstream f;
+    f.open("impl_report.tex", std::ios::trunc);
+    f.close();
+    f.open("impl_report.tex", std::ios::out);
+
+    // header
+    f << "\\documentclass{scrartcl}\n";
+    f << "\\usepackage[utf8]{inputenc}\n";
+    f << "\\usepackage[table]{xcolor}\n";
+    f << "\\usepackage{graphicx}\n";
+    f << "\\usepackage{multirow}\n";
+    f << "\\usepackage{geometry}\n";
+    f << "\\geometry{\n"
+      << "a4paper,\n"
+      << "left=10mm,\n"
+      << "right=10mm,\n"
+      << "top=20mm,\n"
+      << "}\n";
+    f << "\\usepackage[headsepline]{scrlayer-scrpage}\n";
+    f << "\\pagestyle{scrheadings}\n";
+    f << "\\clearpairofpagestyles\n";
+    f << "\\chead{IMPL REPORT}\n";
+    f << "\\ihead{\\today}\n";
+    f << "\\setlength{\\arrayrulewidth}{0.5mm}\n";
+    f << "\\renewcommand{\\arraystretch}{1.5}\n" << std::endl;
+    f << "\\newcolumntype{M}[1]{>{\\centering\\arraybackslash}m{#1}}\n" << std::endl;
+    f << "\\newcolumntype{L}[1]{>{\\raggedright\\arraybackslash}m{#1}}\n" << std::endl;
+    f << "\\newcolumntype{s}{>{\\columncolor[HTML]{E6E6E6}} L{2.3cm}}\n" << std::endl;
+    f << "\\newcolumntype{e}{>{\\columncolor[HTML]{E6E6E6}} M{3cm}}\n" << std::endl;
+    f << "\\newcommand{\\nondefCol}[1]{\\cellcolor[HTML]{FF3F16}}\n";
+    f << "\\newcommand{\\defCol}[1]{\\cellcolor[HTML]{97E26F}}\n";
+    f << "\\newcommand{\\notplannedCol}[1]{\\cellcolor[HTML]{3B3B3B}}\n" << std::endl;
+    f << "\\title{IMPL REPORT}\n";
+    f << "\\begin{document}\n" << std::endl;
+    f.close();
+
+    // test tables
+
+    // legend
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    f << "\\begin{tabular}{|e|e|e|} \\hline \n";
+    f << "\\cellcolor[HTML]{E6E6E6} DEFINED & \\cellcolor[HTML]{E6E6E6} UNDEFINED & \\cellcolor[HTML]{E6E6E6} SHOULD NOT \\\\ \n";
+    f << "\\defCol{} & \\nondefCol{} & \\notplannedCol{} \\\\ \\hline \n";
+    f << "\\end{tabular}" << std::endl;
+    f << "\\vspace{1.5cm} \n" << std::endl;
+
+    f.close();
+
+    // Func writing tabular based on arguments
+    auto const write_tabular
+        = [&](std::vector<std::pair<std::string, bool>> matrix, std::string tabular_name, std::vector<bool> should_not_impl, int nbr_elements)
+    {
+        // cell_width
+        float cell_width = 0.4f / (nbr_elements + 1);
+
+        f.open("impl_report.tex", std::ios::out | std::ios::app);
+        f << "\\begin{tabular}{|s|";
+
+        for (auto i = 0; i < int(nbr_elements); i++)
+            f << "M{" << std::to_string(cell_width) << "\\linewidth}|";
+
+        f << "} \\hline" << std::endl;
+
+        // header row
+        f << "\\cellcolor[HTML]{FF9D88} " << tabular_name;
+
+        for (auto i = 0; i < nbr_elements; i++)
+        {
+            if (cell_width > 0.15)
+                f << "& \\cellcolor[HTML]{E6E6E6} " << matrix[i].first;
+
+            else
+                f << "& \\cellcolor[HTML]{E6E6E6} "
+                  << "\\rotatebox{90}{" << matrix[i].first << "}";
+        }
+        f << " \\\\ \\hline" << std::endl;
+
+        // data rows
+        for (auto i = 0; i < nbr_elements; i++)
+        {
+            auto& data = matrix[i];
+            int offset = nbr_elements * i;
+
+            f << "\\cellcolor[HTML]{E6E6E6} " << matrix[offset + i].first << " ";
+
+            for (auto row_it = 0; row_it < nbr_elements; row_it++)
+            {
+                if (matrix[offset + row_it].second)
+                    f << "& \\defCol{} ";
+                else if (!matrix[offset + row_it].second && should_not_impl[offset + row_it])
+                    f << "& \\notplannedCol{} ";
+                else
+                    f << "& \\nondefCol{} ";
+            }
+
+            f << "\\\\ \\hline" << std::endl;
+        }
+
+        // end of TABLE
+        f << "\\end{tabular}" << std::endl;
+        f << "\\newline" << std::endl;
+        f << "\\vspace{1.5cm} \n" << std::endl;
+        f.close();
+    };
+
+    // ### Writing Tables ###
+
+    // TABLE distance 3D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> distance_matrix;
+
+    // fill up data matrix
+    std::apply([&distance_matrix](auto... tuple_args)
+               { (apply_expander<types_table_3D>(distance_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
+               types_table_3D{});
+
+    // write tabular distance 3D
+    write_tabular(distance_matrix, "distance", make_mask_matrix(distance_matrix, should_not_impl_distance3D_pairs, std::tuple_size_v<types_table_3D>),
+                  std::tuple_size_v<types_table_3D>);
+
+
+    // TABLE distance_sqr 3D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> distance_sqr_matrix;
+
+    // fill up data matrix
+    std::apply([&distance_sqr_matrix](auto... tuple_args)
+               { (apply_expander<types_table_3D>(distance_sqr_matrix, tuple_args, pair_distance_sqr_3D<decltype(tuple_args)>()), ...); },
+               types_table_3D{});
+
+    // write tabular distance_sqr 3D
+    write_tabular(distance_sqr_matrix, "\\centering{distance sqr 3D}",
+                  make_mask_matrix(distance_sqr_matrix, should_not_impl_distance_sqr3D_pairs, std::tuple_size_v<types_table_3D>),
+                  std::tuple_size_v<types_table_3D>);
+
+
+    // TABLE intersects 3D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersects_matrix;
+
+    // fill up data matrix
+    std::apply([&intersects_matrix](auto... tuple_args)
+               { (apply_expander<types_table_3D>(intersects_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
+               types_table_3D{});
+
+    // write tabular intersects 3D
+    write_tabular(intersects_matrix, "intersects 3D",
+                  make_mask_matrix(intersects_matrix, should_not_impl_intersects3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
+
+
+    // Table intersection 3D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersection3D_matrix;
+
+    // fill up data matrix
+    std::apply([&intersection3D_matrix](auto... tuple_args)
+               { (apply_expander<types_table_3D>(intersection3D_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
+               types_table_3D{});
+
+    // write tabular intersection 3D
+    write_tabular(intersection3D_matrix, "intersection 3D",
+                  make_mask_matrix(intersection3D_matrix, should_not_impl_intersection3D_pairs, std::tuple_size_v<types_table_3D>),
+                  std::tuple_size_v<types_table_3D>);
+
+
+    // TABLE intersects 2D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersects2D_matrix;
+
+    // fill up data matrix
+    std::apply([&intersects2D_matrix](auto... tuple_args)
+               { (apply_expander<types_table_2D>(intersects2D_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
+               types_table_2D{});
+
+    // write tabular intersects 2D
+    write_tabular(intersects2D_matrix, "intersects 2D",
+                  make_mask_matrix(intersects2D_matrix, should_not_impl_intersects2D_pairs, std::tuple_size_v<types_table_2D>),
+                  std::tuple_size_v<types_table_2D>);
+
+
+    // TABLE intersection 2D
+
+    // data matrix
+    std::vector<std::pair<std::string, bool>> intersection2D_matrix;
+
+    // fill_up data matrix
+    std::apply([&intersection2D_matrix](auto... tuple_args)
+               { (apply_expander<types_table_2D>(intersection2D_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
+               types_table_2D{});
+
+    // write tabular intersection 2D
+    write_tabular(intersection2D_matrix, "intersection 2D",
+                  make_mask_matrix(intersection2D_matrix, should_not_impl_intersection2D_pairs, std::tuple_size_v<types_table_2D>),
+                  std::tuple_size_v<types_table_2D>);
+
+
+    // end document
+    f.open("impl_report.tex", std::ios::out | std::ios::app);
+    f << "\\end{document}" << std::endl;
+    f.close();
+
+
+    // compile
+    std::system("pdflatex impl_report.tex");
 }
 
 #endif
