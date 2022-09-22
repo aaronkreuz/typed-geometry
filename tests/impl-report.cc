@@ -554,7 +554,7 @@ std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> con
 
 // check if distance_sqr is implemented for types T0 and T1 in 2D/3D
 template <class T0>
-struct pair_distance_sqr_3D
+struct pair_distance_sqr
 {
     template <class T1>
     static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
@@ -670,6 +670,8 @@ APP("ImplReport_LATEX")
         {"pos2", "*"} //
     };
 
+    std::vector<std::pair<std::string, std::string>> should_not_impl_distance2D_pairs = {};
+
     // file generation
     std::ofstream("impl_report.tex");
     std::fstream f;
@@ -731,7 +733,7 @@ APP("ImplReport_LATEX")
         f << "\\begin{tabular}{|s|";
 
         for (auto i = 0; i < int(nbr_elements); i++)
-            f << "M{" << std::to_string(cell_width) << "\\linewidth}|";
+            f << "b{" << std::to_string(cell_width) << "\\linewidth}|";
 
         f << "} \\hline" << std::endl;
 
@@ -790,8 +792,8 @@ APP("ImplReport_LATEX")
                types_table_3D{});
 
     // write tabular distance 3D
-    write_tabular(distance_matrix, "distance", make_mask_matrix(distance_matrix, should_not_impl_distance3D_pairs, std::tuple_size_v<types_table_3D>),
-                  std::tuple_size_v<types_table_3D>);
+    write_tabular(distance_matrix, "\\centering{distance 3D}",
+                  make_mask_matrix(distance_matrix, should_not_impl_distance3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
 
 
     // TABLE distance_sqr 3D
@@ -801,7 +803,7 @@ APP("ImplReport_LATEX")
 
     // fill up data matrix
     std::apply([&distance_sqr_matrix](auto... tuple_args)
-               { (apply_expander<types_table_3D>(distance_sqr_matrix, tuple_args, pair_distance_sqr_3D<decltype(tuple_args)>()), ...); },
+               { (apply_expander<types_table_3D>(distance_sqr_matrix, tuple_args, pair_distance_sqr<decltype(tuple_args)>()), ...); },
                types_table_3D{});
 
     // write tabular distance_sqr 3D
@@ -821,7 +823,7 @@ APP("ImplReport_LATEX")
                types_table_3D{});
 
     // write tabular intersects 3D
-    write_tabular(intersects_matrix, "intersects 3D",
+    write_tabular(intersects_matrix, "\\centering{intersects 3D}",
                   make_mask_matrix(intersects_matrix, should_not_impl_intersects3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
 
 
@@ -836,9 +838,22 @@ APP("ImplReport_LATEX")
                types_table_3D{});
 
     // write tabular intersection 3D
-    write_tabular(intersection3D_matrix, "intersection 3D",
+    write_tabular(intersection3D_matrix, "\\centering{intersection 3D}",
                   make_mask_matrix(intersection3D_matrix, should_not_impl_intersection3D_pairs, std::tuple_size_v<types_table_3D>),
                   std::tuple_size_v<types_table_3D>);
+
+
+    // TABLE distance 2D
+    std::vector<std::pair<std::string, bool>> distance2D_matrix;
+
+    // fill up data matrix
+    std::apply([&distance2D_matrix](auto... tuple_args)
+               { (apply_expander<types_table_2D>(distance2D_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
+               types_table_2D{});
+
+    // write tabular distance 2D
+    write_tabular(distance2D_matrix, "\\centering{distance 2D}",
+                  make_mask_matrix(distance2D_matrix, should_not_impl_distance2D_pairs, std::tuple_size_v<types_table_2D>), std::tuple_size_v<types_table_2D>);
 
 
     // TABLE intersects 2D
@@ -852,7 +867,7 @@ APP("ImplReport_LATEX")
                types_table_2D{});
 
     // write tabular intersects 2D
-    write_tabular(intersects2D_matrix, "intersects 2D",
+    write_tabular(intersects2D_matrix, "\\centering{intersects 2D}",
                   make_mask_matrix(intersects2D_matrix, should_not_impl_intersects2D_pairs, std::tuple_size_v<types_table_2D>),
                   std::tuple_size_v<types_table_2D>);
 
@@ -868,7 +883,7 @@ APP("ImplReport_LATEX")
                types_table_2D{});
 
     // write tabular intersection 2D
-    write_tabular(intersection2D_matrix, "intersection 2D",
+    write_tabular(intersection2D_matrix, "\\centering{intersection 2D}",
                   make_mask_matrix(intersection2D_matrix, should_not_impl_intersection2D_pairs, std::tuple_size_v<types_table_2D>),
                   std::tuple_size_v<types_table_2D>);
 
