@@ -371,27 +371,34 @@ template <class ScalarT>
 //     return d;
 // }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+// TODO: TEST MISSING
+// template <class ScalarT>
+// [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, segment<3, ScalarT> s)
+// {
+//     if (intersects(l, s))
+//         return ScalarT(0);
+//
+//     // line extension of segment
+//     auto l0 = inf_of(s);
+//     auto len_s = length(s);
+//
+//     auto [t0, t1] = closest_points_parameters(l0, l);
+//
+//     if (t0 >= 0 && t0 <= len_s)
+//         return distance_sqr(l0[t0], l[t1]);
+//
+//     auto p = distance_sqr(s.pos0, l0[t0]) <= distance_sqr(s.pos1, l0[t0]) ? s.pos0 : s.pos1;
+//
+//     return distance_sqr(p, l);
+// }
+
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, segment<3, ScalarT> s)
 {
-    if (intersects(l, s))
-        return ScalarT(0);
-
-    auto l0 = inf_of(s);
-    auto len_s = length(s);
-
-    auto [t0, t1] = closest_points_parameters(l0, l);
-
-    if (t0 >= 0 && t0 <= len_s)
-        return distance_sqr(l0[t0], l[t1]);
-
-    auto p = distance_sqr(s.pos0, l0[t0]) <= distance_sqr(s.pos1, l0[t0]) ? s.pos0 : s.pos1;
-
-    return distance_sqr(p, l);
+    return distance_sqr(s, l);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
@@ -400,7 +407,13 @@ template <class ScalarT>
     return distance_sqr(l0, s);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> s, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, s);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, sphere<3, ScalarT> const& s)
 {
@@ -410,7 +423,13 @@ template <class ScalarT>
     return d;
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<3, ScalarT> const& s, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, s);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, aabb<3, ScalarT> const& bb)
 {
@@ -430,7 +449,13 @@ template <class ScalarT>
     return d;
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(aabb<3, ScalarT> const& bb, segment<3, ScalarT> const& s)
+{
+    return distance_sqr(s, bb);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, aabb<3, ScalarT> const& bb)
 {
@@ -446,7 +471,13 @@ template <class ScalarT>
     return d;
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(aabb<3, ScalarT> const& bb, line<3, ScalarT> const& l)
+{
+    return distance_sqr(l, bb);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, aabb<3, ScalarT> const& bb)
 {
@@ -455,7 +486,13 @@ template <class ScalarT>
     return distance_sqr(l0, bb);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(aabb<3, ScalarT> const& bb, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, bb);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, sphere<2, ScalarT, 3> const& sp)
 {
@@ -481,7 +518,13 @@ template <class ScalarT>
     return distance_sqr(s, edge_v);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<2, ScalarT, 3> const& sp, segment<3, ScalarT> const& s)
+{
+    return distance_sqr(s, sp);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, sphere<2, ScalarT, 3> const& s)
 {
@@ -501,7 +544,13 @@ template <class ScalarT>
     return distance_sqr(l, edge_v);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<2, ScalarT, 3> const& s, line<3, ScalarT> const& l)
+{
+    return distance_sqr(l, s);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, sphere<2, ScalarT, 3> const& s)
 {
@@ -510,7 +559,13 @@ template <class ScalarT>
     return distance_sqr(l0, s);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<2, ScalarT, 3> const& s, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, s);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, cylinder<3, ScalarT> const& c)
 {
@@ -533,22 +588,31 @@ template <class ScalarT>
     return d;
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(cylinder<3, ScalarT> const& c, segment<3, ScalarT> const& s)
+{
+    return distance_sqr(s, c);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, cylinder<3, ScalarT> const& c)
 {
     if (intersects(l, c))
         return ScalarT(0);
 
+    // planes of cylinder disks
     auto plane0 = plane<3, ScalarT>(c.seg_t.pos0, normalize(c.seg_t.pos0 - c.seg_t.pos1));
     auto plane1 = plane<3, ScalarT>(c.seg_t.pos1, normalize(c.seg_t.pos1 - c.seg_t.pos0));
 
     auto i0 = intersection(l, plane0);
     auto i1 = intersection(l, plane1);
 
+    // line parallel to some cylinder disk
     if (!i0.has_value() && !i1.has_value())
         return min(distance_sqr(l, plane0), distance_sqr(l, plane0));
 
+    // line in plane of a cylinder disk
     if (!i0.has_value() || !i1.has_value())
         return ScalarT(0);
 
@@ -557,7 +621,13 @@ template <class ScalarT>
     return distance_sqr(seg, c);
 }
 
-// TODO: TEST MISSING, OTHER WAY ROUND
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(cylinder<3, ScalarT> const& c, line<3, ScalarT> const& l)
+{
+    return distance_sqr(l, c);
+}
+
+// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, cylinder<3, ScalarT> const& c)
 {
@@ -566,6 +636,11 @@ template <class ScalarT>
     return distance_sqr(l0, c);
 }
 
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(cylinder<3, ScalarT> const& c, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, c);
+}
 
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<3, ScalarT> const& s0, sphere<3, ScalarT> const& s1)
@@ -574,6 +649,46 @@ template <class ScalarT>
     return dot(s0s1, s0s1);
 }
 
+// TODO: TEST MISSING
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, box<3, ScalarT> const& b)
+{
+    if (intersects(l, b))
+        return ScalarT(0);
+
+    auto d = tg::max<ScalarT>();
+
+    // check vertices
+    for (auto& v : vertices_of(b))
+        d = min(d, distance_sqr(v, l));
+
+    // check edges
+    for (auto& e : edges_of(b))
+        d = min(d, distance_sqr(e, l));
+
+    return d;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(box<3, ScalarT> const& b, line<3, ScalarT> const& l)
+{
+    return distance_sqr(l, b);
+}
+
+// TODO: TEST MISSING
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, box<3, ScalarT> const& b)
+{
+    auto l0 = tg::line(r);
+
+    return distance_sqr(l0, b);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(box<3, ScalarT> const& b, ray<3, ScalarT> const& r)
+{
+    return distance_sqr(r, b);
+}
 
 // =========== Other Implementations ===========
 

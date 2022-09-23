@@ -4,6 +4,9 @@
 
 #include <typed-geometry/tg.hh>
 
+// TEMP
+#include <iostream>
+
 FUZZ_TEST("Distance")(tg::rng& rng)
 {
     auto rBox1 = tg::aabb1(tg::pos1(-1.0f), tg::pos1(1.0f));
@@ -575,6 +578,33 @@ FUZZ_TEST("Distance - BoxPlane3")(tg::rng& rng)
         CHECK(intersects(b, p));
     else
         CHECK(!intersects(b, p));
+}
+
+FUZZ_TEST("Distance - LineSegment3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto pos = uniform(rng, bounds);
+
+    // Case 1: line and segment intersecting
+    auto s0 = tg::segment3(pos, uniform(rng, bounds));
+    auto l0 = tg::line3(pos, tg::uniform<tg::dir3>(rng));
+
+    auto d0 = distance(s0, l0);
+    auto d0_sqr = distance_sqr(s0, l0);
+
+    CHECK(d0 == 0);
+    CHECK(d0_sqr == 0);
+
+    // Case 2: line and segment not intersection -> parallel
+    auto s1 = s0;
+    auto offset_pos = pos + 1 * tg::uniform<tg::dir3>(rng);
+    auto l1 = tg::line3(offset_pos, normalize(s1.pos1 - s1.pos0));
+
+    auto d_offset = distance(s1, offset_pos);
+    auto d1 = distance(s1, l1);
+
+
+    CHECK(d1 == nx::approx(d_offset));
 }
 
 // FUZZ_TEST("Distance - BoxBox3")(tg::rng& rng)
