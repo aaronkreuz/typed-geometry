@@ -398,7 +398,6 @@ template <class ScalarT>
     return distance_sqr(s, l);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
@@ -413,23 +412,21 @@ template <class ScalarT>
     return distance_sqr(r, s);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, sphere<3, ScalarT> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(ray<3, ScalarT> const& r, sphere<3, ScalarT> const& s)
 {
-    auto d = distance_sqr(r, s.center);
+    auto d = distance(r, s.center);
     d = max(0, d - s.radius);
 
     return d;
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<3, ScalarT> const& s, ray<3, ScalarT> const& r)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<3, ScalarT> const& s, ray<3, ScalarT> const& r)
 {
-    return distance_sqr(r, s);
+    return distance(r, s);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, aabb<3, ScalarT> const& bb)
 {

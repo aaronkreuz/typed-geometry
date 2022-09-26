@@ -600,12 +600,104 @@ FUZZ_TEST("Distance - LineSegment3")(tg::rng& rng)
     auto offset_pos = pos + 1 * tg::uniform<tg::dir3>(rng);
     auto l1 = tg::line3(offset_pos, normalize(s1.pos1 - s1.pos0));
 
-    auto d_offset = distance(s1, offset_pos);
     auto d1 = distance(s1, l1);
 
-
-    CHECK(d1 == nx::approx(d_offset));
+    CHECK(d1 <= nx::approx(1.f));
 }
+
+FUZZ_TEST("Distance - RaySegment3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto pos = uniform(rng, bounds);
+
+    // Case 1: line and segment intersecting
+    auto s0 = tg::segment3(pos, uniform(rng, bounds));
+    auto r0 = tg::ray3(pos, tg::uniform<tg::dir3>(rng));
+
+    CHECK(distance(s0, r0) == 0);
+    CHECK(distance(r0, s0) == 0);
+
+    CHECK(distance_sqr(s0, r0) == 0);
+    CHECK(distance_sqr(r0, s0) == 0);
+
+    // Case 2: line and segment not intersection -> parallel
+    auto s1 = s0;
+    auto offset_pos = pos + 1 * tg::uniform<tg::dir3>(rng);
+    auto r1 = tg::ray3(offset_pos, normalize(s1.pos1 - s1.pos0));
+
+    auto d1 = distance(s1, r1);
+
+    CHECK(distance(s1, r1) <= nx::approx(1.f));
+    CHECK(distance(r1, s1) <= nx::approx(1.f));
+}
+
+FUZZ_TEST("Distance - RaySphere3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto scalar_bounds = tg::aabb1(1.f, 5.f);
+
+    auto pos = tg::uniform(rng, bounds);
+    float rad = tg::uniform(rng, scalar_bounds).x;
+    auto s = tg::sphere3(pos, rad);
+
+    // Case 1 : ray through sphere center
+    auto dirx = tg::uniform<tg::dir3>(rng);
+    auto diry = tg::uniform<tg::dir3>(rng);
+    auto r0 = tg::ray3(pos, normalize(cross(dirx, diry)));
+
+    CHECK(distance(s, r0) == nx::approx(0.f));
+
+    // Case 2: ray not intersecting sphere
+    auto r1 = tg::ray3(pos + (rad + 1.f) * dirx, r0.dir);
+    auto dis1 = distance(s, r1);
+
+    CHECK(dis1 == nx::approx(1.f));
+}
+
+FUZZ_TEST("Distance - SegmentAABB3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto bb = tg::aabb3::unit_centered;
+
+    // Case 1: random segment inside bounds
+    auto s0 = tg::segment3(tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+
+    if (intersects(s0, bb))
+    {
+        CHECK(distance(s0, bb) == nx::approx(0.f));
+        CHECK(distance(bb, s0) == nx::approx(0.f));
+        CHECK(distance_sqr(s0, bb) == nx::approx(0.f));
+        CHECK(distance_sqr(bb, s0) == nx::approx(0.f));
+    }
+
+    // Case 2: segment above bb
+    auto p = tg::plane3(tg::dir3{0.f, 1.f, 0.f}, tg::pos3(0, 1.1f, 0));
+
+    auto s1 = tg::segment3(tg::project(tg::uniform(rng, bounds), p), {0.f, 0.6f, 0.f});
+
+    CHECK(distance(s1, bb) == nx::approx(0.1f));
+    CHECK(distance(bb, s1) == nx::approx(0.1f));
+}
+
+FUZZ_TEST("Distance - LineAABB3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto bb = tg::aabb3::unit_centered;
+
+    // Case 1: line through center of bounding box
+    auto l0 = tg::line3(tg::pos3::zero, tg::uniform<tg::dir3>(rng));
+
+    CHECK(distance(bb, l0) == nx::approx(0.f));
+    CHECK(distance(l0, bb) == nx::approx(0.f));
+    CHECK(distance_sqr(bb, l0) == nx::approx(0.f));
+    CHECK(distance_sqr(l0, bb) == nx::approx(0.f));
+
+    // Case 2: line not intersecting bounding box
+    // TODO
+}
+
 
 // FUZZ_TEST("Distance - BoxBox3")(tg::rng& rng)
 // {
