@@ -452,7 +452,6 @@ template <class ScalarT>
     return distance_sqr(s, bb);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, aabb<3, ScalarT> const& bb)
 {
@@ -474,11 +473,10 @@ template <class ScalarT>
     return distance_sqr(l, bb);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, aabb<3, ScalarT> const& bb)
 {
-    auto l0 = tg::line(r);
+    auto l0 = tg::line3(r.origin, r.dir);
 
     return distance_sqr(l0, bb);
 }
@@ -489,54 +487,58 @@ template <class ScalarT>
     return distance_sqr(r, bb);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, sphere<2, ScalarT, 3> const& sp)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, disk<3, ScalarT> const& d)
 {
-    if (intersects(s, sp))
+    if (intersects(s, d))
         return ScalarT(0);
 
-    auto plane = plane_of(sp);
+    auto plane = tg::plane3(d.normal, d.center);
     auto insec = intersection(s, plane);
 
     if (!insec.has_value())
     {
         // parallel to disk
-        if (dot(sp.normal, normalize(s.pos1 - s.pos0)) == 0)
-            return distance_sqr(sp.center, s);
+        if (dot(d.normal, normalize(s.pos1 - s.pos0)) == 0)
+        {
+            auto p0 = closest_points(d.center, s);
+            return distance_sqr(p0.second, d);
+        }
 
         // one of segment end-points closest to disk
-        return min(distance_sqr(s.pos0, sp), distance_sqr(s.pos1, sp));
+        return min(distance_sqr(s.pos0, d), distance_sqr(s.pos1, d));
     }
 
     // point on edge of disk closest to segment
-    auto edge_v = sp.center + sp.radius * normalize(insec.value - sp.center);
+    auto edge_v = d.center + d.radius * normalize(insec.value() - d.center);
 
     return distance_sqr(s, edge_v);
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<2, ScalarT, 3> const& sp, segment<3, ScalarT> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(disk<3, ScalarT> const& sp, segment<3, ScalarT> const& s)
 {
     return distance_sqr(s, sp);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, sphere<2, ScalarT, 3> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, disk<3, ScalarT> const& d)
 {
-    if (intersects(l, s))
+    if (intersects(l, d))
         return ScalarT(0);
 
-    auto plane = plane_of(s);
+    auto plane = plane_of(d);
     auto insec = intersection(l, plane);
 
     // parallel to disk
-    if (!insec.has_value())
-        return distance_sqr(l, s.center);
+    if (!insec.any())
+    {
+        auto p0 = closest_points(d.center, l);
+        return distance_sqr(p0.second, d);
+    }
 
     // point on edge of disk closest to line
-    auto edge_v = s.center + s.radius * tg::normalize(insec.value() - s.center);
+    auto edge_v = d.center + d.radius * tg::normalize(insec[0] - d.center);
 
     return distance_sqr(l, edge_v);
 }
@@ -547,11 +549,10 @@ template <class ScalarT>
     return distance_sqr(l, s);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, sphere<2, ScalarT, 3> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, disk<3, ScalarT> const& s)
 {
-    auto l0 = tg::line(r);
+    auto l0 = tg::line3(r.origin, r.dir);
 
     return distance_sqr(l0, s);
 }
@@ -562,17 +563,16 @@ template <class ScalarT>
     return distance_sqr(r, s);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, cylinder<3, ScalarT> const& c)
 {
-    if (intersects(s, c))
-        return ScalarT(0);
+    // if (intersects(s, c))
+    //     return ScalarT(0);
 
     auto d = tg::max<ScalarT>();
 
-    auto disk0 = tg::sphere<2, ScalarT, 3>(c.seg_t.pos0, c.radius, normalize(c.seg_t.pos0 - c.seg_t.pos1));
-    auto disk1 = tg::sphere<2, ScalarT, 3>(c.seg_t.pos1, c.radius, normalize(c.seg_t.pos1 - c.seg_t.pos0));
+    auto disk0 = tg::disk<3, ScalarT>(c.axis.pos0, c.radius, normalize(c.axis.pos0 - c.axis.pos1));
+    auto disk1 = tg::disk<3, ScalarT>(c.axis.pos1, c.radius, normalize(c.axis.pos1 - c.axis.pos0));
 
     // cylinder disks - segment
     d = min(d, distance_sqr(disk0, s));
