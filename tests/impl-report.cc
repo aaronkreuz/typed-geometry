@@ -745,7 +745,8 @@ APP("ImplReport_LATEX")
 
             else
                 f << "& \\cellcolor[HTML]{E6E6E6} "
-                  << "\\rotatebox{90}{" << matrix[i].first << "}";
+                  << "\\rotatebox{90}{" << matrix[i].first << " "
+                  << "}";
         }
         f << " \\\\ \\hline" << std::endl;
 
