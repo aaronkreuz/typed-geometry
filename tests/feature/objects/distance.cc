@@ -790,7 +790,7 @@ FUZZ_TEST("Distance - RayDisk3")(tg::rng& rng)
     auto disk1 = tg::disk3(tg::pos3::zero, 1.f, {0.f, 1.f, 0.f});
     auto r1_pos = disk1.center + 1 * disk1.normal;
     auto proj_disk = tg::project(tg::uniform(rng, bounds), disk1);
-    auto r1 = tg::line3(r1_pos, normalize((proj_disk + 1 * disk1.normal) - r1_pos));
+    auto r1 = tg::ray3(r1_pos, normalize((proj_disk + 1 * disk1.normal) - r1_pos));
 
     CHECK(distance(r1, disk1) == nx::approx(1.f));
     CHECK(distance(disk1, r1) == nx::approx(1.f));
@@ -821,9 +821,74 @@ FUZZ_TEST("Distance - SegmentCylinder3")(tg::rng& rng)
     CHECK(distance_sqr(cyl1, s1) == nx::approx(1.f));
 }
 
-// FUZZ_TEST("Distance - ")
+FUZZ_TEST("Distance - LineCylinder3 ")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto scalar_bounds = tg::aabb1(0.1f, 0.9f);
 
-// FUZZ_TEST("Distance - ")
+    // Case 1: line intersecting with cylinder
+    auto cyl0 = tg::cylinder3(tg::uniform(rng, bounds), tg::uniform(rng, bounds), 1.f);
+    auto l0 = tg::line3(cyl0.axis.pos0, tg::normalize(cyl0.axis.pos1 - cyl0.axis.pos0));
+
+    CHECK(distance(l0, cyl0) == nx::approx(0.f));
+    CHECK(distance(cyl0, l0) == nx::approx(0.f));
+    CHECK(distance_sqr(l0, cyl0) == nx::approx(0.f));
+    CHECK(distance_sqr(cyl0, l0) == nx::approx(0.f));
+
+    // Case 2: line not intersection with cylinder
+    auto cyl_dir = tg::uniform<tg::dir3>(rng);
+    auto cyl_pos0 = tg::uniform(rng, bounds);
+    auto cyl1 = tg::cylinder3({cyl_pos0, cyl_pos0 + cyl_dir}, 1.f);
+
+    // find orthogonal vector to cylinder axis
+    auto cyl_l = tg::line3(cyl1.axis.pos0, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
+    auto orth_vec = tg::vec3(tg::uniform(rng, scalar_bounds).x, tg::uniform(rng, scalar_bounds).x, 0);
+    orth_vec.z = (-cyl_l.dir.x * orth_vec.x - cyl_l.dir.y * orth_vec.y) / cyl_l.dir.z;
+    orth_vec = normalize(orth_vec);
+
+    float rng_scalar = tg::uniform(rng, scalar_bounds).x;
+    auto pos_l1 = cyl1.axis[rng_scalar] + 2.f * orth_vec;
+    auto l1 = tg::line3(pos_l1, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
+
+    CHECK(distance(l1, cyl1) == nx::approx(1.f));
+    CHECK(distance(cyl1, l1) == nx::approx(1.f));
+    CHECK(distance_sqr(l1, cyl1) == nx::approx(1.f));
+    CHECK(distance_sqr(cyl1, l1) == nx::approx(1.f));
+}
+
+// FUZZ_TEST("Distance - RayCylinder3")(tg::rng& rng){
+//     auto bounds = tg::aabb3(-10, 10);
+//     auto scalar_bounds = tg::aabb1(0.1f, 0.9f);
+//
+//     // Case 1: line intersecting with cylinder
+//     auto cyl0 = tg::cylinder3(tg::uniform(rng, bounds), tg::uniform(rng, bounds), 1.f);
+//     auto r0 = tg::ray3(cyl0.axis.pos0, tg::normalize(cyl0.axis.pos1 - cyl0.axis.pos0));
+//
+//     CHECK(distance(r0, cyl0) == nx::approx(0.f));
+//     CHECK(distance(cyl0, r0) == nx::approx(0.f));
+//     CHECK(distance_sqr(l0, cyl0) == nx::approx(0.f));
+//     CHECK(distance_sqr(cyl0, l0) == nx::approx(0.f));
+//
+//     // Case 2: line not intersection with cylinder
+//     auto cyl_dir = tg::uniform<tg::dir3>(rng);
+//     auto cyl_pos0 = tg::uniform(rng, bounds);
+//     auto cyl1 = tg::cylinder3({cyl_pos0, cyl_pos0 + cyl_dir}, 1.f);
+//
+//     // find orthogonal vector to cylinder axis
+//     auto cyl_l = tg::line3(cyl1.axis.pos0, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
+//     auto orth_vec = tg::vec3(tg::uniform(rng, scalar_bounds).x, tg::uniform(rng, scalar_bounds).x, 0);
+//     orth_vec.z = (-cyl_l.dir.x * orth_vec.x - cyl_l.dir.y * orth_vec.y) / cyl_l.dir.z;
+//     orth_vec = normalize(orth_vec);
+//
+//     float rng_scalar = tg::uniform(rng, scalar_bounds).x;
+//     auto pos_l1 = cyl1.axis[rng_scalar] + 2.f * orth_vec;
+//     auto l1 = tg::line3(pos_l1, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
+//
+//     CHECK(distance(l1, cyl1) == nx::approx(1.f));
+//     CHECK(distance(cyl1, l1) == nx::approx(1.f));
+//     CHECK(distance_sqr(l1, cyl1) == nx::approx(1.f));
+//     CHECK(distance_sqr(cyl1, l1) == nx::approx(1.f));
+// }
 
 
 // FUZZ_TEST("Distance - BoxBox3")(tg::rng& rng)

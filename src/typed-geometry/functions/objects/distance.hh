@@ -592,7 +592,6 @@ template <class ScalarT>
     return distance_sqr(s, c);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, cylinder<3, ScalarT> const& c)
 {
@@ -600,21 +599,21 @@ template <class ScalarT>
         return ScalarT(0);
 
     // planes of cylinder disks
-    auto plane0 = plane<3, ScalarT>(c.seg_t.pos0, normalize(c.seg_t.pos0 - c.seg_t.pos1));
-    auto plane1 = plane<3, ScalarT>(c.seg_t.pos1, normalize(c.seg_t.pos1 - c.seg_t.pos0));
+    auto plane0 = plane<3, ScalarT>(normalize(c.axis.pos0 - c.axis.pos1), c.axis.pos0);
+    auto plane1 = plane<3, ScalarT>(normalize(c.axis.pos1 - c.axis.pos0), c.axis.pos1);
 
     auto i0 = intersection(l, plane0);
     auto i1 = intersection(l, plane1);
 
     // line parallel to some cylinder disk
-    if (!i0.has_value() && !i1.has_value())
-        return min(distance_sqr(l, plane0), distance_sqr(l, plane0));
+    if (!i0.any() && !i1.any())
+        return min(distance_sqr(l, pos<3, ScalarT>(plane0.dis * plane0.normal)), distance_sqr(l, pos<3, ScalarT>(plane1.dis * plane1.normal)));
 
     // line in plane of a cylinder disk
-    if (!i0.has_value() || !i1.has_value())
+    if (!i0.any() || !i1.any())
         return ScalarT(0);
 
-    auto seg = segment<3, ScalarT>(i0.value(), i1.value());
+    auto seg = segment<3, ScalarT>(i0[0], i1[0]);
 
     return distance_sqr(seg, c);
 }
