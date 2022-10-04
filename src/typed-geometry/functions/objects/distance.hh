@@ -339,39 +339,6 @@ template <class ScalarT>
     return d;
 }
 
-// template <class ScalarT>
-// [[nodiscard]] constexpr fractional_result<ScalarT> distance(box<3, ScalarT> const& b0, box<3, ScalarT> const& b1)
-// {
-//     if (intersects(b0, b1))
-//         return fractional_result<ScalarT>(0);
-//
-//     auto d = tg::max<ScalarT>();
-//
-//     for (auto v : vertices_of(b0))
-//         d = min(d, distance(v, b0));
-//
-//     for (auto v : vertices_of(b1))
-//         d = min(d, distance(v, b1));
-//
-//     if (d == 0)
-//         return fractional_result<ScalarT>(0);
-//
-//     for (auto e0 : edges_of(b0))
-//         for (auto e1 : edges_of(b1))
-//             d = min(d, distance(e0, e1));
-//
-//     // face - edge pairs
-//     //  for (auto e : edges_of(b0))
-//     //      for (auto f : faces_of(b1))
-//     //          d = min(d, distance(e, f));
-//
-//     //  for (auto e : edges_of(b1))
-//     //      for (auto f : faces_of(b0))
-//     //          d = min(d, distance(e, f));
-//
-//     return d;
-// }
-
 // TODO: TEST MISSING
 // template <class ScalarT>
 // [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, segment<3, ScalarT> s)
@@ -624,11 +591,10 @@ template <class ScalarT>
     return distance_sqr(l, c);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, cylinder<3, ScalarT> const& c)
 {
-    auto l0 = tg::line(r);
+    auto l0 = tg::line3(r.origin, r.dir);
 
     return distance_sqr(l0, c);
 }
@@ -646,7 +612,6 @@ template <class ScalarT>
     return dot(s0s1, s0s1);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, box<3, ScalarT> const& b)
 {
@@ -672,7 +637,6 @@ template <class ScalarT>
     return distance_sqr(l, b);
 }
 
-// TODO: TEST MISSING
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, box<3, ScalarT> const& b)
 {
