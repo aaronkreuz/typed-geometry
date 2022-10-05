@@ -366,12 +366,11 @@ template <class ScalarT>
     return distance_sqr(s, l);
 }
 
+// error
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
-    auto l0 = line<3, ScalarT>(r.origin, r.dir);
-
-    return distance_sqr(l0, s);
+    return 0; // distance_sqr(l0, s);
 }
 
 template <class ScalarT>
@@ -441,6 +440,7 @@ template <class ScalarT>
     return distance_sqr(l, bb);
 }
 
+// error
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, aabb<3, ScalarT> const& bb)
 {
@@ -591,6 +591,7 @@ template <class ScalarT>
     return distance_sqr(l, c);
 }
 
+// erroneous
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, cylinder<3, ScalarT> const& c)
 {
@@ -640,9 +641,20 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, box<3, ScalarT> const& b)
 {
-    auto l0 = tg::line(r);
+    if (intersects(r, b))
+        return ScalarT(0);
 
-    return distance_sqr(l0, b);
+    auto d = tg::max<ScalarT>();
+
+    // check vertices
+    for (auto& v : vertices_of(b))
+        d = min(d, distance_sqr(v, r));
+
+    // check edges
+    for (auto& e : edges_of(b))
+        d = min(d, distance_sqr(e, r));
+
+    return d;
 }
 
 template <class ScalarT>
