@@ -366,7 +366,7 @@ template <class ScalarT>
     return distance_sqr(s, l);
 }
 
-// error - TODO: rework test
+// TODO: inaccuracies when distance == 0
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
@@ -379,9 +379,16 @@ template <class ScalarT>
     auto len_s = length(s);
 
     auto [t0, t1] = closest_points_parameters(l_r, l_s);
+    auto cp = closest_points(l_r, l_s);
 
     if (t0 >= 0 && t1 >= 0 && t1 <= len_s)
+    {
+        // TODO: closest_points_parameters inaccuracies
+        if (distance_sqr(cp.first, cp.second) == ScalarT(0))
+            return ScalarT(0);
+
         return distance_sqr(l_r[t0], l_s[t1]);
+    }
 
     else if (t0 >= 0)
         return min(distance_sqr(l_r[t0], s.pos0), distance_sqr(l_r[t0], s.pos1));
@@ -460,7 +467,7 @@ template <class ScalarT>
     return distance_sqr(l, bb);
 }
 
-// error
+// error ray
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, aabb<3, ScalarT> const& bb)
 {
@@ -611,7 +618,7 @@ template <class ScalarT>
     return distance_sqr(l, c);
 }
 
-// error - TODO: rework test
+// error ray - TODO: rework test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, cylinder<3, ScalarT> const& c)
 {
