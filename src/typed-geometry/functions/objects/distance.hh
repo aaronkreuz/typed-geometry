@@ -339,27 +339,6 @@ template <class ScalarT>
     return d;
 }
 
-// TODO: TEST MISSING
-// template <class ScalarT>
-// [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, segment<3, ScalarT> s)
-// {
-//     if (intersects(l, s))
-//         return ScalarT(0);
-//
-//     // line extension of segment
-//     auto l0 = inf_of(s);
-//     auto len_s = length(s);
-//
-//     auto [t0, t1] = closest_points_parameters(l0, l);
-//
-//     if (t0 >= 0 && t0 <= len_s)
-//         return distance_sqr(l0[t0], l[t1]);
-//
-//     auto p = distance_sqr(s.pos0, l0[t0]) <= distance_sqr(s.pos1, l0[t0]) ? s.pos0 : s.pos1;
-//
-//     return distance_sqr(p, l);
-// }
-
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, segment<3, ScalarT> s)
 {
@@ -370,34 +349,19 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
-    // TODO: implement closest_points for ray - segment
-
     //  line extension of ray
     auto l_r = tg::line3(r.origin, r.dir);
-    // line extension
+
+    // line extension of segment
     auto l_s = inf_of(s);
     auto len_s = length(s);
 
     auto [t0, t1] = closest_points_parameters(l_r, l_s);
-    auto cp = closest_points(l_r, l_s);
 
-    if (t0 >= 0 && t1 >= 0 && t1 <= len_s)
-    {
-        // TODO: closest_points_parameters inaccuracies
-        if (distance_sqr(cp.first, cp.second) == ScalarT(0))
-            return ScalarT(0);
-
+    if (t0 >= ScalarT(0) && t1 >= ScalarT(0) && t1 <= len_s)
         return distance_sqr(l_r[t0], l_s[t1]);
-    }
 
-    else if (t0 >= 0)
-        return min(distance_sqr(l_r[t0], s.pos0), distance_sqr(l_r[t0], s.pos1));
-
-    else if (t1 >= 0 && t1 <= len_s)
-        return distance_sqr(r.origin, l_s[t1]);
-
-    else
-        return min(distance_sqr(r.origin, s.pos0), distance_sqr(r.origin, s.pos1));
+    return min(distance_sqr(s.pos0, r), distance_sqr(s.pos1, r), distance_sqr(r.origin, s));
 }
 
 template <class ScalarT>
@@ -454,7 +418,7 @@ template <class ScalarT>
 
     auto d = tg::max<ScalarT>();
 
-    // edges of bb with segment
+    // edges of bb with line
     for (auto& e : edges_of(bb))
         d = min(d, distance_sqr(e, l));
 
@@ -467,13 +431,16 @@ template <class ScalarT>
     return distance_sqr(l, bb);
 }
 
-// error ray
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, aabb<3, ScalarT> const& bb)
 {
-    auto l0 = tg::line3(r.origin, r.dir);
+    if (intersects(r, bb))
+        return ScalarT(0);
 
-    return distance_sqr(l0, bb);
+    if (dot(0.5f * (bb.min + bb.max) - r.origin, r.dir) < ScalarT(0))
+        return min(distance_sqr(bb, r.origin));
+
+    return min(distance_sqr(line<3, ScalarT>(r.origin, r.dir), bb), distance_sqr(r.origin, bb));
 }
 
 template <class ScalarT>
@@ -618,13 +585,17 @@ template <class ScalarT>
     return distance_sqr(l, c);
 }
 
-// error ray - TODO: rework test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, cylinder<3, ScalarT> const& c)
 {
-    auto l0 = tg::line3(r.origin, r.dir);
+    if (intersects(r, c))
+        return ScalarT(0);
 
-    return distance_sqr(l0, c);
+    // ray pointing away from cylinder
+    if (dot(r.dir, c.axis[0.5f] - r.origin) < ScalarT(0))
+        return distance_sqr(r.origin, c);
+
+    return distance_sqr(tg::line3(r.origin, r.dir), c);
 }
 
 template <class ScalarT>

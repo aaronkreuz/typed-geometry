@@ -607,19 +607,21 @@ FUZZ_TEST("Distance - LineSegment3")(tg::rng& rng)
 
 FUZZ_TEST("Distance - RaySegment3")(tg::rng& rng)
 {
+    // TODO: inaccuracies (0.001f) when intersecting
+
     auto bounds = tg::aabb3(-10, 10);
     auto pos = uniform(rng, bounds);
 
     // Case 1: ray and segment intersecting
     auto s0 = tg::segment3(pos, uniform(rng, bounds));
     auto r0_orig = tg::uniform(rng, bounds);
-    auto r0 = tg::ray3(r0_orig, normalize(s0[0.5f] - r0_orig));
+    auto r0 = tg::ray3(r0_orig, normalize(s0.pos0 - r0_orig));
 
-    CHECK(distance(s0, r0) == nx::approx(0.f));
-    CHECK(distance(r0, s0) == nx::approx(0.f));
+    CHECK(distance(s0, r0) == nx::approx(0.f).abs(0.01f));
+    CHECK(distance(r0, s0) == nx::approx(0.f).abs(0.01f));
 
-    CHECK(distance_sqr(s0, r0) == nx::approx(0.f));
-    CHECK(distance_sqr(r0, s0) == nx::approx(0.f));
+    CHECK(distance_sqr(s0, r0) == nx::approx(0.f).abs(0.001f));
+    CHECK(distance_sqr(r0, s0) == nx::approx(0.f).abs(0.001f));
 
     // Case 2: ray and segment not intersection -> parallel
     auto s1 = s0;
@@ -707,20 +709,27 @@ FUZZ_TEST("Distance - RayAABB3")(tg::rng& rng)
     auto bb = tg::aabb3::unit_centered;
 
     // Case 1: ray through center of bounding box
-    auto r0 = tg::ray3(tg::pos3::zero, tg::uniform<tg::dir3>(rng));
+    auto r0_orig = tg::uniform(rng, bounds);
+    auto r0 = tg::ray3(r0_orig, -normalize(tg::vec3(r0_orig)));
 
     CHECK(distance(bb, r0) == nx::approx(0.f));
     CHECK(distance(r0, bb) == nx::approx(0.f));
     CHECK(distance_sqr(bb, r0) == nx::approx(0.f));
     CHECK(distance_sqr(r0, bb) == nx::approx(0.f));
 
-    // Case 2: ray not intersecting bounding box
-    auto r1 = tg::ray3({-1.f, 0.f, 0.f}, {0.f, 1.f, 0.f});
+    // Case 2: ray pointing away from bounding box
+    auto r1 = tg::ray3(r0_orig, -r0.dir);
 
-    CHECK(distance(bb, r1) == nx::approx(.5f));
-    CHECK(distance(r1, bb) == nx::approx(.5f));
-    CHECK(distance_sqr(bb, r1) >= 0.f);
-    CHECK(distance_sqr(r1, bb) >= 0.f);
+    if (intersects(r1, bb))
+    {
+        CHECK(distance(r1, bb) == nx::approx(0.f));
+    }
+
+    else
+    {
+        CHECK(distance(r1, bb) == distance(r1.origin, bb));
+        CHECK(distance(bb, r1) == distance(r1.origin, bb));
+    }
 }
 
 FUZZ_TEST("Distance - SegmentDisk3")(tg::rng& rng)
@@ -861,7 +870,9 @@ FUZZ_TEST("Distance - RayCylinder3")(tg::rng& rng)
 
     // Case 1: ray intersecting with cylinder
     auto cyl0 = tg::cylinder3(tg::uniform(rng, bounds), tg::uniform(rng, bounds), 1.f);
-    auto r0 = tg::ray3(cyl0.axis.pos0, tg::normalize(cyl0.axis.pos1 - cyl0.axis.pos0));
+    auto r0_orig = tg::uniform(rng, bounds);
+
+    auto r0 = tg::ray3(r0_orig, tg::normalize(cyl0.axis[0.5] - r0_orig));
 
     CHECK(distance(r0, cyl0) == nx::approx(0.f));
     CHECK(distance(cyl0, r0) == nx::approx(0.f));
@@ -869,24 +880,12 @@ FUZZ_TEST("Distance - RayCylinder3")(tg::rng& rng)
     CHECK(distance_sqr(cyl0, r0) == nx::approx(0.f));
 
     // Case 2: ray not intersection with cylinder
-    auto cyl_dir = tg::uniform<tg::dir3>(rng);
-    auto cyl_pos0 = tg::uniform(rng, bounds);
-    auto cyl1 = tg::cylinder3({cyl_pos0, cyl_pos0 + cyl_dir}, 1.f);
+    auto r1 = tg::ray3(r0.origin, -r0.dir);
 
-    // find orthogonal vector to cylinder axis
-    auto cyl_r = tg::line3(cyl1.axis.pos0, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
-    auto orth_vec = tg::vec3(tg::uniform(rng, scalar_bounds).x, tg::uniform(rng, scalar_bounds).x, 0);
-    orth_vec.z = (-cyl_r.dir.x * orth_vec.x - cyl_r.dir.y * orth_vec.y) / cyl_r.dir.z;
-    orth_vec = normalize(orth_vec);
+    auto d = distance(r1.origin, cyl0);
 
-    float rng_scalar = tg::uniform(rng, scalar_bounds).x;
-    auto pos_r1 = cyl1.axis[rng_scalar] + 2.f * orth_vec;
-    auto r1 = tg::line3(pos_r1, normalize(cyl1.axis.pos1 - cyl1.axis.pos0));
-
-    CHECK(distance(r1, cyl1) == nx::approx(1.f));
-    CHECK(distance(cyl1, r1) == nx::approx(1.f));
-    CHECK(distance_sqr(r1, cyl1) == nx::approx(1.f));
-    CHECK(distance_sqr(cyl1, r1) == nx::approx(1.f));
+    CHECK(distance(r1, cyl0) == nx::approx(d));
+    CHECK(distance(cyl0, r1) == nx::approx(d));
 }
 
 FUZZ_TEST("Distance - LineBox3")(tg::rng& rng)
@@ -933,9 +932,9 @@ FUZZ_TEST("Distance - RayBox3")(tg::rng& rng)
     CHECK(distance_sqr(r0, b) == nx::approx(0.f));
     CHECK(distance_sqr(b, r0) == nx::approx(0.f));
 
-    // Case2: line not intersecting with box
+    // Case2: ray not intersecting with box
     auto dir = tg::uniform<tg::dir3>(rng);
-    auto p = b.center + dir;
+    auto p = b.center + 2.0f * dir;
 
     auto r1 = tg::ray3(p, dir);
 
