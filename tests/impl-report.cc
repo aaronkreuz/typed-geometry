@@ -447,6 +447,9 @@ TEST("implementation report")
 }
 
 // ###- LATEX FILE GENERATION -###
+/// Description:
+/// TODO
+///
 
 // structs for name retrieval of tg types
 template <class T>
@@ -560,113 +563,30 @@ std::vector<bool> make_mask_matrix(std::vector<std::pair<std::string, bool>> con
     return should_not_impl;
 }
 
-// TODO: use macro instead
-template <class T0>
-struct pair_distance_sqr
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
 
-        if constexpr (!tg::can_apply<try_distance_sqr, T0, T1>)
-            is_impl = false;
+#define TG_APPLY_PAIR(type_check, struct_name)                                      \
+    template <class T0>                                                             \
+    struct struct_name                                                              \
+    {                                                                               \
+        template <class T1>                                                         \
+        static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1) \
+        {                                                                           \
+            bool is_impl = true;                                                    \
+            if constexpr (!tg::can_apply<type_check, T0, T1>)                       \
+                is_impl = false;                                                    \
+            auto type_name = type_name_of(T1());                                    \
+            return std::pair<std::string, bool>(type_name, is_impl);                \
+        }                                                                           \
+    };
 
-        auto type_name = type_name_of(T1());
+TG_APPLY_PAIR(try_distance_sqr, pair_distance_sqr);
+TG_APPLY_PAIR(try_intersects, pair_intersects);
+TG_APPLY_PAIR(try_distance, pair_distance);
+TG_APPLY_PAIR(try_intersection, pair_intersection);
+TG_APPLY_PAIR(try_closest_points, pair_closest_points);
+TG_APPLY_PAIR(try_contains, pair_contains);
 
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
-
-// check if intersects is implemented for types T0 and T1 in 2D/3D
-template <class T0>
-struct pair_intersects
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
-
-        if constexpr (!tg::can_apply<try_intersects, T0, T1>)
-            is_impl = false;
-
-        auto type_name = type_name_of(T1());
-
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
-
-// check if distance is implemented for types T0 and T1 in 2D/3D
-template <class T0>
-struct pair_distance
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
-
-        if constexpr (!tg::can_apply<try_distance, T0, T1>)
-            is_impl = false;
-
-        auto type_name = type_name_of(T1());
-
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
-
-// check if intersection is implemented for types T0 and T1 in 2D/3D
-template <class T0>
-struct pair_intersection
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
-
-        if constexpr (!tg::can_apply<try_intersection, T0, T1>)
-            is_impl = false;
-
-        auto type_name = type_name_of(T1());
-
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
-
-// check if closest_points is implemented for types T0 and T1 in 2D/3D
-template <class T0>
-struct pair_closest_points
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
-
-        if constexpr (!tg::can_apply<try_closest_points, T0, T1>)
-            is_impl = false;
-
-        auto type_name = type_name_of(T1());
-
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
-
-// check if contains is implemented for types T0 and T1 in 2D/3D
-template <class T0>
-struct pair_contains
-{
-    template <class T1>
-    static std::pair<std::string, bool> handle_pair(T0 const& t0, T1 const& t1)
-    {
-        bool is_impl = true;
-
-        if constexpr (!tg::can_apply<try_contains, T0, T1>)
-            is_impl = false;
-
-        auto type_name = type_name_of(T1());
-
-        return std::pair<std::string, bool>(type_name, is_impl);
-    }
-};
+#undef TG_APPLY_PAIR
 
 // expander function to enable testing certain method with every type_pair
 // check every type in Tuple with T0 according to function F
