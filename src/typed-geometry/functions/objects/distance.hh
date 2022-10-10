@@ -350,7 +350,7 @@ template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
     //  line extension of ray
-    auto l_r = tg::line3(r.origin, r.dir);
+    auto l_r = tg::line<3, ScalarT>(r.origin, r.dir);
 
     // line extension of segment
     auto l_s = inf_of(s);
@@ -739,6 +739,103 @@ template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(triangle<3, ScalarT> const& t, ray<3, ScalarT> const& r)
 {
     return distance_sqr(r, t);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, triangle<3, ScalarT> const& t)
+{
+    if (intersects(s, t))
+        return ScalarT(0);
+
+    return min(distance_sqr(s.pos0, t), distance_sqr(s.pos1, t));
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(triangle<3, ScalarT> const& t, segment<3, ScalarT> const& s)
+{
+    return distance_sqr(s, t);
+}
+
+// TODO: Test
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(line<3, ScalarT> const& l, triangle<3, ScalarT> const& t)
+{
+    if (intersects(l, t))
+        return ScalarT(0);
+
+    auto edges = edges_of(t);
+
+    return min(distance_sqr(edges[0], l), distance_sqr(edges[1], l), distance_sqr(edges[2], l));
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(triangle<3, ScalarT> const& t, line<3, ScalarT> const& l)
+{
+    return distance_sqr(l, t);
+}
+
+// TODO: Test
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(box<3, ScalarT> const& b, triangle<3, ScalarT> const& t)
+{
+    if (intersects(b, t))
+        return ScalarT(0);
+
+    auto d = tg::max<ScalarT>();
+
+    // vertices of t vs. b
+    for (auto& v_t : vertices_of(t))
+        d = min(d, distance_sqr(v_t, b));
+
+    // edges of t vs. b
+    for (auto& e_t : edges_of(t))
+        d = min(d, distance_sqr(e_t, b));
+
+    // vertices of b vs. t
+    for (auto& v_b : vertices_of(b))
+        d = min(d, distance_sqr(v_b, t));
+
+    return d;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(triangle<3, ScalarT> const& t, box<3, ScalarT> const& b)
+{
+    return distance_sqr(b, t);
+}
+
+// TODO: Test
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<3, ScalarT> const& s, triangle<3, ScalarT> const& t)
+{
+    auto d = distance(s.center, t);
+
+    if (d <= s.radius)
+        return ScalarT(0);
+
+    return d - s.radius;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(triangle<3, ScalarT> const& t, sphere<3, ScalarT> const& s)
+{
+    return distance(s, t);
+}
+
+// TODO: Test
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(plane<3, ScalarT> const& p, triangle<3, ScalarT> const& t)
+{
+    if (intersects(p, t))
+        return ScalarT(0);
+
+    return min(distance_sqr(t.pos0, p), distance_sqr(t.pos1, p), distance_sqr(t.pos2, p));
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(triangle<3, ScalarT> const& t, plane<3, ScalarT> const& p)
+{
+    return distance_sqr(p, t);
 }
 
 //  =========== Other Implementations ===========

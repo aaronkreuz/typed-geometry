@@ -70,8 +70,6 @@ template <int D, class ScalarT>
     auto p0 = project(p1, bb0);
     return {p0, p1};
 }
-
-
 // =========== Other Implementations ===========
 
 template <class ScalarT>
