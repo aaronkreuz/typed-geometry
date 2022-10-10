@@ -446,10 +446,39 @@ TEST("implementation report")
     // test_object_type_nested_boundary_caps<tg::pyramid, tg::quad3>("pyramid", "quad3");
 }
 
-// ###- LATEX FILE GENERATION -###
-/// Description:
-/// TODO
-///
+
+// LATEX FILE GENERATOR:
+// APP "ImplReport_LATEX" auto generates latex file and compiled .pdf containing implementation report tabulars for supported tg methods.
+//
+// Implementation guideline for new tabulars for method m:
+//  - Check if typedef for m for type_pair check is implemented, otherwise implement according to following example (on top of file):
+//       Example:
+//           template <class T, class F>
+//           using try_intersects = decltype(intersects(std::declval<T const&>(), std::declval<F const&>()));
+//
+//  - Add TG_APPLY_PAIR struct for m according to following example:
+//       Example:
+//           TG_APPLY_PAIR(try_intersects, pair_intersects);
+//               -> 2nd argument: Name of defined struct
+//
+//  - In APP:
+//       - Add new scope at the end, before "// end document"
+//       - std::vector<std::pair<std::string, std::string>> should_not_impl_NEW_METHOD
+//          -> containing type pairs where implementation of m would not be meaningful
+//       - std::vector<std::pair<std::string, bool>> data_matrix;
+//          -> stores implementation information:
+//              - data_matrix[0]: first type of tuple (types_table_3D || types_table_2D) with itself
+//              - data_matrix[1]: first type of tuple (types_table_3D || types_table_2D) with 2nd type of tuple, ..
+//       - fill in data by applying m on all possible type pairs of the chosen tuple (types_table_3D || types_table_2D).
+//              - Example:
+//                          std::apply([&data_matrix](auto... tuple_args)
+//                              { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
+//                                  types_table_3D{});
+//       - write data_matrix: write_tabular(...)
+//
+// Notes:
+//  - Add new type: Add to tuple (types_table_3D || types_table_2D) and add TG_TYPE_NAME_OF macro for new type
+
 
 // structs for name retrieval of tg types
 template <class T>
@@ -718,16 +747,16 @@ APP("ImplReport_LATEX")
         };
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> distance_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&distance_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(distance_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular distance 3D
-        write_tabular(distance_matrix, "\\centering{distance 3D}",
-                      make_mask_matrix(distance_matrix, should_not_impl_distance3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
+        write_tabular(data_matrix, "\\centering{distance 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_distance3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
     }
 
     // TABLE distance_sqr 3D
@@ -737,17 +766,16 @@ APP("ImplReport_LATEX")
         std::vector<std::pair<std::string, std::string>> should_not_impl_distance_sqr3D_pairs = {};
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> distance_sqr_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&distance_sqr_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(distance_sqr_matrix, tuple_args, pair_distance_sqr<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_distance_sqr<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular distance_sqr 3D
-        write_tabular(distance_sqr_matrix, "\\centering{distance sqr 3D}",
-                      make_mask_matrix(distance_sqr_matrix, should_not_impl_distance_sqr3D_pairs, std::tuple_size_v<types_table_3D>),
-                      std::tuple_size_v<types_table_3D>);
+        write_tabular(data_matrix, "\\centering{distance sqr 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_distance_sqr3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
     }
 
     // TABLE intersects 3D
@@ -764,17 +792,16 @@ APP("ImplReport_LATEX")
         };
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> intersects_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&intersects_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(intersects_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular intersects 3D
-        write_tabular(intersects_matrix, "\\centering{intersects 3D}",
-                      make_mask_matrix(intersects_matrix, should_not_impl_intersects3D_pairs, std::tuple_size_v<types_table_3D>),
-                      std::tuple_size_v<types_table_3D>);
+        write_tabular(data_matrix, "\\centering{intersects 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_intersects3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
     }
 
     // Table intersection 3D
@@ -792,17 +819,16 @@ APP("ImplReport_LATEX")
         };
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> intersection3D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&intersection3D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(intersection3D_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular intersection 3D
-        write_tabular(intersection3D_matrix, "\\centering{intersection 3D}",
-                      make_mask_matrix(intersection3D_matrix, should_not_impl_intersection3D_pairs, std::tuple_size_v<types_table_3D>),
-                      std::tuple_size_v<types_table_3D>);
+        write_tabular(data_matrix, "\\centering{intersection 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_intersection3D_pairs, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
     }
 
     // TABLE closest_points 3D
@@ -812,16 +838,16 @@ APP("ImplReport_LATEX")
         std::vector<std::pair<std::string, std::string>> should_not_impl_closest_points3D_pairs = {};
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> closest_points3D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&closest_points3D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(closest_points3D_matrix, tuple_args, pair_closest_points<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_closest_points<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular closest_points 3D
-        write_tabular(closest_points3D_matrix, "\\centering{closest{\\_}points 3D}",
-                      make_mask_matrix(closest_points3D_matrix, should_not_impl_closest_points3D_pairs, std::tuple_size_v<types_table_3D>),
+        write_tabular(data_matrix, "\\centering{closest{\\_}points 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_closest_points3D_pairs, std::tuple_size_v<types_table_3D>),
                       std::tuple_size_v<types_table_3D>);
     }
 
@@ -832,16 +858,16 @@ APP("ImplReport_LATEX")
         std::vector<std::pair<std::string, std::string>> should_not_impl_contains3D = {};
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> contains3D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&contains3D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_3D>(contains3D_matrix, tuple_args, pair_contains<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_3D>(data_matrix, tuple_args, pair_contains<decltype(tuple_args)>()), ...); },
                    types_table_3D{});
 
         // write tabular closest_points 3D
-        write_tabular(contains3D_matrix, "\\centering{contains 3D}",
-                      make_mask_matrix(contains3D_matrix, should_not_impl_contains3D, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
+        write_tabular(data_matrix, "\\centering{contains 3D}",
+                      make_mask_matrix(data_matrix, should_not_impl_contains3D, std::tuple_size_v<types_table_3D>), std::tuple_size_v<types_table_3D>);
     }
 
     // TABLE distance 2D
@@ -851,17 +877,16 @@ APP("ImplReport_LATEX")
         std::vector<std::pair<std::string, std::string>> should_not_impl_distance2D_pairs = {};
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> distance2D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&distance2D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_2D>(distance2D_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_2D>(data_matrix, tuple_args, pair_distance<decltype(tuple_args)>()), ...); },
                    types_table_2D{});
 
         // write tabular distance 2D
-        write_tabular(distance2D_matrix, "\\centering{distance 2D}",
-                      make_mask_matrix(distance2D_matrix, should_not_impl_distance2D_pairs, std::tuple_size_v<types_table_2D>),
-                      std::tuple_size_v<types_table_2D>);
+        write_tabular(data_matrix, "\\centering{distance 2D}",
+                      make_mask_matrix(data_matrix, should_not_impl_distance2D_pairs, std::tuple_size_v<types_table_2D>), std::tuple_size_v<types_table_2D>);
     }
 
     // TABLE intersects 2D
@@ -871,17 +896,16 @@ APP("ImplReport_LATEX")
         std::vector<std::pair<std::string, std::string>> should_not_impl_intersects2D_pairs = {};
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> intersects2D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill up data matrix
-        std::apply([&intersects2D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_2D>(intersects2D_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_2D>(data_matrix, tuple_args, pair_intersects<decltype(tuple_args)>()), ...); },
                    types_table_2D{});
 
         // write tabular intersects 2D
-        write_tabular(intersects2D_matrix, "\\centering{intersects 2D}",
-                      make_mask_matrix(intersects2D_matrix, should_not_impl_intersects2D_pairs, std::tuple_size_v<types_table_2D>),
-                      std::tuple_size_v<types_table_2D>);
+        write_tabular(data_matrix, "\\centering{intersects 2D}",
+                      make_mask_matrix(data_matrix, should_not_impl_intersects2D_pairs, std::tuple_size_v<types_table_2D>), std::tuple_size_v<types_table_2D>);
     }
 
     // TABLE intersection 2D
@@ -893,17 +917,16 @@ APP("ImplReport_LATEX")
         };
 
         // data matrix
-        std::vector<std::pair<std::string, bool>> intersection2D_matrix;
+        std::vector<std::pair<std::string, bool>> data_matrix;
 
         // fill_up data matrix
-        std::apply([&intersection2D_matrix](auto... tuple_args)
-                   { (apply_expander<types_table_2D>(intersection2D_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
+        std::apply([&data_matrix](auto... tuple_args)
+                   { (apply_expander<types_table_2D>(data_matrix, tuple_args, pair_intersection<decltype(tuple_args)>()), ...); },
                    types_table_2D{});
 
         // write tabular intersection 2D
-        write_tabular(intersection2D_matrix, "\\centering{intersection 2D}",
-                      make_mask_matrix(intersection2D_matrix, should_not_impl_intersection2D_pairs, std::tuple_size_v<types_table_2D>),
-                      std::tuple_size_v<types_table_2D>);
+        write_tabular(data_matrix, "\\centering{intersection 2D}",
+                      make_mask_matrix(data_matrix, should_not_impl_intersection2D_pairs, std::tuple_size_v<types_table_2D>), std::tuple_size_v<types_table_2D>);
     }
 
     // end document
