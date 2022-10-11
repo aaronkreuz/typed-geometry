@@ -666,10 +666,14 @@ template <class ScalarT>
     return distance_sqr(r, b);
 }
 
-// TODO: Test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance(ray<3, ScalarT> const& r, line<3, ScalarT> const& l)
 {
+    // check if parallel
+    auto cr = cross(r.dir, l.dir);
+    if (length(cr) == 0.f)
+        return distance(r.origin, l);
+
     // line extension of ray
     auto l_r = tg::line3(r.origin, r.dir);
     auto [t0, t1] = closest_points_parameters(l_r, l);
@@ -686,7 +690,6 @@ template <class ScalarT>
     return distance(r, l);
 }
 
-// TODO: Test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, box<3, ScalarT> const& b)
 {
@@ -708,7 +711,6 @@ template <class ScalarT>
     return distance_sqr(s, b);
 }
 
-// TODO: Test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(segment<3, ScalarT> const& s, halfspace<3, ScalarT> const& hs)
 {
@@ -813,7 +815,7 @@ template <class ScalarT>
     if (d <= s.radius)
         return ScalarT(0);
 
-    return d - s.radius;
+    return (d - s.radius);
 }
 
 template <class ScalarT>

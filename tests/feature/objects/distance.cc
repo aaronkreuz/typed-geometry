@@ -932,7 +932,7 @@ FUZZ_TEST("Distance - RayBox3")(tg::rng& rng)
     CHECK(distance_sqr(r0, b) == nx::approx(0.f));
     CHECK(distance_sqr(b, r0) == nx::approx(0.f));
 
-    // Case2: ray not intersecting with box
+    // Case 2: ray not intersecting with box
     auto dir = tg::uniform<tg::dir3>(rng);
     auto p = b.center + 2.0f * dir;
 
@@ -942,4 +942,124 @@ FUZZ_TEST("Distance - RayBox3")(tg::rng& rng)
     CHECK(distance(b, r1) == nx::approx(distance(p, b)));
     CHECK(distance_sqr(r1, b) > 0.f);
     CHECK(distance_sqr(b, r1) > 0.f);
+}
+
+FUZZ_TEST("Distance - RayLine3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    // intersecting in origin
+    auto r0 = tg::ray3(tg::pos3::zero, tg::uniform<tg::dir3>(rng));
+    auto l0 = tg::line3(tg::pos3::zero, tg::uniform<tg::dir3>(rng));
+
+    CHECK(distance(r0, l0) == nx::approx(0.f));
+    CHECK(distance(l0, r0) == nx::approx(0.f));
+
+    auto dir1 = tg::uniform<tg::dir3>(rng);
+
+    auto r1 = tg::ray3(tg::uniform(rng, bounds), dir1);
+    auto l1 = tg::line3(tg::uniform(rng, bounds), dir1);
+
+    if (distance(r1.origin, l1) == nx::approx(0.f))
+        CHECK(distance(r1, l1) == nx::approx(0.f));
+
+    else
+        CHECK(distance(r1, l1) > 0.f);
+}
+
+FUZZ_TEST("Distance - SegmentBox3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto scalar_bounds = tg::aabb1(0.1f, 5.f);
+
+    auto b = tg::box3::unit_centered;
+
+    // Case 1: segment through origin
+    auto dir = tg::uniform<tg::dir3>(rng);
+
+    auto s0 = tg::segment3(tg::pos3::zero + tg::uniform(rng, scalar_bounds).x * dir, tg::pos3::zero - tg::uniform(rng, scalar_bounds).x * dir);
+
+    CHECK(distance(s0, b) == nx::approx(0.f));
+    CHECK(distance(b, s0) == nx::approx(0.f));
+    CHECK(distance_sqr(s0, b) == nx::approx(0.f));
+    CHECK(distance_sqr(b, s0) == nx::approx(0.f));
+
+    // Case 2
+    auto s1 = tg::segment3(uniform(rng, bounds), uniform(rng, bounds));
+
+    if (intersects(s1, b))
+        CHECK(distance(s1, b) == nx::approx(0.f));
+
+    else
+        CHECK(distance(s1, b) > 0.f);
+}
+
+FUZZ_TEST("Distance - SegmentHalfspace3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto hs = tg::halfspace3(tg::uniform<tg::dir3>(rng), tg::uniform(rng, bounds));
+    auto s = tg::segment3(tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+
+    if (contains(hs, s.pos0) || contains(hs, s.pos1))
+    {
+        CHECK(distance(s, hs) == nx::approx(0.f));
+        CHECK(distance_sqr(s, hs) == nx::approx(0.f));
+    }
+
+    else
+    {
+        auto d = tg::min(distance(s.pos0, hs), distance(s.pos1, hs));
+        CHECK(distance(s, hs) == nx::approx(d));
+    }
+}
+
+FUZZ_TEST("Distance - RayTriangle3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto r = tg::ray3(tg::uniform(rng, bounds), tg::uniform<tg::dir3>(rng));
+    auto t = tg::triangle(tg::uniform(rng, bounds), tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+    auto d = distance(r, t);
+
+    auto dd = minimize_f1(rng, 1.0f,
+                          [&](float& a, float)
+                          {
+                              a = tg::clamp(a, 0.f, std::abs(a));
+                              return distance(r[a], t);
+                          });
+
+    CHECK(d == nx::approx(dd).abs(0.7f));
+}
+
+FUZZ_TEST("Distance - SphereTriangle3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto s = tg::sphere3::unit;
+
+    // Case 1: Triangle intersecting with unit sphere
+    auto t0 = tg::triangle3(tg::pos3::zero, tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+
+    CHECK(distance(s, t0) == nx::approx(0.f));
+
+    // Case 2: no intersection
+    auto t1 = tg::triangle3({0.f, 2.f, 0.f}, {1.f, 2.f, 1.f}, {-1.f, 2.f, 1.f});
+
+    CHECK(distance(s, t1) == nx::approx(1.f));
+}
+
+FUZZ_TEST("Distance - BoxTriangle3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+
+    auto b = tg::box3::unit_centered;
+
+    // Case 1: triangle intersects with box
+    auto t0 = tg::triangle3(tg::uniform(rng, b), tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+    CHECK(distance(b, t0) == nx::approx(0.f));
+
+    // Case 2: no intersection
+    auto t1 = tg::triangle3({0.f, 2.f, 0.f}, {1.f, 2.f, 1.f}, {-1.f, 2.f, 1.f});
+    CHECK(distance(b, t1) == nx::approx(1.5f));
 }
