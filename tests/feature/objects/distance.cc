@@ -1063,3 +1063,22 @@ FUZZ_TEST("Distance - BoxTriangle3")(tg::rng& rng)
     auto t1 = tg::triangle3({0.f, 2.f, 0.f}, {1.f, 2.f, 1.f}, {-1.f, 2.f, 1.f});
     CHECK(distance(b, t1) == nx::approx(1.5f));
 }
+
+FUZZ_TEST("Distance - PlaneTriangle3")(tg::rng& rng)
+{
+    auto bounds = tg::aabb3(-10, 10);
+    auto bounds_up = tg::aabb3({-10.f, 1.f, -10.f}, {10.f, 10.f, 10.f});
+
+    // Case 1: triangle intersects with plane
+    auto t0 = tg::triangle3(tg::uniform(rng, bounds), tg::uniform(rng, bounds), tg::uniform(rng, bounds));
+    auto p0 = tg::plane_of(tg::triangle3{t0.pos0, t0.pos1, tg::uniform(rng, bounds)});
+
+    CHECK(distance(p0, t0) == nx::approx(0.f));
+    CHECK(distance_sqr(t0, p0) == nx::approx(0.f));
+
+    // Case 2: triangle not intersecting with plane
+    auto p1 = tg::plane3({0.f, 1.f, 0.f}, tg::pos3::zero);
+    auto t1 = tg::triangle3(tg::uniform(rng, bounds_up), tg::uniform(rng, bounds_up), tg::uniform(rng, bounds_up));
+
+    CHECK(distance(p1, t1) >= nx::approx(1.f));
+}
