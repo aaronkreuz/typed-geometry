@@ -732,7 +732,6 @@ template <class ScalarT>
     return distance_sqr(s, t);
 }
 
-// TODO: Test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(box<3, ScalarT> const& b, triangle<3, ScalarT> const& t)
 {
@@ -779,7 +778,6 @@ template <class ScalarT>
     return distance(s, t);
 }
 
-// TODO: Test
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(plane<3, ScalarT> const& p, triangle<3, ScalarT> const& t)
 {

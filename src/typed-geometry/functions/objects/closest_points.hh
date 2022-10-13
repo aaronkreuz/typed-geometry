@@ -70,6 +70,47 @@ template <int D, class ScalarT>
     auto p0 = project(p1, bb0);
     return {p0, p1};
 }
+
+// TODO: Test missing
+template <int D, class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere<D, ScalarT> const& s0, sphere<D, ScalarT> const& s1)
+{
+    auto p1 = project(s0.center, s1);
+    auto p0 = project(s1.center, s0);
+    return {p0, p1};
+}
+
+// TODO: Test missing & vice versa
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, segment<3, ScalarT> const& segment)
+{
+    auto p1 = distance(plane, segment.pos0) < distance(plane, segment.pos1) ? segment.pos0 : segment.pos1;
+    auto p0 = project(p1, plane);
+    return {p0, p1};
+}
+
+// TODO: Test missing & vice versa
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, aabb<3, ScalarT> const& bb)
+{
+    auto vs = vertices_of(bb);
+    auto p1 = vs[0];
+
+    for (auto& v : vs)
+        p1 = distance(p1, plane) <= distance(v, plane) ? p1 : v;
+
+    auto p0 = project(p1, plane);
+    return {p0, p1};
+}
+
+// TODO: Test missing & vice versa
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(ray<3, ScalarT> const& ray, segment<3, ScalarT> const& segment)
+{
+    // TODO
+    return {tg::pos3::zero, tg::pos3::zero};
+}
+
 // =========== Other Implementations ===========
 
 template <class ScalarT>
