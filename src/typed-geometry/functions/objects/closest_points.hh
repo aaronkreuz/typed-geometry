@@ -71,9 +71,9 @@ template <int D, class ScalarT>
     return {p0, p1};
 }
 
-// TODO: Test missing
+// TODO: Case of intersection?
 template <int D, class ScalarT>
-[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere<D, ScalarT> const& s0, sphere<D, ScalarT> const& s1)
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere_boundary<D, ScalarT> const& s0, sphere_boundary<D, ScalarT> const& s1)
 {
     auto p1 = project(s0.center, s1);
     auto p0 = project(s1.center, s0);
@@ -89,7 +89,7 @@ template <class ScalarT>
     return {p0, p1};
 }
 
-// TODO: Test missing & vice versa
+// TODO: Test missing & vice versa, Case of intersection?
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, aabb<3, ScalarT> const& bb)
 {
@@ -107,8 +107,20 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(ray<3, ScalarT> const& ray, segment<3, ScalarT> const& segment)
 {
-    // TODO
-    return {tg::pos3::zero, tg::pos3::zero};
+    auto lr = tg::line<3, ScalarT>(ray.origin, ray.dir);
+    auto ls = inf_of(segment);
+    auto len = length(segment);
+
+    auto [tr, ts] = closest_points_parameters(lr, ls);
+
+    auto ts_clamped = clamp(ts, 0, len);
+    auto ts_clamped_rel = ts_clamped / len;
+
+    auto proj_r = tg::project(segment[ts_clamped_rel], ray);
+    auto proj_s = tg::project(ray.origin, segment);
+
+    tg::pair<pos<3, ScalarT>, pos<3, ScalarT>> pair
+        = distance_sqr(proj_r, segment) < distance_sqr(proj_s, ray) ? tg::pair{proj_r, segment[ts_clamped_rel]} : tg::pair{ray.origin, proj_s};
 }
 
 // =========== Other Implementations ===========

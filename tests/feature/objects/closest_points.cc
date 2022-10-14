@@ -175,3 +175,18 @@ FUZZ_TEST("ClosestPoints - LineLine3")(tg::rng& rng)
     CHECK(distance(p0, p1) == nx::approx(d).abs(0.001f));
     CHECK(distance(l0[t0], l1[t1]) == nx::approx(d).abs(0.001f));
 }
+
+
+FUZZ_TEST("ClosestPoints - SphereSphere3Bound")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+    auto scal_range = tg::aabb1(1.f, 5.f);
+
+    auto s0 = tg::sphere_boundary<3, float>(uniform(rng, bb), uniform(rng, scal_range).x);
+    auto s1 = tg::sphere_boundary<3, float>(uniform(rng, bb), uniform(rng, scal_range).x);
+
+    auto cp = tg::closest_points(s0, s1);
+
+    if (!intersects(solid_of(s0), solid_of(s1)))
+        CHECK(distance(s0, s1) == nx::approx(distance(cp.first, cp.second)));
+}
