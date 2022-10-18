@@ -583,11 +583,19 @@ template <class ScalarT>
     return distance_sqr(r, c);
 }
 
+// TODO: error?
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(sphere<3, ScalarT> const& s0, sphere<3, ScalarT> const& s1)
 {
     auto s0s1 = s1.center - s0.center;
     return dot(s0s1, s0s1);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr fractional_result<ScalarT> distance(sphere<3, ScalarT> const& s0, sphere<3, ScalarT> const& s1)
+{
+    auto d = distance(s0.center, s1.center) - s0.radius - s1.radius;
+    return d < ScalarT(0) ? ScalarT(0) : d;
 }
 
 template <class ScalarT>

@@ -71,13 +71,70 @@ template <int D, class ScalarT>
     return {p0, p1};
 }
 
-// TODO: Case of intersection?
 template <int D, class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere_boundary<D, ScalarT> const& s0, sphere_boundary<D, ScalarT> const& s1)
 {
-    auto p1 = project(s0.center, s1);
-    auto p0 = project(s1.center, s0);
-    return {p0, p1};
+    // sphere inside the other without intersection
+    auto d = distance(s0.center, s1.center);
+    auto b0 = d + s0.radius < s1.radius;
+    auto b1 = d + s1.radius < s0.radius;
+
+    if (b0 || b1)
+    {
+        dir<D, ScalarT> v;
+
+        if (s0.center == s1.center)
+            v = {1.f, 0, 0};
+
+
+        else if (b0)
+            v = normalize(s0.center - s1.center);
+
+        else
+            v = normalize(s1.center - s0.center);
+
+        return {s0.center + s0.radius * v, s1.center + s1.radius * v};
+    }
+
+    // sphere solids not intersecting
+    if (!intersects(solid_of(s0), solid_of(s1)))
+    {
+        auto p1 = s1.center + normalize(s0.center - s1.center) * s1.radius;
+        auto p0 = s0.center + normalize(s1.center - s0.center) * s0.radius;
+        return {p0, p1};
+    }
+
+    // normal intersection case
+    auto n = any_normal(s0.center - s1.center);
+    auto s0r2 = s0.radius * s0.radius;
+    auto s1r2 = s1.radius * s1.radius;
+    auto d2 = distance_sqr(s0.center, s1.center);
+
+    auto t = ScalarT(0.5) + (s0r2 - s1r2) / (ScalarT(2) * d2);
+
+    auto ipos = s0.center + t * (s1.center - s0.center);
+    auto irad = sqrt(s0r2 - t * t * d2);
+
+    auto closest_pos = ipos + irad * n;
+
+    return {closest_pos, closest_pos};
+}
+
+template <int D, class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere<D, ScalarT> const& s0, sphere<D, ScalarT> const& s1)
+{
+    if (!intersects(s0, s1))
+    {
+        auto p1 = s1.center + normalize(s0.center - s1.center) * s1.radius;
+        auto p0 = s0.center + normalize(s1.center - s0.center) * s0.radius;
+        return {p0, p1};
+    }
+
+    // intersection case
+    auto t = s0.radius / (s0.radius + s1.radius);
+    auto cp = tg::mix(s0.center, s1.center, t);
+
+    return {cp, cp};
 }
 
 // TODO: Test missing & vice versa

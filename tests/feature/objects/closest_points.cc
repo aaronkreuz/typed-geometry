@@ -187,6 +187,45 @@ FUZZ_TEST("ClosestPoints - SphereSphere3Bound")(tg::rng& rng)
 
     auto cp = tg::closest_points(s0, s1);
 
+    auto d = distance(s0.center, s1.center);
+
+    CHECK(distance_sqr(cp.first, s0) == nx::approx(0.f));
+    CHECK(distance_sqr(cp.second, s1) == nx::approx(0.f));
+
     if (!intersects(solid_of(s0), solid_of(s1)))
         CHECK(distance(s0, s1) == nx::approx(distance(cp.first, cp.second)));
+
+    else if (d + s0.radius < s1.radius)
+        CHECK(distance(cp.first, cp.second) < s1.radius);
+
+    else if (d + s1.radius < s0.radius)
+        CHECK(distance(cp.first, cp.second) < s0.radius);
+
+    // normal intersection case
+    else
+        CHECK(cp.first == cp.second);
+}
+
+FUZZ_TEST("ClosestPoints - SphereSphere3")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+    auto scal_range = tg::aabb1(1.f, 5.f);
+
+    auto s0 = tg::sphere<3, float>(uniform(rng, bb), uniform(rng, scal_range).x);
+    auto s1 = tg::sphere<3, float>(uniform(rng, bb), uniform(rng, scal_range).x);
+
+    auto cp = tg::closest_points(s0, s1);
+
+    CHECK(distance_sqr(cp.first, s0) == nx::approx(0.f));
+    CHECK(distance_sqr(cp.second, s1) == nx::approx(0.f));
+
+    if (!intersects(s0, s1))
+        CHECK(distance(s0, s1) == nx::approx(distance(cp.first, cp.second)));
+
+    else
+    {
+        CHECK(cp.first == cp.second);
+        CHECK(distance_sqr(s0, cp.second) == nx::approx(0.f));
+        CHECK(distance_sqr(s1, cp.first) == nx::approx(0.f));
+    }
 }
