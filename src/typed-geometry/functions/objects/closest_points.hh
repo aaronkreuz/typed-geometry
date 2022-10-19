@@ -137,13 +137,77 @@ template <int D, class ScalarT>
     return {cp, cp};
 }
 
-// TODO: Test missing & vice versa
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere_boundary<3, ScalarT> const& sphere, plane<3, ScalarT> const& plane)
+{
+    auto p_plane = project(sphere.center, plane);
+
+    // intersection case
+    if ((distance(p_plane, sphere.center) - sphere.radius) < ScalarT(0))
+    {
+        auto o = any_normal(plane.normal);
+
+        auto insec = intersection(ray<3, ScalarT>(p_plane, o), sphere);
+
+        if (insec.any())
+            return {insec.first(), insec.first()};
+
+        else
+            return {};
+    }
+
+    // non-intersection case
+    auto p_sphere = sphere.center + sphere.radius * normalize(p_plane - sphere.center);
+
+    return {p_sphere, p_plane};
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, sphere_boundary<3, ScalarT> const& sphere)
+{
+    return closest_points(sphere, plane);
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(sphere<3, ScalarT> const& sphere, plane<3, ScalarT> const& plane)
+{
+    auto p_plane = project(sphere.center, plane);
+
+    // intersection case
+    if ((distance(p_plane, sphere.center) - sphere.radius) < ScalarT(0))
+        return {p_plane, p_plane};
+
+    // non_intersection case
+    auto p_sphere = sphere.center + sphere.radius * normalize(p_plane - sphere.center);
+
+    return {p_sphere, p_plane};
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, sphere<3, ScalarT> const& sphere)
+{
+    return closest_points(sphere, plane);
+}
+
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, segment<3, ScalarT> const& segment)
 {
+    if (intersects(segment, plane))
+    {
+        auto insec = intersection(segment, plane);
+        return {insec.value(), insec.value()};
+    }
+
     auto p1 = distance(plane, segment.pos0) < distance(plane, segment.pos1) ? segment.pos0 : segment.pos1;
     auto p0 = project(p1, plane);
     return {p0, p1};
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(segment<3, ScalarT> const& segment, plane<3, ScalarT> const& plane)
+{
+    auto cp = closest_points(plane, segment);
+    return {cp.second, cp.first};
 }
 
 // TODO: Test missing & vice versa, Case of intersection?

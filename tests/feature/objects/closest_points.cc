@@ -223,9 +223,64 @@ FUZZ_TEST("ClosestPoints - SphereSphere3")(tg::rng& rng)
         CHECK(distance(s0, s1) == nx::approx(distance(cp.first, cp.second)));
 
     else
-    {
         CHECK(cp.first == cp.second);
-        CHECK(distance_sqr(s0, cp.second) == nx::approx(0.f));
-        CHECK(distance_sqr(s1, cp.first) == nx::approx(0.f));
-    }
+}
+
+FUZZ_TEST("ClosestPoints - SpherePlane3Bound")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+    auto scal_range = tg::aabb1{1.f, 5.f};
+
+    auto sphere = tg::sphere_boundary<3, float>(uniform(rng, bb), uniform(rng, scal_range).x);
+    auto plane = tg::plane3(tg::uniform<tg::dir3>(rng), uniform(rng, bb));
+
+    auto cp = tg::closest_points(sphere, plane);
+
+    CHECK(distance_sqr(cp.first, sphere) == nx::approx(0.f));
+    CHECK(distance_sqr(cp.second, plane) == nx::approx(0.f));
+
+    if (!intersects(tg::solid_of(sphere), plane))
+        CHECK(distance(cp.first, cp.second) == nx::approx(distance(sphere, plane)));
+
+    else
+        CHECK(cp.first == cp.second);
+}
+
+FUZZ_TEST("ClosestPoints - SpherePlane3")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+    auto scal_range = tg::aabb1{1.f, 5.f};
+
+    auto sphere = tg::sphere3(uniform(rng, bb), uniform(rng, scal_range).x);
+    auto plane = tg::plane3(tg::uniform<tg::dir3>(rng), uniform(rng, bb));
+
+    auto cp = tg::closest_points(sphere, plane);
+
+    CHECK(distance_sqr(cp.first, sphere) == nx::approx(0.f));
+    CHECK(distance_sqr(cp.second, plane) == nx::approx(0.f));
+
+    if (!intersects(sphere, plane))
+        CHECK(distance(cp.first, cp.second) == nx::approx(distance(sphere, plane)));
+
+    else
+        CHECK(cp.first == cp.second);
+}
+
+FUZZ_TEST("ClosestPoints - PlaneSegment3")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+
+    auto seg = tg::segment3(uniform(rng, bb), uniform(rng, bb));
+    auto plane = tg::plane3(tg::uniform<tg::dir3>(rng), uniform(rng, bb));
+
+    auto cp = tg::closest_points(seg, plane);
+
+    CHECK(distance_sqr(cp.first, seg) == nx::approx(0.f));
+    CHECK(distance_sqr(cp.second, plane) == nx::approx(0.f));
+
+    if (!intersects(seg, plane))
+        CHECK(distance(cp.first, cp.second) == nx::approx(distance(seg, plane)));
+
+    else
+        CHECK(cp.first == cp.second);
 }
