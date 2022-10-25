@@ -165,7 +165,8 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, sphere_boundary<3, ScalarT> const& sphere)
 {
-    return closest_points(sphere, plane);
+    auto cp = closest_points(sphere, plane);
+    return {cp.second, cp.first};
 }
 
 template <class ScalarT>
@@ -186,7 +187,8 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, sphere<3, ScalarT> const& sphere)
 {
-    return closest_points(sphere, plane);
+    auto cp = closest_points(sphere, plane);
+    return {cp.second, cp.first};
 }
 
 template <class ScalarT>
@@ -214,6 +216,16 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(plane<3, ScalarT> const& plane, aabb<3, ScalarT> const& bb)
 {
+    if (intersects(plane, bb))
+    {
+        for (auto& e : edges_of(bb))
+            if (intersects(e, plane))
+            {
+                auto insec = intersection(e, plane);
+                return {insec.value(), insec.value()};
+            }
+    }
+
     auto vs = vertices_of(bb);
     auto p1 = vs[0];
 
@@ -224,24 +236,33 @@ template <class ScalarT>
     return {p0, p1};
 }
 
-// TODO: Test missing & vice versa
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(aabb<3, ScalarT> const& bb, plane<3, ScalarT> const& plane)
+{
+    auto cp = closest_points(plane, bb);
+    return {cp.second, cp.first};
+}
+
 template <class ScalarT>
 [[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(ray<3, ScalarT> const& ray, segment<3, ScalarT> const& segment)
 {
     auto lr = tg::line<3, ScalarT>(ray.origin, ray.dir);
-    auto ls = inf_of(segment);
-    auto len = length(segment);
+    auto [ts, tr] = closest_points_parameters(segment, lr);
 
-    auto [tr, ts] = closest_points_parameters(lr, ls);
+    if (tr >= 0)
+        return {lr[tr], segment[ts]};
 
-    auto ts_clamped = clamp(ts, 0, len);
-    auto ts_clamped_rel = ts_clamped / len;
-
-    auto proj_r = tg::project(segment[ts_clamped_rel], ray);
     auto proj_s = tg::project(ray.origin, segment);
+    auto proj_r = tg::project(proj_s, ray);
 
-    tg::pair<pos<3, ScalarT>, pos<3, ScalarT>> pair
-        = distance_sqr(proj_r, segment) < distance_sqr(proj_s, ray) ? tg::pair{proj_r, segment[ts_clamped_rel]} : tg::pair{ray.origin, proj_s};
+    return {proj_r, proj_s};
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr pair<pos<3, ScalarT>, pos<3, ScalarT>> closest_points(segment<3, ScalarT> const& segment, ray<3, ScalarT> const& ray)
+{
+    auto cp = closest_points(ray, segment);
+    return {cp.second, cp.first};
 }
 
 // =========== Other Implementations ===========

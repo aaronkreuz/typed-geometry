@@ -3206,6 +3206,51 @@ template <class ScalarT>
     return intersects(c, t);
 }
 
+// circle2 - circle2
+template <class ScalarT>
+[[nodiscard]] constexpr bool intersects(circle<2, ScalarT> const& circ0, circle<2, ScalarT> const& circ1)
+{
+    auto d = distance(circ0.center, circ1.center);
+
+    // contains
+    if (d + circ0.radius < circ1.radius || d + circ1.radius < circ0.radius)
+        return false;
+
+    return (d <= circ0.radius + circ1.radius);
+}
+
+// segment2 - triangle2
+template <class ScalarT>
+[[nodiscard]] constexpr bool intersects(segment<2, ScalarT> const& segment, triangle<2, ScalarT> const& triangle)
+{
+    for (auto& e : edges_of(triangle))
+        if (intersects(e, segment))
+            return true;
+
+    return false;
+}
+
+template <class ScalarT>
+[[nodiscard]] constexpr bool intersects(triangle<2, ScalarT> const& triangle, segment<2, ScalarT> const& segment)
+{
+    return intersects(segment, triangle);
+}
+
+// triangle - triangle
+template <int D, class ScalarT>
+[[nodiscard]] constexpr bool intersects(triangle<D, ScalarT> const& triangle0, triangle<D, ScalarT> const& triangle1)
+{
+    for (auto& e : edges_of(triangle0))
+        if (intersects(e, triangle1))
+            return true;
+
+    for (auto& e : edges_of(triangle1))
+        if (intersects(e, triangle0))
+            return true;
+
+    return false;
+}
+
 // segment3 - halfspace3
 template <class ScalarT>
 [[nodiscard]] constexpr optional<segment<3, ScalarT>> intersection(segment<3, ScalarT> const& s, halfspace<3, ScalarT> const& hs)

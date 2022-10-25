@@ -284,3 +284,55 @@ FUZZ_TEST("ClosestPoints - PlaneSegment3")(tg::rng& rng)
     else
         CHECK(cp.first == cp.second);
 }
+
+FUZZ_TEST("ClosestPoints - RaySegment3")(tg::rng& rng)
+{
+    auto bb = tg::aabb3(-10, 10);
+    auto scal_range = tg::aabb1(0.1f, 5.f);
+
+    // Case 1: ray and seg parallel and not intersecting
+    auto r0 = tg::ray3(uniform(rng, bb), tg::uniform<tg::dir3>(rng));
+    auto s0 = tg::segment3(r0.origin - uniform(rng, scal_range).x * r0.dir, r0.origin - uniform(rng, scal_range).x * r0.dir);
+
+    auto cp_s0 = distance_sqr(s0.pos0, r0.origin) < distance_sqr(s0.pos1, r0.origin) ? s0.pos0 : s0.pos1;
+
+    auto cp0 = closest_points(s0, r0);
+
+    CHECK(distance_sqr(cp0.first, cp_s0) == nx::approx(0.f));
+    CHECK(distance_sqr(cp0.second, r0.origin) == nx::approx(0.f));
+    CHECK(distance_sqr(cp0.first, cp0.second) == nx::approx(distance_sqr(s0, r0)));
+
+    // Case 2: intersection in ray origin
+    auto ort_dir = tg::any_normal(r0.dir);
+    auto s1 = tg::segment3(r0.origin + uniform(rng, scal_range).x * ort_dir, r0.origin - uniform(rng, scal_range).x * ort_dir);
+
+    auto cp1 = closest_points(s1, r0);
+
+    CHECK(distance_sqr(cp1.first, cp1.second) == nx::approx(0.f));
+    CHECK(distance_sqr(cp1.first, r0.origin) == nx::approx(0.f));
+}
+
+FUZZ_TEST("ClosestPoints - PlaneAABB3")(tg::rng& rng)
+{
+    auto bb = tg::aabb1(1.1f, 10);
+
+    // Case 1: no intersection
+    auto aabb0 = tg::aabb3::unit_centered;
+    auto diag = tg::normalize(tg::vec3(aabb0.max));
+
+    auto dist = tg::uniform(rng, bb);
+    auto plane0 = tg::plane3(diag, aabb0.max + dist.x * diag);
+
+    auto cp0 = tg::closest_points(aabb0, plane0);
+
+    CHECK(distance(cp0.first, cp0.second) == nx::approx(dist.x));
+    CHECK(distance_sqr(cp0.first, aabb0.max) == nx::approx(0.f));
+
+    // Case 2: intersection
+    auto plane1 = tg::plane3(diag, aabb0.max);
+
+    auto cp1 = tg::closest_points(aabb0, plane1);
+
+    CHECK(distance_sqr(cp1.first, cp1.second) == nx::approx(0.f));
+    CHECK(distance_sqr(cp1.first, aabb0.max) == nx::approx(0.f));
+}

@@ -323,24 +323,8 @@ template <class ScalarT>
 template <class ScalarT>
 [[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr(ray<3, ScalarT> const& r, segment<3, ScalarT> s)
 {
-    //  line extension of ray
-    auto l_r = tg::line<3, ScalarT>(r.origin, r.dir);
-
-    // line extension of segment
-    auto l_s = inf_of(s);
-    auto len_s = length(s);
-
-    auto [t0, t1] = closest_points_parameters(l_r, l_s);
-
-    if (t0 >= ScalarT(0) && t1 >= ScalarT(0) && t1 <= len_s)
-    {
-        if (distance(l_r, l_s) == 0)
-            return ScalarT(0);
-
-        return distance_sqr(l_r[t0], l_s[t1]);
-    }
-
-    return min(distance_sqr(s.pos0, r), distance_sqr(s.pos1, r), distance_sqr(r.origin, s));
+    auto cp = closest_points(r,s);
+    return distance_sqr(cp.first, cp.second);
 }
 
 template <class ScalarT>

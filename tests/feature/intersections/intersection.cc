@@ -603,6 +603,51 @@ FUZZ_TEST("IntersectionRay3Sphere3")(tg::rng& rng)
     }
 }
 
+TEST("IntersectsCircle2Circle2")
+{
+    // touching spheres
+    auto s0 = tg::sphere2({2.f, 0.f}, 1.f);
+    auto s1 = tg::sphere2({0.f, 0.f}, 1.f);
+
+    CHECK(intersects(boundary_of(s0), boundary_of(s1)));
+
+    // circle contained in the other
+    auto s2 = tg::sphere2({0.f, 0.f}, 2.f);
+
+    CHECK(!intersects(boundary_of(s1), boundary_of(s2)));
+}
+
+TEST("IntersectsSegment2Triangle2")
+{
+    // intersection
+    auto tri0 = tg::triangle2({-1.f, 0}, {1.f, 0}, {0, 1.f});
+    auto seg0 = tg::segment2({-1.f, 1.f}, {1.f, 1.f});
+
+    CHECK(intersects(tri0, seg0));
+
+    // no intersection
+    auto seg1 = tg::segment2({-1.f, 2.f}, {1.f, 2.f});
+
+    CHECK(!intersects(tri0, seg1));
+}
+
+TEST("intersectsTriangle2Triangle2")
+{
+    // intersection in one point
+    auto tri0 = tg::triangle2({0.f, 0.f}, {1.f, -1.f}, {-1.f, -1.f});
+    auto tri1 = tg::triangle2({0.f, 0.f}, {1.f, 1.f}, {-1.f, 1.f});
+
+    CHECK(intersects(tri0, tri1));
+
+    auto tri2 = tg::triangle2({-1.f, 0.5f}, {0.f, -0.5f}, {1.f, 0.5f});
+
+    CHECK(intersects(tri0, tri2));
+
+    auto tri3 = tg::triangle2({-1.f, 1.5f}, {0.f, 0.5f}, {1.f, 1.5f});
+
+    CHECK(!intersects(tri0, tri3));
+}
+
 TEST("IntersectionSphere3Sphere3")
 {
     { // touching spheres 1 (side-by-side)
