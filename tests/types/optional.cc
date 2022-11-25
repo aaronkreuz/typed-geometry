@@ -1,10 +1,10 @@
 #include <nexus/test.hh>
 
-#include <typed-geometry/detail/optional.hh>
+#include <clean-core/optional.hh>
 
 TEST("tg::optional")
 {
-    tg::optional<int> i;
+    cc::optional<int> i;
     CHECK(!i.has_value());
     CHECK(i != 7);
     CHECK(i != 0);
@@ -23,7 +23,7 @@ TEST("tg::optional")
     CHECK(i.has_value());
     CHECK(i == 9);
 
-    tg::optional<int> j = 11;
+    cc::optional<int> j = 11;
     CHECK(j.has_value());
     CHECK(j == 11);
 
@@ -34,7 +34,7 @@ TEST("tg::optional")
     CHECK(i.has_value());
     CHECK(i == 11);
 
-    tg::optional<int> o;
+    cc::optional<int> o;
     CHECK(!o.has_value());
 
     i = o;
