@@ -33,7 +33,7 @@ namespace tg
 
 // Default implementation of distance_sqr as distance_sqr(ca, cb) for closest points ca and cb
 template <class A, class B>
-[[nodiscard]] constexpr auto distance_sqrTODO_ARGUMENTS(A const& a, B const& b) -> decltype(length_sqr(closest_points(a, b).first - closest_points(a, b).second))
+[[nodiscard]] constexpr auto distance_sqrTODO_MANUALLY(A const& a, B const& b) -> decltype(length_sqr(closest_points(a, b).first - closest_points(a, b).second))
 {
     auto cp = closest_points(a, b);
     return length_sqr(cp.first - cp.second);
@@ -41,12 +41,12 @@ template <class A, class B>
 
 // Convenience for distance to (0,0,0)
 template <class Obj>
-[[nodiscard]] constexpr auto distance_to_originTODO_ARGUMENTS(Obj const& o) -> decltype(distance(o, pos_type_for<Obj>::zero))
+[[nodiscard]] constexpr auto distance_to_origin(Obj const& o) -> decltype(distance(o, pos_type_for<Obj>::zero))
 {
     return distance(o, pos_type_for<Obj>::zero);
 }
 template <class Obj>
-[[nodiscard]] constexpr auto distance_sqr_to_originTODO_ARGUMENTS(Obj const& o) -> decltype(distance(o, pos_type_for<Obj>::zero))
+[[nodiscard]] constexpr auto distance_sqr_to_origin(Obj const& o) -> decltype(distance(o, pos_type_for<Obj>::zero))
 {
     return distance_sqr(o, pos_type_for<Obj>::zero);
 }
@@ -56,44 +56,44 @@ template <class Obj>
 
 // signed distance is positive if p lies above pl, 0 if it lies on the plane and negative if below pl
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> signed_distanceTODO_ARGUMENTS(pos<D, ScalarT> const& p, plane<D, ScalarT> const& pl)
+[[nodiscard]] constexpr fractional_result<ScalarT> signed_distance_pos(pos<D, ScalarT> const& p, plane<D, ScalarT> const& pl)
 {
     return dot(p, pl.normal) - pl.dis;
 }
 
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distanceTODO_ARGUMENTS(pos<D, ScalarT> const& p, plane<D, ScalarT> const& pl)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_pos(pos<D, ScalarT> const& p, plane<D, ScalarT> const& pl)
 {
     return abs(signed_distance(p, pl));
 }
 
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> signed_distanceTODO_ARGUMENTS(pos<D, ScalarT> const& p, halfspace<D, ScalarT> const& h)
+[[nodiscard]] constexpr fractional_result<ScalarT> signed_distance_pos(pos<D, ScalarT> const& p, halfspace<D, ScalarT> const& h)
 {
     return dot(p, h.normal) - h.dis;
 }
 
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distanceTODO_ARGUMENTS(pos<D, ScalarT> const& p, halfspace<D, ScalarT> const& h)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_pos(pos<D, ScalarT> const& p, halfspace<D, ScalarT> const& h)
 {
     return max(ScalarT(0), signed_distance(p, h));
 }
 
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> signed_distanceTODO_ARGUMENTS(pos<D, ScalarT> const& p, sphere_boundary<D, ScalarT> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> signed_distance_pos(pos<D, ScalarT> const& p, sphere_boundary<D, ScalarT> const& s)
 {
     return distance(p, s.center) - s.radius;
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distanceTODO_ARGUMENTS(line<3, ScalarT> const& l0, line<3, ScalarT> const& l1)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_line3(line<3, ScalarT> const& l0, line<3, ScalarT> const& l1)
 {
     auto n = cross(l0.dir, l1.dir);
     return abs(dot(l0.pos - l1.pos, n) / length(n));
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqrTODO_ARGUMENTS(segment<2, ScalarT> const& s0, segment<2, ScalarT> const& s1)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr_segment2(segment<2, ScalarT> const& s0, segment<2, ScalarT> const& s1)
 {
     auto l0 = inf_of(s0);
     auto l1 = inf_of(s1);
@@ -113,7 +113,7 @@ template <class ScalarT>
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqrTODO_ARGUMENTS(segment<3, ScalarT> const& s0, segment<3, ScalarT> const& s1)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr_segment3(segment<3, ScalarT> const& s0, segment<3, ScalarT> const& s1)
 {
     auto l0 = inf_of(s0);
     auto l1 = inf_of(s1);
@@ -133,7 +133,7 @@ template <class ScalarT>
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqrTODO_ARGUMENTS(segment<2, ScalarT> const& s, line<2, ScalarT> const& l)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr_segment2(segment<2, ScalarT> const& s, line<2, ScalarT> const& l)
 {
     auto ls = inf_of(s);
     auto len = length(s);
@@ -146,7 +146,7 @@ template <class ScalarT>
     return distance_sqr(p, l);
 }
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqrTODO_ARGUMENTS(segment<3, ScalarT> const& s, line<3, ScalarT> const& l)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr_segment3(segment<3, ScalarT> const& s, line<3, ScalarT> const& l)
 {
     auto ls = inf_of(s);
     auto len = length(s);
@@ -156,14 +156,14 @@ template <class ScalarT>
     return distance_sqr(ls[tClamped], l);
 }
 template <int D, class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqrTODO_ARGUMENTS(line<D, ScalarT> const& l, segment<D, ScalarT> const& s)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_sqr_line(line<D, ScalarT> const& l, segment<D, ScalarT> const& s)
 {
     return distance_sqr(s, l);
 }
 
 // TODO: use GJK or something?
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distanceTODO_ARGUMENTS(aabb<3, ScalarT> const& bb, triangle<3, ScalarT> const& t)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_aabb3(aabb<3, ScalarT> const& bb, triangle<3, ScalarT> const& t)
 {
     if (intersects(bb, t))
         return fractional_result<ScalarT>(0);
@@ -186,7 +186,7 @@ template <class ScalarT>
     return d;
 }
 template <class ScalarT>
-[[nodiscard]] constexpr fractional_result<ScalarT> distanceTODO_ARGUMENTS(triangle<3, ScalarT> const& t, aabb<3, ScalarT> const& bb)
+[[nodiscard]] constexpr fractional_result<ScalarT> distance_triangle3(triangle<3, ScalarT> const& t, aabb<3, ScalarT> const& bb)
 {
     return distance(bb, t);
 }
@@ -195,28 +195,29 @@ template <class ScalarT>
 // =========== Other Implementations ===========
 
 template <class ScalarT, class = enable_if<is_scalar<ScalarT>>>
-[[nodiscard]] constexpr ScalarT distance_sqrTODO_ARGUMENTS(ScalarT a, ScalarT b)
+[[nodiscard]] constexpr ScalarT distance_sqrTODO_MANUALLY(ScalarT a, ScalarT b)
 {
     auto const d = a - b;
     return d * d;
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr ScalarT distance_sqrTODO_ARGUMENTS(pos<2, ScalarT> const& p, quadric<2, ScalarT> const& q)
+[[nodiscard]] constexpr ScalarT distance_sqr_pos2(pos<2, ScalarT> const& p, quadric<2, ScalarT> const& q)
 {
     return q(p);
 }
 
 template <class ScalarT>
-[[nodiscard]] constexpr ScalarT distance_sqrTODO_ARGUMENTS(pos<3, ScalarT> const& p, quadric<3, ScalarT> const& q)
+[[nodiscard]] constexpr ScalarT distance_sqr_pos3(pos<3, ScalarT> const& p, quadric<3, ScalarT> const& q)
 {
     return q(p);
 }
 
 template <int D, class ScalarT>
-[[nodiscard]] constexpr ScalarT distance_sqrTODO_ARGUMENTS(quadric<D, ScalarT> const& q, pos<D, ScalarT> const& p)
+[[nodiscard]] constexpr ScalarT distance_sqr_quadric(quadric<D, ScalarT> const& q, pos<D, ScalarT> const& p)
 {
     return distance_sqr(p, q);
 }
 
 } // namespace tg
+

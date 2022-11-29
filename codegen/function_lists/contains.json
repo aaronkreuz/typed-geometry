@@ -1,0 +1,1462 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "A",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "pos",
+            "parameters": [
+                {
+                    "type_name": "A const& a, pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "autocontains_Aconst&a,"
+        },
+        "body": "    return distance(a, p) <= eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    if (eps > ScalarT(0))\n        return distance_sqr(b, o) <= pow2(eps);\n    return b == o;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "A",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "B",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "dont_deduce-1",
+            "parameters": [
+                {
+                    "type_name": "A const& a, B const& b, dont_deduce<typename B::scalar_t>",
+                    "parameter_name": "eps",
+                    "default_value": "static_cast<typename B::scalar_t>(0"
+                }
+            ],
+            "return_type": "autocontains_Aconst&a,Bconst&b,"
+        },
+        "body": "    for (auto const& vertex : vertices_of(b))\n        if (!contains(a, vertex, eps))\n            return false;\n\n    return true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb1",
+            "parameters": [
+                {
+                    "type_name": "aabb<1, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "ScalarT const& o, dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return b.min.x - eps <= o && o <= b.max.x + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb1",
+            "parameters": [
+                {
+                    "type_name": "aabb<1, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<1, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return b.min.x - eps <= o.x && o.x <= b.max.x + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb2",
+            "parameters": [
+                {
+                    "type_name": "aabb<2, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return b.min.x - eps <= o.x && o.x <= b.max.x + eps && //\n           b.min.y - eps <= o.y && o.y <= b.max.y + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb3",
+            "parameters": [
+                {
+                    "type_name": "aabb<3, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return b.min.x - eps <= o.x && o.x <= b.max.x + eps && //\n           b.min.y - eps <= o.y && o.y <= b.max.y + eps && //\n           b.min.z - eps <= o.z && o.z <= b.max.z + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb-1",
+            "parameters": [
+                {
+                    "type_name": "aabb<4, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<4, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return b.min.x - eps <= o.x && o.x <= b.max.x + eps && //\n           b.min.y - eps <= o.y && o.y <= b.max.y + eps && //\n           b.min.z - eps <= o.z && o.z <= b.max.z + eps && //\n           b.min.w - eps <= o.w && o.w <= b.max.w + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb_boundary",
+            "parameters": [
+                {
+                    "type_name": "aabb_boundary<D, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto onSomeBoundary = false;\n    for (auto i = 0; i < D; ++i)\n    {\n        if (p[i] < b.min[i] - eps || p[i] > b.max[i] + eps)\n            return false; // False if outside of the aabb in any dimension\n\n        if (!onSomeBoundary && (p[i] <= b.min[i] + eps || p[i] >= b.max[i] - eps))\n            onSomeBoundary = true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_aabb",
+            "parameters": [
+                {
+                    "type_name": "aabb<D, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "aabb<D, ScalarT> const&",
+                    "parameter_name": "o,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return contains(b, o.min, eps) && contains(b, o.max, eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_box",
+            "parameters": [
+                {
+                    "type_name": "box<D, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto r = p - b.center;\n    // TODO: unroll\n    for (auto i = 0; i < D; ++i)\n        if (abs(dot(b.half_extents[i], r)) > length_sqr(b.half_extents[i]) + eps)\n            return false;\n    return true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_box_boundary",
+            "parameters": [
+                {
+                    "type_name": "box_boundary<D, ScalarT> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto onSomeBoundary = false;\n    auto r = p - b.center;\n    for (auto i = 0; i < D; ++i)\n    {\n        auto ri = abs(dot(b.half_extents[i], r));\n        auto bi = length_sqr(b.half_extents[i]);\n        if (ri > bi + eps)\n            return false; // False if outside of the aabb in any dimension\n\n        onSomeBoundary = onSomeBoundary || (ri >= bi - eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_box2",
+            "parameters": [
+                {
+                    "type_name": "box<2, ScalarT, 3> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto r = p - b.center;\n\n    if (abs(dot(normal_of(b), r)) > eps)\n        return false; // Not in the spanned plane\n\n    if (abs(dot(b.half_extents[0], r)) > length_sqr(b.half_extents[0]) + eps || abs(dot(b.half_extents[1], r)) > length_sqr(b.half_extents[1]) + eps)\n        return false; // Outside of the box\n\n    return true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_box_boundary2",
+            "parameters": [
+                {
+                    "type_name": "box_boundary<2, ScalarT, 3> const&",
+                    "parameter_name": "b,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto r = p - b.center;\n\n    if (abs(dot(normal_of(b), r)) > eps)\n        return false; // Not in the spanned plane\n\n    // Rest is the same as for box2\n    auto onSomeBoundary = false;\n    for (auto i = 0; i < 2; ++i)\n    {\n        auto ri = abs(dot(b.half_extents[i], r));\n        auto bi = length_sqr(b.half_extents[i]);\n        if (ri > bi + eps)\n            return false;\n\n        if (!onSomeBoundary && (ri >= bi - eps))\n            onSomeBoundary = true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_ellipse1",
+            "parameters": [
+                {
+                    "type_name": "ellipse<1, ScalarT, 1, TraitsT> const&",
+                    "parameter_name": "e,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<1, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto dist = abs(p.x - e.center.x);\n    auto r = abs(e.semi_axes[0][0]);\n    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return dist <= r + eps;\n    else\n        return r - eps <= dist && dist <= r + eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_ellipse2",
+            "parameters": [
+                {
+                    "type_name": "ellipse<2, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "e,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto a = length(e.semi_axes[0]);\n    auto b = length(e.semi_axes[1]);\n    auto dirA = e.semi_axes[0] / a;\n    auto dirB = e.semi_axes[1] / b;\n\n    if constexpr (D == 3)\n    {\n        auto plane = tg::plane<D, ScalarT>(dir(cross(dirA, dirB)), e.center);\n        if (!contains(plane, p, eps))\n            return false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_ellipse3",
+            "parameters": [
+                {
+                    "type_name": "ellipse<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "e,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto pc = p - e.center;\n    auto a = length(e.semi_axes[0]);\n    auto b = length(e.semi_axes[1]);\n    auto c = length(e.semi_axes[2]);\n    auto x2 = pow2(dot(pc, e.semi_axes[0]) / a);\n    auto y2 = pow2(dot(pc, e.semi_axes[1]) / b);\n    auto z2 = pow2(dot(pc, e.semi_axes[2]) / c);\n\n    if constexpr (std::is_same_v<TraitsT, boundary_tag>)\n    {\n        if (a - eps > ScalarT(0) && b - eps > ScalarT(0) && c - eps > ScalarT(0) && x2 / pow2(a - eps) + y2 / pow2(b - eps) + z2 / pow2(c - eps) < ScalarT(1))\n            return false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_capsule3",
+            "parameters": [
+                {
+                    "type_name": "capsule<3, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto r = c.radius + eps;\n    return distance_sqr(c.axis, p) <= pow2(r);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_capsule_boundary3",
+            "parameters": [
+                {
+                    "type_name": "capsule_boundary<3, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto d2 = distance_sqr(c.axis, p);\n    return pow2(max(ScalarT(0), c.radius - eps)) <= d2 && d2 <= pow2(c.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_sphere",
+            "parameters": [
+                {
+                    "type_name": "sphere<D, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto r = s.radius + eps;\n    return distance_sqr(s.center, p) <= pow2(r);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_sphere_boundary",
+            "parameters": [
+                {
+                    "type_name": "sphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto d2 = distance_sqr(s.center, p);\n    return pow2(max(ScalarT(0), s.radius - eps)) <= d2 && d2 <= pow2(s.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_hemisphere",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<D, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto c = s.center - eps * s.normal;\n    if (dot(s.normal, p - c) < 0)\n        return false;\n\n    return distance_sqr(s.center, p) <= pow2(s.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_hemisphere_boundary_no_caps",
+            "parameters": [
+                {
+                    "type_name": "hemisphere_boundary_no_caps<D, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto c = s.center - eps * s.normal;\n    if (dot(s.normal, p - c) < 0)\n        return false;\n\n    auto d2 = distance_sqr(s.center, p);\n    return pow2(max(ScalarT(0), s.radius - eps)) <= d2 && d2 <= pow2(s.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_hemisphere_boundary",
+            "parameters": [
+                {
+                    "type_name": "hemisphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return contains(boundary_no_caps_of(s), p, eps) || contains(caps_of(s), p, eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_halfspace",
+            "parameters": [
+                {
+                    "type_name": "halfspace<D, ScalarT> const&",
+                    "parameter_name": "h,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return signed_distance(p, h) <= eps;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_triangle2",
+            "parameters": [
+                {
+                    "type_name": "triangle<2, ScalarT> const&",
+                    "parameter_name": "t,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto pv0 = t.pos0 - p;\n    auto pv1 = t.pos1 - p;\n    auto pv2 = t.pos2 - p;\n    auto A0 = cross(pv1, pv2);\n    auto A1 = cross(pv2, pv0);\n    auto A2 = cross(pv0, pv1);\n\n    auto limit = eps;\n    if (eps != ScalarT(0))\n    {\n        auto aMax = abs(A0) >= abs(A1) ? (abs(A0) >= abs(A2) ? A0 : A2) : (abs(A1) >= abs(A2) ? A1 : A2);\n        limit = -std::copysign(eps, aMax) * sign(eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_triangle3",
+            "parameters": [
+                {
+                    "type_name": "triangle<3, ScalarT> const&",
+                    "parameter_name": "t,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    // TODO: does this also work for triangles where vertices are not ordered cc? should it?\n\n    auto n = normal_of(t);\n\n    if (!contains(plane<3, ScalarT>(n, t.pos0), p, eps))\n        return false;\n\n    // checking whether point lies on left side of all edges\n    for (const auto& edge : edges_of(t))\n    {\n        auto pEdge = project(p, edge);\n        auto edgeNormal = normalize(cross(edge.pos1 - edge.pos0, n));\n        if (dot(edgeNormal, p - pEdge) > eps)\n            return false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_cylinder3",
+            "parameters": [
+                {
+                    "type_name": "cylinder<3, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    // https://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml\n\n    // check whether p is between disks\n    auto pd = p - c.axis.pos0;\n    auto ad = c.axis.pos1 - c.axis.pos0;\n    auto d0 = dot(pd, ad);\n\n    auto hsqd = length_sqr(ad);\n    auto rsqd = pow2(c.radius);\n\n    if (d0 < ScalarT(0) || d0 > hsqd) // behind a cap\n        return false;\n\n    // check whether distance from p to axis is less or equal to radius\n    auto dsqd = dot(pd, pd) - pow2(d0) / hsqd;\n    if (dsqd > rsqd)\n        return false;\n\n    return true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_inf_cylinder",
+            "parameters": [
+                {
+                    "type_name": "inf_cylinder<D, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    return distance_sqr(p, c.axis) <= pow2(c.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_inf_cylinder_boundary",
+            "parameters": [
+                {
+                    "type_name": "inf_cylinder_boundary<D, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto d2 = distance_sqr(p, c.axis);\n    return pow2(max(ScalarT(0), c.radius - eps)) <= d2 && d2 <= pow2(c.radius + eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "typename",
+                "variable_name": "",
+                "default_value": "std::enable_if_t<!std::is_same_v<BaseT sphere<2 typename BaseT::scalar_t 3>>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_pyramid-1",
+            "parameters": [
+                {
+                    "type_name": "pyramid<BaseT> const&",
+                    "parameter_name": "py,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<typename BaseT::scalar_t>",
+                    "parameter_name": "eps",
+                    "default_value": "typename BaseT::scalar_t(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    using ScalarT = typename BaseT::scalar_t;\n    const auto c = centroid_of(py.base);\n    auto n = normal_of(py.base);\n\n    if (dot(p - c + eps * n, n) < ScalarT(0))\n        return false; // Not inside if on the other side of the base\n\n    // Check if inside for each pyramid side\n    const auto triangles = faces_of(boundary_no_caps_of(py));\n    for (size_t i = 0; i < triangles.size(); ++i)\n    {\n        n = normal_of(triangles[i]);\n        if (dot(p - triangles[i].pos0 - eps * n, n) > ScalarT(0))\n            return false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "typename",
+                "variable_name": "",
+                "default_value": "std::enable_if_t<!std::is_same_v<BaseT sphere<2 typename BaseT::scalar_t 3>>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_pyramid_boundary_no_caps-1",
+            "parameters": [
+                {
+                    "type_name": "pyramid_boundary_no_caps<BaseT> const&",
+                    "parameter_name": "py,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<typename BaseT::scalar_t>",
+                    "parameter_name": "eps",
+                    "default_value": "typename BaseT::scalar_t(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    // Check if contained in any pyramid side\n    const auto faces = faces_of(py);\n    for (const auto& face : faces)\n        if (contains(face, p, eps))\n            return true;\n\n    return false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_pyramid_boundary-1",
+            "parameters": [
+                {
+                    "type_name": "pyramid_boundary<BaseT> const&",
+                    "parameter_name": "py,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<typename BaseT::scalar_t>",
+                    "parameter_name": "eps",
+                    "default_value": "typename BaseT::scalar_t(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    if (contains(caps_of(py), p, eps))\n        return true;\n\n    return contains(boundary_no_caps_of(py), p, eps);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_cone3",
+            "parameters": [
+                {
+                    "type_name": "cone<3, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto center = c.base.center - eps * c.base.normal;\n\n    if (dot(p - center, c.base.normal) < ScalarT(0))\n        return false; // Not inside if on the other side of the base\n\n    auto apex = c.base.center + (c.height + eps) * c.base.normal;\n    auto pRing = c.base.center + (c.base.radius + eps) * any_normal(c.base.normal);\n\n    // Inside iff the point is closer to the axis (in terms of angle wrt. the apex) than some point on the outer boundary\n    return dot(-c.base.normal, normalize(p - apex)) >= dot(-c.base.normal, normalize(pRing - apex));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_cone_boundary_no_caps3",
+            "parameters": [
+                {
+                    "type_name": "cone_boundary_no_caps<3, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    if (eps == ScalarT(0))\n    {\n        if (dot(p - c.base.center, c.base.normal) < ScalarT(0))\n            return false; // Not inside if on the other side of the base\n\n        auto apex = apex_of(c);\n        auto pRing = c.base.center + c.base.radius * any_normal(c.base.normal);\n\n        // On the surface iff the point has the same angle to the axis (wrt. the apex) as some point on the outer boundary\n        return dot(-c.base.normal, normalize(p - apex)) == dot(-c.base.normal, normalize(pRing - apex));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_inf_cone",
+            "parameters": [
+                {
+                    "type_name": "inf_cone<D, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto apex = c.apex - (c.opening_dir * eps); // Shift apex outwards to add eps\n    auto apexToP = normalize_safe(p - apex);\n    if (apexToP == vec<D, ScalarT>::zero)\n        return true;\n    return angle_between(dir<D, ScalarT>(apexToP), c.opening_dir) <= ScalarT(0.5) * c.opening_angle; // opening_angle is between the cone surfaces\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_inf_cone_boundary",
+            "parameters": [
+                {
+                    "type_name": "inf_cone_boundary<D, ScalarT> const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    auto apexOuter = c.apex - (c.opening_dir * eps); // Shift apex outwards to add eps\n    auto apexInner = c.apex + (c.opening_dir * eps); // Shift apex inwards to subtract eps\n    auto apexOuterToP = normalize_safe(p - apexOuter);\n    auto apexInnerToP = normalize_safe(p - apexInner);\n    if (apexOuterToP == vec<D, ScalarT>::zero || apexInnerToP == vec<D, ScalarT>::zero)\n        return true;\n    return angle_between(dir<D, ScalarT>(apexOuterToP), c.opening_dir) <= ScalarT(0.5) * c.opening_angle\n           && angle_between(dir<D, ScalarT>(apexInnerToP), c.opening_dir) >= ScalarT(0.5) * c.opening_angle;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_frustum3",
+            "parameters": [
+                {
+                    "type_name": "frustum<3, ScalarT> const&",
+                    "parameter_name": "f,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    for (auto const& pl : f.planes)\n        if (signed_distance(p, pl) > eps)\n            return false;\n\n    return true;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "contains_inf_frustum3",
+            "parameters": [
+                {
+                    "type_name": "inf_frustum<3, ScalarT> const&",
+                    "parameter_name": "f,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "dont_deduce<ScalarT>",
+                    "parameter_name": "eps",
+                    "default_value": "ScalarT(0"
+                }
+            ],
+            "return_type": "bool"
+        },
+        "body": "    for (auto const& pl : f.planes)\n        if (signed_distance(p, pl) > eps)\n            return false;\n\n    return true;\n"
+    }
+]

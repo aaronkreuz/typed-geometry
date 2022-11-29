@@ -1,0 +1,657 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "v",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return {v, v};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_aabb",
+            "parameters": [
+                {
+                    "type_name": "aabb<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return aabb<D, ScalarT>(b);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_sphere",
+            "parameters": [
+                {
+                    "type_name": "sphere<D, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return {s.center - s.radius, s.center + s.radius};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_sphere1",
+            "parameters": [
+                {
+                    "type_name": "sphere<1, ScalarT, 2, TraitsT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<2,ScalarT>"
+        },
+        "body": "    const auto v = perpendicular(s.normal) * s.radius;\n    return aabb_of(s.center - v, s.center + v);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_sphere2",
+            "parameters": [
+                {
+                    "type_name": "sphere<2, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<3,ScalarT>"
+        },
+        "body": "    // See http://www.iquilezles.org/www/articles/diskbbox/diskbbox.htm\n    const auto e = abs(s.radius) * sqrt(ScalarT(1) - comp(s.normal) * comp(s.normal));\n    return {s.center - e, s.center + e};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_ellipse1",
+            "parameters": [
+                {
+                    "type_name": "ellipse<1, ScalarT, 1, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<1,ScalarT>"
+        },
+        "body": "    const auto ex = abs(e.semi_axes[0]);\n    return {e.center - ex, e.center + ex};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_ellipse2",
+            "parameters": [
+                {
+                    "type_name": "ellipse<2, ScalarT, DomainD, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<DomainD,ScalarT>"
+        },
+        "body": "    // See https://www.iquilezles.org/www/articles/ellipses/ellipses.htm\n    const auto u = comp(e.semi_axes[0]);\n    const auto v = comp(e.semi_axes[1]);\n    const auto ex = sqrt(u * u + v * v);\n    return {e.center - ex, e.center + ex};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_ellipse3",
+            "parameters": [
+                {
+                    "type_name": "ellipse<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<3,ScalarT>"
+        },
+        "body": "    // See https://members.loria.fr/SHornus/ellipsoid-bbox.html\n    const auto ex = vec<3, ScalarT>(length(e.semi_axes.row(0)), length(e.semi_axes.row(1)), length(e.semi_axes.row(2)));\n    return {e.center - ex, e.center + ex};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_hemisphere1",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<1, ScalarT, TraitsT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<1,ScalarT>"
+        },
+        "body": "    return aabb_of(h.center, h.center + h.normal * h.radius);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_hemisphere2",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<2, ScalarT, TraitsT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<2,ScalarT>"
+        },
+        "body": "    const auto baseVec = h.radius * perpendicular(h.normal);\n    const auto sphereCorner = h.center + h.radius * sign(vec(h.normal));\n    return aabb_of(h.center - baseVec, h.center + baseVec, sphereCorner);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_hemisphere3",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<3,ScalarT>"
+        },
+        "body": "    const auto disk = caps_of(h);\n    const auto sphereCorner = h.center + h.radius * sign(vec(h.normal));\n    return aabb_of(disk, sphereCorner);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_segment",
+            "parameters": [
+                {
+                    "type_name": "segment<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return aabb_of(s.pos0, s.pos1);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_triangle",
+            "parameters": [
+                {
+                    "type_name": "triangle<D, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return aabb_of(t.pos0, t.pos1, t.pos2);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_quad",
+            "parameters": [
+                {
+                    "type_name": "quad<D, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return aabb_of(q.pos00, q.pos10, q.pos11, q.pos01);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_box-1",
+            "parameters": [
+                {
+                    "type_name": "box<ObjectD, ScalarT, DomainD, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<DomainD,ScalarT>"
+        },
+        "body": "    vec<DomainD, ScalarT> diag;\n    for (auto i = 0; i < ObjectD; ++i)\n        diag += abs(b.half_extents[i]);\n\n    return {b.center - diag, b.center + diag};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_capsule",
+            "parameters": [
+                {
+                    "type_name": "capsule<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    return aabb_of(sphere<D, ScalarT>(c.axis.pos0, c.radius), sphere<D, ScalarT>(c.axis.pos1, c.radius));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_cylinder",
+            "parameters": [
+                {
+                    "type_name": "cylinder<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<D,ScalarT>"
+        },
+        "body": "    const auto n = normalize(c.axis.pos1 - c.axis.pos0);\n    return aabb_of(sphere<2, ScalarT, 3>(c.axis.pos0, c.radius, n), sphere<2, ScalarT, 3>(c.axis.pos1, c.radius, n));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_of_pyramid-1",
+            "parameters": [
+                {
+                    "type_name": "pyramid<BaseT, TraitsT> const&",
+                    "parameter_name": "p",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "aabb<3,typenameBaseT::scalar_t>"
+        },
+        "body": "    return aabb_of(p.base, apex_of(p));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "PrimA",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "PrimB",
+                "default_value": ""
+            },
+            {
+                "typename": "class...",
+                "variable_name": "PrimsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_ofTODO_MANUALLY",
+            "parameters": [
+                {
+                    "type_name": "PrimA const&",
+                    "parameter_name": "pa,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "PrimB const&",
+                    "parameter_name": "pb,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "PrimsT const&...",
+                    "parameter_name": "prims",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "decltype(aabb_of(pa))"
+        },
+        "body": "    auto bb = aabb_of(pa);\n    detail::update_aabb_for(bb, pb);\n    (detail::update_aabb_for(bb, prims), ...);\n    return bb;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ContainerT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TransformT",
+                "default_value": "identity_fun"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "aabb_ofTODO_MANUALLY",
+            "parameters": [
+                {
+                    "type_name": "ContainerT const&",
+                    "parameter_name": "c,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "TransformT&&",
+                    "parameter_name": "transform",
+                    "default_value": "{}"
+                }
+            ],
+            "return_type": "decltype(aabb_of(transform(*c.begin())))"
+        },
+        "body": "    auto it = c.begin();\n    auto end = c.end();\n    TG_ASSERT(it != end && \"cannot build AABB of empty container\");\n\n    auto bb = aabb_of(transform(*it));\n    ++it;\n    while (it != end)\n    {\n        detail::update_aabb_for(bb, transform(*it));\n        ++it;\n"
+    }
+]

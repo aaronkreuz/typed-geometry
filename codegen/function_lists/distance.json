@@ -1,0 +1,637 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "A",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "B",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqrTODO_MANUALLY",
+            "parameters": [
+                {
+                    "type_name": "A const&",
+                    "parameter_name": "a,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "B const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "decltype(length_sqr(closest_points(a, b).first - closest_points(a, b).second))"
+        },
+        "body": "    auto cp = closest_points(a, b);\n    return length_sqr(cp.first - cp.second);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "Obj",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_to_origin",
+            "parameters": [
+                {
+                    "type_name": "Obj const&",
+                    "parameter_name": "o",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "decltype(distance(o, pos_type_for<Obj>::zero))"
+        },
+        "body": "    return distance(o, pos_type_for<Obj>::zero);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "Obj",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_to_origin",
+            "parameters": [
+                {
+                    "type_name": "Obj const&",
+                    "parameter_name": "o",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "decltype(distance(o, pos_type_for<Obj>::zero))"
+        },
+        "body": "    return distance_sqr(o, pos_type_for<Obj>::zero);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "signed_distance_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return dot(p, pl.normal) - pl.dis;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return abs(signed_distance(p, pl));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "signed_distance_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "halfspace<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return dot(p, h.normal) - h.dis;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "halfspace<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return max(ScalarT(0), signed_distance(p, h));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "signed_distance_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return distance(p, s.center) - s.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_line3",
+            "parameters": [
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    auto n = cross(l0.dir, l1.dir);\n    return abs(dot(l0.pos - l1.pos, n) / length(n));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_segment2",
+            "parameters": [
+                {
+                    "type_name": "segment<2, ScalarT> const&",
+                    "parameter_name": "s0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "segment<2, ScalarT> const&",
+                    "parameter_name": "s1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    auto l0 = inf_of(s0);\n    auto l1 = inf_of(s1);\n    auto len0 = length(s0);\n    auto len1 = length(s1);\n\n    auto [t0, t1] = intersection_parameters(l0, l1);\n\n    if (ScalarT(0) <= t0 && t0 <= len0 && //\n        ScalarT(0) <= t1 && t1 <= len1)\n        return ScalarT(0); // intersects\n\n    auto p0 = t0 * ScalarT(2) < len0 ? s0.pos0 : s0.pos1;\n    auto p1 = t1 * ScalarT(2) < len1 ? s1.pos0 : s1.pos1;\n\n    return min(distance_sqr(p0, s1), distance_sqr(p1, s0));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_segment3",
+            "parameters": [
+                {
+                    "type_name": "segment<3, ScalarT> const&",
+                    "parameter_name": "s0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "segment<3, ScalarT> const&",
+                    "parameter_name": "s1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    auto l0 = inf_of(s0);\n    auto l1 = inf_of(s1);\n    auto len0 = length(s0);\n    auto len1 = length(s1);\n\n    auto [t0, t1] = closest_points_parameters(l0, l1);\n\n    if (ScalarT(0) <= t0 && t0 <= len0 && //\n        ScalarT(0) <= t1 && t1 <= len1)\n        return distance_sqr(l0[t0], l1[t1]); // closest points is inside segments\n\n    auto p0 = t0 * ScalarT(2) < len0 ? s0.pos0 : s0.pos1;\n    auto p1 = t1 * ScalarT(2) < len1 ? s1.pos0 : s1.pos1;\n\n    return min(distance_sqr(p0, s1), distance_sqr(p1, s0));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_segment2",
+            "parameters": [
+                {
+                    "type_name": "segment<2, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<2, ScalarT> const&",
+                    "parameter_name": "l",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    auto ls = inf_of(s);\n    auto len = length(s);\n\n    auto [ts, tl] = intersection_parameters(ls, l);\n    if (ScalarT(0) <= ts && ts <= len)\n        return ScalarT(0); // intersects\n\n    auto p = ts * ScalarT(2) < len ? s.pos0 : s.pos1;\n    return distance_sqr(p, l);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_segment3",
+            "parameters": [
+                {
+                    "type_name": "segment<3, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    auto ls = inf_of(s);\n    auto len = length(s);\n\n    auto [ts, tl] = closest_points_parameters(ls, l);\n    auto tClamped = clamp(ts, ScalarT(0), len);\n    return distance_sqr(ls[tClamped], l);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_line",
+            "parameters": [
+                {
+                    "type_name": "line<D, ScalarT> const&",
+                    "parameter_name": "l,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "segment<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return distance_sqr(s, l);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_aabb3",
+            "parameters": [
+                {
+                    "type_name": "aabb<3, ScalarT> const&",
+                    "parameter_name": "bb,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "triangle<3, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    if (intersects(bb, t))\n        return fractional_result<ScalarT>(0);\n\n    auto d = tg::max<ScalarT>();\n\n    // tri vertices to bb\n    for (auto p : vertices_of(t))\n        d = min(d, distance(bb, p));\n\n    // bb vertices to tri\n    for (auto p : vertices_of(bb))\n        d = min(d, distance(t, p));\n\n    // edges to edges\n    for (auto e0 : edges_of(t))\n        for (auto e1 : edges_of(bb))\n            d = min(d, distance(e0, e1));\n\n    return d;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_triangle3",
+            "parameters": [
+                {
+                    "type_name": "triangle<3, ScalarT> const&",
+                    "parameter_name": "t,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "aabb<3, ScalarT> const&",
+                    "parameter_name": "bb",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return distance(bb, t);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "",
+                "default_value": "enable_if<is_scalar<ScalarT>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqrTODO_MANUALLY",
+            "parameters": [
+                {
+                    "type_name": "ScalarT",
+                    "parameter_name": "a,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "ScalarT",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    auto const d = a - b;\n    return d * d;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_pos2",
+            "parameters": [
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "quadric<2, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return q(p);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "quadric<3, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return q(p);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "distance_sqr_quadric",
+            "parameters": [
+                {
+                    "type_name": "quadric<D, ScalarT> const&",
+                    "parameter_name": "q,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return distance_sqr(p, q);\n"
+    }
+]

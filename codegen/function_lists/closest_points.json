@@ -1,0 +1,287 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "a,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<pos<D,ScalarT>,pos<D,ScalarT>>"
+        },
+        "body": "    return {a, b};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ObjectT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points",
+            "parameters": [
+                {
+                    "type_name": "ObjectT const& o, pos<D, ScalarT> const&",
+                    "parameter_name": "p",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<decltype(project(p, o)), pos<D, ScalarT>>"
+        },
+        "body": "    return {project(p, o), p};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ObjectT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "ObjectT const&",
+                    "parameter_name": "o",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<pos<D, ScalarT>, decltype(project(p, o))>"
+        },
+        "body": "    return {p, project(p, o)};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points_parameters",
+            "parameters": [
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<ScalarT,ScalarT>"
+        },
+        "body": "    auto d0d1 = dot(l0.dir, l1.dir);\n    auto b0 = dot(l1.pos - l0.pos, l0.dir);\n    auto b1 = dot(l1.pos - l0.pos, l1.dir);\n    auto [t0, t1] = inverse(mat<2, 2, ScalarT>::from_cols({ScalarT(1), d0d1}, {-d0d1, ScalarT(-1)})) * vec<2, ScalarT>(b0, b1);\n    return {t0, t1};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points",
+            "parameters": [
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<pos<3,ScalarT>,pos<3,ScalarT>>"
+        },
+        "body": "    auto [t0, t1] = closest_points_parameters(l0, l1);\n    return {l0[t0], l1[t1]};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points_parameters",
+            "parameters": [
+                {
+                    "type_name": "segment<3, ScalarT> const&",
+                    "parameter_name": "s,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<3, ScalarT> const&",
+                    "parameter_name": "l",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<ScalarT,ScalarT>"
+        },
+        "body": "    auto ls = inf_of(s);\n    auto len = length(s);\n\n    auto [ts, tl] = closest_points_parameters(ls, l);\n    auto tClamped = clamp(ts, ScalarT(0), len);\n    return {tClamped / len, coordinates(l, ls[tClamped])};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_points",
+            "parameters": [
+                {
+                    "type_name": "aabb<D, ScalarT> const&",
+                    "parameter_name": "bb0,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "aabb<D, ScalarT> const&",
+                    "parameter_name": "bb1",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pair<pos<3,ScalarT>,pos<3,ScalarT>>"
+        },
+        "body": "    auto p1 = project(bb0.min, bb1);\n    auto p0 = project(p1, bb0);\n    return {p0, p1};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_point",
+            "parameters": [
+                {
+                    "type_name": "quadric<3, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    // Returns a point minimizing this quadric\n    // (Point is unique if any plane was added with sigma > 0)\n    // Solving Ax = r with some common subexpressions precomputed\n\n    auto a = q.A00;\n    auto b = q.A01;\n    auto c = q.A02;\n    auto d = q.A11;\n    auto e = q.A12;\n    auto f = q.A22;\n    auto r0 = q.b0;\n    auto r1 = q.b1;\n    auto r2 = q.b2;\n\n    auto ad = a * d;\n    auto ae = a * e;\n    auto af = a * f;\n    auto bc = b * c;\n    auto be = b * e;\n    auto bf = b * f;\n    auto df = d * f;\n    auto ce = c * e;\n    auto cd = c * d;\n\n    auto be_cd = be - cd;\n    auto bc_ae = bc - ae;\n    auto ce_bf = ce - bf;\n\n    auto denom = 1 / (a * df + 2 * b * ce - ae * e - bf * b - cd * c);\n    auto nom0 = r0 * (df - e * e) + r1 * ce_bf + r2 * be_cd;\n    auto nom1 = r0 * ce_bf + r1 * (af - c * c) + r2 * bc_ae;\n    auto nom2 = r0 * be_cd + r1 * bc_ae + r2 * (ad - b * b);\n\n    return {nom0 * denom, nom1 * denom, nom2 * denom};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "closest_point",
+            "parameters": [
+                {
+                    "type_name": "quadric<2, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    // Returns a point minimizing this quadric\n    // (Point is unique if any plane was added with sigma > 0)\n    // Solving Ax = r with some common subexpressions precomputed\n\n    auto a = q.A00;\n    auto b = q.A01;\n    auto c = q.A11;\n\n    auto denom = 1 / (a * c - b * b);\n    auto nom0 = q.b0 * c - q.b1 * b;\n    auto nom1 = q.b1 * a - q.b0 * b;\n\n    return {nom0 * denom, nom1 * denom};\n"
+    }
+]

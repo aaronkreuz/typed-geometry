@@ -1,0 +1,502 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "size<2, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return s.width * s.height;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "aabb<2, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return area_of(size<2, ScalarT>(b.max - b.min));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "box<2, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    return ScalarT(4) * sqrt(length_sqr(b.half_extents[0]) * length_sqr(b.half_extents[1]));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "signed_area_of",
+            "parameters": [
+                {
+                    "type_name": "triangle<2, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return cross(b.pos1 - b.pos0, b.pos2 - b.pos0) * fractional_result<ScalarT>(0.5);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "triangle<2, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return abs(signed_area_of(b));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "triangle<3, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return length(cross(b.pos1 - b.pos0, b.pos2 - b.pos0)) * fractional_result<ScalarT>(0.5);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "sphere<2, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return tg::pi_scalar<fractional_result<ScalarT>> * pow2(b.radius);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<2, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return tg::pi_scalar<fractional_result<ScalarT>> * pow2(b.radius) * fractional_result<ScalarT>(0.5);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "ellipse<2, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return tg::pi_scalar<fractional_result<ScalarT>> * length(e.semi_axes[0]) * length(e.semi_axes[1]);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "sphere<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return ScalarT(4) * tg::pi_scalar<fractional_result<ScalarT>> * pow2(b.radius);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, boundary_no_caps_tag>)\n        return ScalarT(2) * tg::pi_scalar<fractional_result<ScalarT>> * pow2(b.radius);\n    else\n        return ScalarT(3) * tg::pi_scalar<fractional_result<ScalarT>> * pow2(b.radius);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "ellipse<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    // see https://en.wikipedia.org/wiki/Ellipsoid#Surface_area\n    using frac_t = fractional_result<ScalarT>;\n    constexpr auto p = frac_t(1.6075);\n    const auto a = length(e.semi_axes[0]);\n    const auto b = length(e.semi_axes[1]);\n    const auto c = length(e.semi_axes[2]);\n    const auto base = (tg::pow(a * b, p) + tg::pow(a * c, p) + tg::pow(b * c, p)) / frac_t(3);\n    return ScalarT(4) * tg::pi_scalar<frac_t> * tg::pow(base, frac_t(1) / p);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "cylinder<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, boundary_no_caps_tag>)\n        return ScalarT(2) * tg::pi_scalar<fractional_result<ScalarT>> * b.radius * length(b.axis);\n    else\n        return ScalarT(2) * tg::pi_scalar<fractional_result<ScalarT>> * b.radius * (b.radius + length(b.axis)); // == 2 pi r^2 + 2 pi r h\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "capsule<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<ScalarT>"
+        },
+        "body": "    return ScalarT(2) * tg::pi_scalar<fractional_result<ScalarT>> * b.radius * (ScalarT(2) * b.radius + length(b.axis)); // == 4 pi r^2 + 2 pi r h\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "aabb<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    auto s = size<3, ScalarT>(b.max - b.min);\n    return ScalarT(2) * (s.width * s.height + s.width * s.depth + s.height * s.depth);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "box<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "ScalarT"
+        },
+        "body": "    auto w = length(b.half_extents[0]);\n    auto h = length(b.half_extents[1]);\n    auto d = length(b.half_extents[2]);\n    return ScalarT(8) * (w * h + w * d + h * d);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "area_of",
+            "parameters": [
+                {
+                    "type_name": "pyramid<BaseT, TraitsT> const&",
+                    "parameter_name": "py",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "fractional_result<typenameBaseT::scalar_t>"
+        },
+        "body": "    using ScalarT = fractional_result<typename BaseT::scalar_t>;\n    if constexpr (std::is_same_v<TraitsT, boundary_no_caps_tag>)\n    {\n        if constexpr (std::is_same_v<BaseT, sphere<2, ScalarT, 3>>)\n            return tg::pi_scalar<ScalarT> * py.base.radius * sqrt(pow2(py.base.radius) + pow2(py.height));\n        else\n        {\n            auto areaSum = ScalarT(0);\n            for (const auto& face : faces_of(py))\n                areaSum += area_of(face);\n            return areaSum;\n"
+    }
+]

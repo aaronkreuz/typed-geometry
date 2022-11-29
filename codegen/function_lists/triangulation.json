@@ -1,0 +1,157 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "triangulation_of",
+            "parameters": [
+                {
+                    "type_name": "triangle<D, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "array<triangle<D,ScalarT>,1>"
+        },
+        "body": "    return {{t}};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "triangulation_of",
+            "parameters": [
+                {
+                    "type_name": "quad<D, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "array<triangle<D,ScalarT>,2>"
+        },
+        "body": "    // TODO: orientation guarantees?\n    return {{\n        {q.pos00, q.pos10, q.pos11}, //\n        {q.pos00, q.pos11, q.pos01},\n    }};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "triangulation_of",
+            "parameters": [
+                {
+                    "type_name": "box<2, ScalarT, D, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "array<triangle<D,ScalarT>,2>"
+        },
+        "body": "    auto const p00 = b.center - b.half_extents[0] - b.half_extents[1];\n    auto const p10 = b.center + b.half_extents[0] - b.half_extents[1];\n    auto const p01 = b.center - b.half_extents[0] + b.half_extents[1];\n    auto const p11 = b.center + b.half_extents[0] + b.half_extents[1];\n\n    // TODO: orientation guarantees?\n    return {{\n        {p00, p10, p11}, //\n        {p00, p11, p01},\n    }};\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "triangulation_of",
+            "parameters": [
+                {
+                    "type_name": "box<3, ScalarT, 3, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "array<triangle<3,ScalarT>,12>"
+        },
+        "body": "    int idx = 0;\n    array<triangle<3, ScalarT>, 12> r;\n\n    for (auto const& f : faces_of(b))\n        for (auto const& t : triangulation_of(f))\n            r[idx++] = t;\n\n    return r;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "triangulation_of",
+            "parameters": [
+                {
+                    "type_name": "aabb<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "array<triangle<3,ScalarT>,12>"
+        },
+        "body": "    int idx = 0;\n    array<triangle<3, ScalarT>, 12> r;\n\n    auto dir = b.max - b.min;\n\n    auto add_face = [&](pos<3, ScalarT> const& p, vec<3, ScalarT> const& d0, vec<3, ScalarT> const& d1) {\n        auto const p00 = p;\n        auto const p10 = p + d0;\n        auto const p01 = p + d1;\n        auto const p11 = p + d0 + d1;\n\n        // TODO: orientation guarantees?\n        r[idx++] = {p00, p01, p11};\n        r[idx++] = {p00, p11, p10};\n    };\n\n    add_face(b.min, {dir.x, 0, 0}, {0, dir.y, 0});\n    add_face(b.min, {0, dir.y, 0}, {0, 0, dir.z});\n    add_face(b.min, {0, 0, dir.z}, {dir.x, 0, 0});\n\n    add_face(b.max, {0, -dir.y, 0}, {-dir.x, 0, 0});\n    add_face(b.max, {0, 0, -dir.z}, {0, -dir.y, 0});\n    add_face(b.max, {-dir.x, 0, 0}, {0, 0, -dir.z});\n\n    return r;\n"
+    }
+]

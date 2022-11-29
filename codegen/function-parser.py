@@ -1,8 +1,21 @@
 import json
 
-in_file = "../src/typed-geometry/functions/objects/aabb.hh"
+#in_file = "../src/typed-geometry/functions/objects/aabb.hh"
+in_path = "renamed_files/"
+out_path = "function_lists/"
 
-text = open(in_file, "r").read()
+files = [
+    "area",
+    "closest_points",
+    "contains",
+    "distance",
+    #"intersection.hh",
+    #"project.hh",
+    "any_point",
+    "aabb",
+    "triangulate",
+    "triangulation"
+]
 
 functions = [
     "aabb_of"
@@ -35,12 +48,24 @@ def parse_template_parameters(s: str):
     start = s.index("<")
     end = index_of_closing(s, start)
     params = s[start + 1:end].split(",")
+
+    # TODO
+    if len(params) > 1:
+        if(params[1].startswith(" typename")):
+            params = [params[0], "".join(params[1:])]
+
     parsed_params = []
     for p in params:
         p = p.strip()
-        pp = p.split()
+        pp = p.split(maxsplit=1) #eparate typename from variable_name and default_value
+
         typename = pp[0]
+        # check for unnamed var
+        # if(pp[1] == '='):
+        #     variable_name = ""
+        #else:
         variable_name = pp[1]
+
         default_value = ""
         if "=" in variable_name:
             variable_name, default_value = variable_name.split("=")
@@ -154,7 +179,7 @@ def parse_function_declaration(s: str):
 
     return parsed_function
 
-def collect_functions(text: str):
+def collect_functions(text: str, output_file: str):
     lines = text.split('\n')
 
     functions = []
@@ -172,7 +197,14 @@ def collect_functions(text: str):
         if line.startswith("[[nodiscard]] constexpr"):
             template_declaration = lines[line_index-1]
             function_declaration = line
-            assert lines[line_index+1].strip() == "{"
+            print(str(line_index) + " " + function_declaration)
+
+            # function declaration over multiple lines
+            while lines[line_index+1].strip() != "{":
+                function_declaration += lines[line_index+1]
+                function_declaration = function_declaration.strip()
+                line_index += 1
+
             body_start = line_index + 2
             body_end = line_index + 2
             while lines[body_end].strip() != "}":
@@ -194,10 +226,20 @@ def collect_functions(text: str):
 
         line_index += 1
 
-    print(json.dumps(functions))
+    # write to file
+    with open(out_path + output_file + '.json', 'w') as f:
+        json_object = json.dumps(functions, indent = 4)
+        f.write(json_object)
+        
+
+    #print(json.dumps(functions))
 
 
-collect_functions(text)
+for file in files:
+    in_file = in_path + file + '.hh'
+    text = open(in_file, "r").read()
+    collect_functions(text, file)
+
 
 # previous_line = ""
 # for line in lines:

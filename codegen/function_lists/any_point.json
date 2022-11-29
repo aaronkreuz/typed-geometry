@@ -1,0 +1,637 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_aabb",
+            "parameters": [
+                {
+                    "type_name": "aabb<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return b.max;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_box-1",
+            "parameters": [
+                {
+                    "type_name": "box<ObjectD, ScalarT, DomainD, TraitsT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<DomainD,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return b.center;\n    else\n        return b[comp<ObjectD, ScalarT>(1)];\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_capsule3",
+            "parameters": [
+                {
+                    "type_name": "capsule<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return c.axis.pos1;\n    else\n        return c.axis.pos1 + c.radius * any_normal(c.axis.pos1 - c.axis.pos0);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_cylinder3",
+            "parameters": [
+                {
+                    "type_name": "cylinder<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return c.axis.pos1;\n    else\n        return c.axis.pos1 + c.radius * any_normal(c.axis.pos1 - c.axis.pos0);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_ellipse-1",
+            "parameters": [
+                {
+                    "type_name": "ellipse<ObjectD, ScalarT, DomainD, TraitsT> const&",
+                    "parameter_name": "e",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<DomainD,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return e.center;\n    else\n        return e.center + e.semi_axes[0];\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_halfspace",
+            "parameters": [
+                {
+                    "type_name": "halfspace<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return pos(-h.dis * h.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_hemisphere",
+            "parameters": [
+                {
+                    "type_name": "hemisphere<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, boundary_no_caps_tag>)\n        return h.center + h.radius * h.normal;\n    else\n        return h.center;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_inf_cone",
+            "parameters": [
+                {
+                    "type_name": "inf_cone<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return c.apex;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_inf_cylinder",
+            "parameters": [
+                {
+                    "type_name": "inf_cylinder<D, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return c.axis.pos;\n    else\n    {\n        if constexpr (D == 3)\n            return c.axis.pos + c.radius * any_normal(c.axis.dir);\n        else\n            return c.axis.pos + c.radius * perpendicular(c.axis.dir);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_line",
+            "parameters": [
+                {
+                    "type_name": "line<D, ScalarT> const&",
+                    "parameter_name": "l",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return l.pos;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_plane",
+            "parameters": [
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "p",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return pos(p.dis * p.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_pyramid-1",
+            "parameters": [
+                {
+                    "type_name": "pyramid<BaseT, TraitsT> const&",
+                    "parameter_name": "py",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,typenameBaseT::scalar_t>"
+        },
+        "body": "    if constexpr (std::is_same_v<TraitsT, default_object_tag>)\n        return centroid_of(py.base);\n    else\n        return apex_of(py);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_quad",
+            "parameters": [
+                {
+                    "type_name": "quad<D, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return q.pos00;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_ray",
+            "parameters": [
+                {
+                    "type_name": "ray<D, ScalarT> const&",
+                    "parameter_name": "r",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return r.origin;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_segment",
+            "parameters": [
+                {
+                    "type_name": "segment<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return s.pos0;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_sphere-1",
+            "parameters": [
+                {
+                    "type_name": "sphere<ObjectD, ScalarT, DomainD> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<DomainD,ScalarT>"
+        },
+        "body": "    return s.center;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_sphere_boundary",
+            "parameters": [
+                {
+                    "type_name": "sphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return s.center + s.radius * dir<D, ScalarT>::pos_x;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_sphere_boundary2",
+            "parameters": [
+                {
+                    "type_name": "sphere_boundary<2, ScalarT, 3> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    return s.center + s.radius * any_normal(s.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_sphere_boundary1",
+            "parameters": [
+                {
+                    "type_name": "sphere_boundary<1, ScalarT, 2> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    return s.center + s.radius * perpendicular(s.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "any_point_triangle",
+            "parameters": [
+                {
+                    "type_name": "triangle<D, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return t.pos0;\n"
+    }
+]
