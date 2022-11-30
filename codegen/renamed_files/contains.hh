@@ -372,7 +372,7 @@ template <int D, class ScalarT>
 }
 
 template <class BaseT, typename = std::enable_if_t<!std::is_same_v<BaseT, sphere<2, typename BaseT::scalar_t, 3>>>>
-[[nodiscard]] constexpr bool contains_pyramid-1(pyramid<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
+[[nodiscard]] constexpr bool contains_pyramid3(pyramid<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
                                       dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))
 {
     using ScalarT = typename BaseT::scalar_t;
@@ -394,7 +394,7 @@ template <class BaseT, typename = std::enable_if_t<!std::is_same_v<BaseT, sphere
 }
 
 template <class BaseT, typename = std::enable_if_t<!std::is_same_v<BaseT, sphere<2, typename BaseT::scalar_t, 3>>>>
-[[nodiscard]] constexpr bool contains_pyramid_boundary_no_caps-1(pyramid_boundary_no_caps<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
+[[nodiscard]] constexpr bool contains_pyramid_boundary_no_caps3(pyramid_boundary_no_caps<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
                                       dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))
 {
     // Check if contained in any pyramid side
@@ -407,7 +407,7 @@ template <class BaseT, typename = std::enable_if_t<!std::is_same_v<BaseT, sphere
 }
 
 template <class BaseT>
-[[nodiscard]] constexpr bool contains_pyramid_boundary-1(pyramid_boundary<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
+[[nodiscard]] constexpr bool contains_pyramid_boundary3(pyramid_boundary<BaseT> const& py,                                      pos<3, typename BaseT::scalar_t> const& p,                                      dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))n                                      pos<3, typename BaseT::scalar_t> const& p,
                                       dont_deduce<typename BaseT::scalar_t> eps = typename BaseT::scalar_t(0))
 {
     if (contains(caps_of(py), p, eps))
@@ -430,7 +430,6 @@ template <class ScalarT>
     // Inside iff the point is closer to the axis (in terms of angle wrt. the apex) than some point on the outer boundary
     return dot(-c.base.normal, normalize(p - apex)) >= dot(-c.base.normal, normalize(pRing - apex));
 }
-
 template <class ScalarT>
 [[nodiscard]] constexpr bool contains_cone_boundary_no_caps3(cone_boundary_no_caps<3, ScalarT> const& c, pos<3, ScalarT> const& p, dont_deduce<ScalarT> eps = ScalarT(0))
 {
@@ -462,7 +461,6 @@ template <int D, class ScalarT>
         return true;
     return angle_between(dir<D, ScalarT>(apexToP), c.opening_dir) <= ScalarT(0.5) * c.opening_angle; // opening_angle is between the cone surfaces
 }
-
 template <int D, class ScalarT>
 [[nodiscard]] constexpr bool contains_inf_cone_boundary(inf_cone_boundary<D, ScalarT> const& c, pos<D, ScalarT> const& p, dont_deduce<ScalarT> eps = ScalarT(0))
 {

@@ -132,7 +132,7 @@ template <int D, class ScalarT, class TraitsT>
 }
 
 template <class BaseT, class TraitsT>
-[[nodiscard]] constexpr aabb<3, typename BaseT::scalar_t> aabb_of_pyramid-1(pyramid<BaseT, TraitsT> const& p)
+[[nodiscard]] constexpr aabb<3, typename BaseT::scalar_t> aabb_of_pyramid3(pyramid<BaseT, TraitsT> const& p)
 {
     return aabb_of(p.base, apex_of(p));
 }

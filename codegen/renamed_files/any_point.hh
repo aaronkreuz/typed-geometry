@@ -119,7 +119,7 @@ template <int D, class ScalarT>
 }
 
 template <class BaseT, class TraitsT>
-[[nodiscard]] constexpr pos<3, typename BaseT::scalar_t> any_point_pyramid-1(pyramid<BaseT, TraitsT> const& py)
+[[nodiscard]] constexpr pos<3, typename BaseT::scalar_t> any_point_pyramid3(pyramid<BaseT, TraitsT> const& py)
 {
     if constexpr (std::is_same_v<TraitsT, default_object_tag>)
         return centroid_of(py.base);

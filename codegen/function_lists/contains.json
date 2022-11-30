@@ -1142,7 +1142,7 @@
                 "[[nodiscard]]",
                 "constexpr"
             ],
-            "name": "contains_pyramid-1",
+            "name": "contains_pyramid3",
             "parameters": [
                 {
                     "type_name": "pyramid<BaseT> const&",
@@ -1182,7 +1182,7 @@
                 "[[nodiscard]]",
                 "constexpr"
             ],
-            "name": "contains_pyramid_boundary_no_caps-1",
+            "name": "contains_pyramid_boundary_no_caps3",
             "parameters": [
                 {
                     "type_name": "pyramid_boundary_no_caps<BaseT> const&",
@@ -1217,7 +1217,7 @@
                 "[[nodiscard]]",
                 "constexpr"
             ],
-            "name": "contains_pyramid_boundary-1",
+            "name": "contains_pyramid_boundary3",
             "parameters": [
                 {
                     "type_name": "pyramid_boundary<BaseT> const&",

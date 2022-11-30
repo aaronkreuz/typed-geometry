@@ -1,0 +1,1242 @@
+[
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_vec",
+            "parameters": [
+                {
+                    "type_name": "vec<D, ScalarT> const&",
+                    "parameter_name": "v,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "vec<D,ScalarT>"
+        },
+        "body": "    return v - pl.normal * dot(v, pl.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_dir",
+            "parameters": [
+                {
+                    "type_name": "dir<D, ScalarT> const&",
+                    "parameter_name": "v,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "vec<D,ScalarT>"
+        },
+        "body": "    return v - pl.normal * dot(v, pl.normal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "plane<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return p - pl.normal * (dot(p, pl.normal) - pl.dis);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "halfspace<D, ScalarT> const&",
+                    "parameter_name": "pl",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return p - pl.normal * tg::max(ScalarT(0), dot(p, pl.normal) - pl.dis);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "pos",
+            "parameters": [
+                {
+                    "type_name": "[[maybe_unused]] pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "q",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>project_[[maybe_unused]]"
+        },
+        "body": "    return q;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "line<D, ScalarT> const&",
+                    "parameter_name": "l",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return l.pos + project(p - l.pos, l.dir);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "ray<D, ScalarT> const&",
+                    "parameter_name": "r",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto d = dot(p - r.origin, r.dir);\n    return r.origin + max(d, ScalarT(0)) * r.dir;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "segment<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto t = coordinates(s, p);\n    t = clamp(t, ScalarT(0), ScalarT(1));\n    return s[t];\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "aabb<D, ScalarT> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    return clamp(p, b.min, b.max);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "aabb<D, ScalarT, boundary_tag> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto res = p;\n    auto projectionNeeded = true;\n    auto closestDist = max<ScalarT>();\n    auto closestDim = 0;             // Will be overwritten\n    auto closestDimVal = ScalarT(0); // Will be overwritten\n    for (auto i = 0; i < D; ++i)\n    {\n        if (p[i] <= b.min[i])\n        {\n            res[i] = b.min[i];\n            projectionNeeded = false;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<DomainD, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "box<ObjectD, ScalarT, DomainD> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<DomainD,ScalarT>"
+        },
+        "body": "    auto localAabb = aabb<ObjectD, ScalarT>::minus_one_to_one;\n    auto pLocal = pos(coordinates(b, p));\n    return b.center + b.half_extents * vec(project(pLocal, localAabb));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "ObjectD",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "int",
+                "variable_name": "DomainD",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<DomainD, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "box_boundary<ObjectD, ScalarT, DomainD> const&",
+                    "parameter_name": "b",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<DomainD,ScalarT>"
+        },
+        "body": "    auto boxSize = pos<ObjectD, ScalarT>();\n    for (auto i = 0; i < ObjectD; ++i)\n        boxSize[i] = length(b.half_extents[i]);\n    auto localAabb = aabb_boundary<ObjectD, ScalarT>(-boxSize, boxSize);\n\n    auto pLocal = pos(coordinates(b, p));\n    auto projLocal = project(pLocal * comp(boxSize), localAabb) / comp(boxSize); // Up-scaling and down-scaling handles stretched boxes\n    return b.center + b.half_extents * vec(projLocal);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "triangle<3, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto n = normal_of(t);\n    auto pPlane = project(p, plane<3, ScalarT>(n, t.pos0));\n    auto edges = edges_of(t);\n\n    // Check if projection is already in the triangle. Additionally find closest projection to one of the edges.\n    pos<3, ScalarT> closestProj;\n    auto minDist = tg::max<ScalarT>();\n    auto leftOfAllEdges = true;\n    for (const auto& edge : edges)\n    {\n        auto pEdge = project(pPlane, edge);\n        if (leftOfAllEdges)\n        {\n            auto edgeNormal = normalize(cross(edge.pos1 - edge.pos0, n));\n            leftOfAllEdges = dot(edgeNormal, pPlane - pEdge) <= ScalarT(0);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos2",
+            "parameters": [
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "triangle<2, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    if (contains(t, p))\n        return p;\n\n    auto p0 = project(p, segment<2, ScalarT>(t.pos0, t.pos1));\n    auto p1 = project(p, segment<2, ScalarT>(t.pos0, t.pos2));\n    auto p2 = project(p, segment<2, ScalarT>(t.pos1, t.pos2));\n\n    auto d0 = distance_sqr(p0, p);\n    auto d1 = distance_sqr(p1, p);\n    auto d2 = distance_sqr(p2, p);\n\n    if (d0 <= d1 && d0 <= d2)\n        return p0;\n    else if (d1 <= d2)\n        return p1;\n    else\n        return p2;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere<D, ScalarT> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    if (contains(s, p))\n        return p;\n\n    return project(p, boundary_of(s));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "sp",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto dir_to_p = tg::normalize_safe(p - sp.center);\n    if (is_zero_vector(dir_to_p))\n        dir_to_p = vec<D, ScalarT>::unit_x;\n    return sp.center + dir_to_p * sp.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere<2, ScalarT, 3> const&",
+                    "parameter_name": "d",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto hp = project(p, plane<3, ScalarT>(d.normal, d.center));\n\n    if (distance_sqr(hp, d.center) <= d.radius * d.radius)\n        return hp;\n\n    auto dir = normalize_safe(hp - d.center);\n    if (is_zero_vector(dir))\n        dir = any_normal(d.normal);\n\n    return d.center + dir * d.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere_boundary<2, ScalarT, 3> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto hp = project(p, plane<3, ScalarT>(c.normal, c.center));\n\n    auto dir = normalize_safe(hp - c.center);\n    if (is_zero_vector(dir))\n        dir = any_normal(c.normal);\n\n    return c.center + dir * c.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos2",
+            "parameters": [
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere<1, ScalarT, 2> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    auto v = perpendicular(s.normal) * s.radius;\n    auto seg = segment<2, ScalarT>(s.center - v, s.center + v); // sphere1in2 is the same as segment2\n    return project(p, seg);\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos2",
+            "parameters": [
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "sphere_boundary<1, ScalarT, 2> const&",
+                    "parameter_name": "s",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    auto v = perpendicular(s.normal) * s.radius;\n    return dot(p - s.center, v) >= ScalarT(0) ? s.center + v : s.center - v;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "hemisphere<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto toP = p - h.center;\n    if (dot(toP, h.normal) >= ScalarT(0)) // On the round side of the hemisphere or inside\n    {\n        if (length_sqr(toP) <= h.radius * h.radius)\n            return p;\n        else\n            return h.center + normalize(toP) * h.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "hemisphere_boundary<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto closestOnFlat = project(p, caps_of(h));\n\n    auto dirToP = tg::normalize_safe(p - h.center);\n    if (dot(dirToP, h.normal) > ScalarT(0))\n    {\n        auto closestOnRound = h.center + dirToP * h.radius;\n        return length_sqr(p - closestOnRound) >= length_sqr(p - closestOnFlat) ? closestOnFlat : closestOnRound;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "hemisphere_boundary_no_caps<D, ScalarT> const&",
+                    "parameter_name": "h",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto dirToP = tg::normalize_safe(p - h.center);\n    if (dot(dirToP, h.normal) > ScalarT(0))\n        return h.center + dirToP * h.radius;\n\n    return project(p, caps_of(h));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "cylinder<3, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto lp = project(p, line<3, ScalarT>(c.axis.pos0, normalize(c.axis.pos1 - c.axis.pos0)));\n    auto sp = project(lp, c.axis);\n    auto dir = p - lp;\n    auto l = length(dir);\n    if (l > c.radius)\n        dir *= c.radius / l;\n\n    return sp + dir;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "cylinder_boundary_no_caps<3, ScalarT> const&",
+                    "parameter_name": "t",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto lp = project(p, line<3, ScalarT>(t.axis.pos0, normalize(t.axis.pos1 - t.axis.pos0)));\n    auto sp = project(lp, t.axis);\n    auto dir = normalize_safe(p - lp);\n    if (is_zero_vector(dir))\n        dir = any_normal(t.axis.pos1 - t.axis.pos0);\n\n    return sp + dir * t.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "cylinder_boundary<3, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto dir = direction(c);\n\n    auto p0 = project(p, boundary_no_caps_of(c));\n    auto p1 = project(p, sphere<2, ScalarT, 3>(c.axis.pos0, c.radius, dir));\n    auto p2 = project(p, sphere<2, ScalarT, 3>(c.axis.pos1, c.radius, dir));\n\n    auto d0 = distance_sqr(p0, p);\n    auto d1 = distance_sqr(p1, p);\n    auto d2 = distance_sqr(p2, p);\n\n    if (d0 <= d1 && d0 <= d2)\n        return p0;\n    else if (d1 <= d2)\n        return p1;\n    else\n        return p2;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "inf_cylinder<D, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    if (contains(c, p))\n        return p;\n\n    return project(p, boundary_of(c));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "inf_cylinder_boundary<D, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    auto vec = p - c.axis.pos;\n    auto h = dot(vec, c.axis.dir);\n    auto point_on_axis = c.axis[h];\n    return point_on_axis + tg::normalize_safe(p - point_on_axis) * c.radius;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "capsule<3, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto t = coordinates(c.axis, p);\n\n    if (t < ScalarT(0))\n        return project(p, sphere<3, ScalarT>(c.axis.pos0, c.radius));\n\n    if (t > ScalarT(1))\n        return project(p, sphere<3, ScalarT>(c.axis.pos1, c.radius));\n\n    return project(p, cylinder<3, ScalarT>(c.axis, c.radius));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "capsule_boundary<3, ScalarT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto t = coordinates(c.axis, p);\n\n    if (t < ScalarT(0))\n        return project(p, sphere_boundary<3, ScalarT>(c.axis.pos0, c.radius));\n\n    if (t > ScalarT(1))\n        return project(p, sphere_boundary<3, ScalarT>(c.axis.pos1, c.radius));\n\n    return project(p, cylinder_boundary_no_caps<3, ScalarT>(c.axis, c.radius));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "TraitsT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "cone<3, ScalarT, TraitsT> const&",
+                    "parameter_name": "c",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    auto closestOnBase = project(p, caps_of(c));\n    if (dot(p - closestOnBase, apex_of(c) - closestOnBase) <= ScalarT(0)) // Base is closer than any point on the cone can be\n        return closestOnBase;\n\n    // Return closer projection\n    auto closestOnSide = project(p, inf_of<3, ScalarT>(c));\n    return distance_sqr(p, closestOnSide) >= distance_sqr(p, closestOnBase) ? closestOnBase : closestOnSide;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "typename",
+                "variable_name": "",
+                "default_value": "std::enable_if_t<!std::is_same_v<BaseT sphere<2 typename BaseT::scalar_t 3>>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pyramid<BaseT> const&",
+                    "parameter_name": "py",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,typenameBaseT::scalar_t>"
+        },
+        "body": "    if (contains(py, p))\n        return p;\n\n    return project(p, boundary_of(py));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "typename",
+                "variable_name": "",
+                "default_value": "std::enable_if_t<!std::is_same_v<BaseT sphere<2 typename BaseT::scalar_t 3>>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pyramid_boundary<BaseT> const&",
+                    "parameter_name": "py",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,typenameBaseT::scalar_t>"
+        },
+        "body": "    auto closestOnBase = project(p, caps_of(py));\n    if (dot(p - closestOnBase, apex_of(py) - closestOnBase) <= typename BaseT::scalar_t(0)) // Base is closer than any point on the pyramid can be\n        return closestOnBase;\n\n    // Return closer projection\n    auto closestOnSide = project(p, boundary_no_caps_of(py));\n    return distance_sqr(p, closestOnSide) >= distance_sqr(p, closestOnBase) ? closestOnBase : closestOnSide;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "BaseT",
+                "default_value": ""
+            },
+            {
+                "typename": "typename",
+                "variable_name": "",
+                "default_value": "std::enable_if_t<!std::is_same_v<BaseT sphere<2 typename BaseT::scalar_t 3>>>"
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, typename BaseT::scalar_t> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "pyramid_boundary_no_caps<BaseT> const&",
+                    "parameter_name": "py",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,typenameBaseT::scalar_t>"
+        },
+        "body": "    auto bestDist = max<float>();\n    auto bestProj = p;\n\n    for (const auto& face : faces_of(py))\n    {\n        const auto proj = project(p, face);\n        const auto dist = distance_sqr(p, proj);\n        if (dist < bestDist)\n        {\n            bestDist = dist;\n            bestProj = proj;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "int",
+                "variable_name": "D",
+                "default_value": ""
+            },
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos",
+            "parameters": [
+                {
+                    "type_name": "pos<D, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "inf_cone<D, ScalarT> const&",
+                    "parameter_name": "icone",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<D,ScalarT>"
+        },
+        "body": "    if (contains(icone, p))\n        return p;\n\n    return project(p, boundary_of(icone));\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos3",
+            "parameters": [
+                {
+                    "type_name": "pos<3, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "inf_cone_boundary<3, ScalarT> const&",
+                    "parameter_name": "icone",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<3,ScalarT>"
+        },
+        "body": "    using dir_t = dir<3, ScalarT>;\n    using vec2_t = vec<2, ScalarT>;\n    using dir2_t = dir<2, ScalarT>;\n\n    // check if p lies on the center axis\n    auto p_apex = p - icone.apex;\n    auto p_apex_dir = normalize_safe(p_apex);\n    if (p_apex_dir == vec<3, ScalarT>::zero)\n        return icone.apex;\n\n    if (tg::are_collinear(p_apex_dir, static_cast<vec<3, ScalarT>>(icone.opening_dir)))\n    {\n        // p is \"above\" the apex\n        if (dot(p_apex_dir, icone.opening_dir) < ScalarT(0))\n            return icone.apex;\n\n        // any point on the cone in normal direction from p is the closest point\n        auto h = tg::length(p_apex);\n        auto l = tg::cos(icone.opening_angle / ScalarT(2)) * h;\n        auto r = tan(icone.opening_angle / ScalarT(2));\n        dir_t ortho_dir = tg::any_normal(icone.opening_dir);\n        auto pt_on_cone = icone.apex + icone.opening_dir + ortho_dir * r;\n        dir_t on_surface_dir = normalize(pt_on_cone - icone.apex);\n        return icone.apex + l * on_surface_dir;\n"
+    },
+    {
+        "template-parameters": [
+            {
+                "typename": "class",
+                "variable_name": "ScalarT",
+                "default_value": ""
+            }
+        ],
+        "function_declaration": {
+            "modyfiers": [
+                "[[nodiscard]]",
+                "constexpr"
+            ],
+            "name": "project_pos2",
+            "parameters": [
+                {
+                    "type_name": "pos<2, ScalarT> const&",
+                    "parameter_name": "p,",
+                    "default_value": ""
+                },
+                {
+                    "type_name": "inf_cone_boundary<2, ScalarT> const&",
+                    "parameter_name": "icone",
+                    "default_value": ""
+                }
+            ],
+            "return_type": "pos<2,ScalarT>"
+        },
+        "body": "    auto ray1 = ray<2, ScalarT>(icone.apex, rotate(icone.opening_dir, icone.opening_angle / ScalarT(2)));\n    auto ray2 = ray<2, ScalarT>(icone.apex, rotate(icone.opening_dir, -icone.opening_angle / ScalarT(2)));\n    auto proj1 = project(p, ray1);\n    auto proj2 = project(p, ray2);\n    return distance_sqr(p, proj1) <= distance_sqr(p, proj2) ? proj1 : proj2;\n"
+    }
+]

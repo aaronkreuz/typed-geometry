@@ -562,7 +562,7 @@
                 "[[nodiscard]]",
                 "constexpr"
             ],
-            "name": "aabb_of_pyramid-1",
+            "name": "aabb_of_pyramid3",
             "parameters": [
                 {
                     "type_name": "pyramid<BaseT, TraitsT> const&",

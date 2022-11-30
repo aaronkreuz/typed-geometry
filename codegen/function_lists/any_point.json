@@ -387,7 +387,7 @@
                 "[[nodiscard]]",
                 "constexpr"
             ],
-            "name": "any_point_pyramid-1",
+            "name": "any_point_pyramid3",
             "parameters": [
                 {
                     "type_name": "pyramid<BaseT, TraitsT> const&",

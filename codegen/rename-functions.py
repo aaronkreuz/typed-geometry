@@ -60,7 +60,7 @@ def get_new_func_name(func_decl: str, unary: bool):
     t = t[t_index:]
     try:
         dim_index = t.index("<")
-        if t[dim_index + 1] == "D":
+        if t[dim_index + 1] == "D" or t[dim_index + 1] == "ObjectD":
             dim = ""
         if t[dim_index + 1] == "3":
             dim = "3"
@@ -68,6 +68,8 @@ def get_new_func_name(func_decl: str, unary: bool):
             dim = "2"
         if t[dim_index + 1] == "1":
             dim = "1"
+        if t[dim_index + 1:].startswith("BaseT"):
+            dim = "3"
 
     except ValueError as ve:
         dim = ""

@@ -9,8 +9,8 @@ files = [
     "closest_points",
     "contains",
     "distance",
-    #"intersection.hh",
-    #"project.hh",
+    "intersection",
+    "project",
     "any_point",
     "aabb",
     "triangulate",
@@ -49,15 +49,28 @@ def parse_template_parameters(s: str):
     end = index_of_closing(s, start)
     params = s[start + 1:end].split(",")
 
-    # TODO
-    if len(params) > 1:
-        if(params[1].startswith(" typename")):
-            params = [params[0], "".join(params[1:])]
+    #print(params)
+    # TODO preprocessing template args
+    it = 0
+    while(it < len(params)):
+        if(params[it].startswith(" typename") or params[it].startswith(" std::enable_if_t")):
+            params_temp = "".join(params[it:])
+            idx_end = index_of_closing(params_temp, params_temp.index("<"))
+            params_append = params_temp[idx_end + 1:].split(",")
+            #print(params_append)
+            params = params[:it] + [params_temp[:idx_end+1].strip()]
+            if not params_append[0] == '':
+                params += params_append
+
+        it += 1
+            # params = [params[0], "".join(params[1:])]
+
+    #print(params)
 
     parsed_params = []
     for p in params:
         p = p.strip()
-        pp = p.split(maxsplit=1) #eparate typename from variable_name and default_value
+        pp = p.split(maxsplit=1) #separate typename from variable_name and default_value
 
         typename = pp[0]
         # check for unnamed var
@@ -119,7 +132,14 @@ def parse_function_declaration(s: str):
             function_parameters_raw = function_parameters_raw[len(
                 "..."):].strip()
 
-        parameter_name = function_parameters_raw.split()[0]
+        parameter_rest = function_parameters_raw.split()
+        parameter_name = ""
+
+        if not len(parameter_rest) == 0:
+            if not parameter_rest[0].startswith(","):
+                    parameter_name = parameter_rest[0]
+
+            
         function_parameters_raw = function_parameters_raw[len(parameter_name):]
         function_parameters_raw = function_parameters_raw.strip()
 
@@ -196,6 +216,14 @@ def collect_functions(text: str, output_file: str):
 
         if line.startswith("[[nodiscard]] constexpr"):
             template_declaration = lines[line_index-1]
+
+            # check if templated function
+            try:
+                x = template_declaration.index('<')
+            except ValueError as ve:
+                line_index += 1
+                continue
+
             function_declaration = line
             print(str(line_index) + " " + function_declaration)
 

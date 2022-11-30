@@ -1,4 +1,5 @@
 import os
+import json
 
 # todo: separate object_functions + object_function_uncommon
 
@@ -56,34 +57,34 @@ all_types = common_types + advanced_types
 print("Total types: {}".format(len(all_types)))
 
 unary_functions = [
-    "edges",
-    "faces",
-    "vertices",
-    "volume",
-    "area",
-    "boundary",
-    "rasterize",
-    "triangulate",
-    "triangulation",
-    "centroid",
+    #"edges",
+    #"faces",
+    #"vertices",
+    #"volume",
+    #"area",
+    #"boundary",
+    #"rasterize",
+    #"triangulate",
+    #"triangulation",
+    #"centroid",
     "aabb_of",
-    "any_point",
-    "project",
-    "signed_distance"
+    #"any_point",
+    #"project",
+    #"signed_distance"
 ]
 
 binary_symmetric_functions = [
-    "intersects",
-    "intersection",  # representation problem
-    "closest_points",
-    "distance",
-    "distance_sqr"
+    # "intersects",
+    # "intersection",  # representation problem
+    # "closest_points",
+    # "distance",
+    # "distance_sqr"
 ]
 
 binary_asymmetric_functions = [
-    "intersection_parameter",
-    "intersection_parameters",
-    "contains"  # potentially impl difficulty
+    # "intersection_parameter",
+    # "intersection_parameters",
+    # "contains"  # potentially impl difficulty
 ]
 
 tg_src_root = "" # todo
@@ -131,14 +132,59 @@ struct object_functions
 with open(default_object_functions_path, "w") as f:
     f.write(default_object_functions)
 
-def generate_function_unary(gen : code_generator, function_name : str):
+
+def get_dim_from_name(func_name: str):
+    #last letter contains domain information
+    str_len = len(func_name)
+    last_letter = func_name[str_len-1]
+    if(last_letter == '3'):
+        return "3"
+    if(last_letter == '2'):
+        return "2"
+    if(last_letter == '1'):
+        return "1"
+    else:
+        return "D"
+
+
+def generate_function_unary(gen : code_generator, function_name : str, type: str):
     # todo: handle return types
-    gen.append_line("static constexpr auto {function_name}({type}<D, ScalarT> const& obj)".format(function_name=function_name, type=type))
-    gen.append_line("{")
-    gen.indent()
-    gen.append_line('static_assert(cc::always_false<{type}<D, ScalarT>>, "TODO: not yet implemented");'.format(type=type))
-    gen.unindent()
-    gen.append_line("}")
+    found_func = False
+
+    # TODO logic 
+    for i in aabb_js:
+        if(i['function_declaration']['name'].startswith(function_name)):
+            func_decl_params = i['function_declaration']['parameters']
+            if not any(d['type_name'].startswith(type) for d in func_decl_params):
+                continue
+            print(i)
+            found_func = True
+            # write this function:
+            dim = get_dim_from_name(i["function_declaration"]["name"])
+
+            gen.append_line("static constexpr {return_type} {function_name}({type}<{D}ScalarT> const& {obj})".format(return_type = i["function_declaration"]["return_type"] ,function_name=function_name, type=type, D = dim+", ", obj = func_decl_params[0]["parameter_name"]))
+            gen.append_line("{")
+            gen.indent()
+            return_line = "return {function_name}(".format(function_name = i["function_declaration"]["name"])#, param_name = func_decl_params[0]["parameter_name"])
+            for param in func_decl_params:
+                return_line += "{parameter_name}".format(parameter_name = param["parameter_name"] + ", ")
+            
+            return_line.removesuffix(", ")
+            return_line += ");"
+
+            gen.append_line("return {function_name}({param_name});".format(function_name = i["function_declaration"]["name"], param_name = func_decl_params[0]["parameter_name"]))
+            gen.unindent()
+            gen.append_line("}")
+
+    if not found_func:
+        gen.append_line("static constexpr auto {function_name}({type}<D, ScalarT> const& obj)".format(function_name=function_name, type=type))
+        gen.append_line("{")
+        gen.indent()
+        gen.append_line('static_assert(cc::always_false<{type}<D, ScalarT>>, "TODO: not yet implemented");'.format(type=type)) # TODO: Add "Should not be implemented"
+        gen.unindent()
+        gen.append_line("}")
+
+
 
 def generate_function_binary_symmetric(gen : code_generator, function_name : str, type_a : str, type_b : str):
     gen.append_line("static constexpr auto {function_name}({type_a}<D, ScalarT> const& a, {type_b}<D, ScalarT> const& b)".format(function_name=function_name, type_a=type_a, type_b=type_b))
@@ -166,8 +212,9 @@ def generate_object_functions(type : str):
     gen.append_line("struct object_functions<{}<D, ScalarT>>".format(type))
     gen.append_line("{")
     gen.indent()
+
     for function in unary_functions:
-        generate_function_unary(gen, function)
+        generate_function_unary(gen, function, type)
         gen.newline()
 
     for function in binary_symmetric_functions:
@@ -188,5 +235,10 @@ def generate_object_functions(type : str):
     with open(filepath, "w") as file:
         file.write(gen.string)
     
+
+# deserialize json files - hard coded for the moment
+f = open('function_lists/aabb.json')
+aabb_js = json.load(f) # list format
+
 for type in common_types:
     generate_object_functions(type)
