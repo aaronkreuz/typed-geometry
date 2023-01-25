@@ -11,6 +11,10 @@ out_file = "renamed_files/"
 # functions in these files will be renamed
 function_files = [
     "area.hh",
+    "centroid.hh",
+    "vertices.hh",
+    "edges.hh",
+    "boundary.hh",
     "closest_points.hh",
     "contains.hh",
     "distance.hh",
@@ -19,7 +23,10 @@ function_files = [
     "any_point.hh",
     "aabb.hh",
     "triangulate.hh",
-    "triangulation.hh"
+    "triangulation.hh",
+    "rasterize.hh",
+    "volume.hh",
+    "faces.hh",
 ]
 
 # only these functions will be renamed
@@ -27,16 +34,19 @@ functions = [
     "edges",
     "faces",
     "vertices",
-    "volume",
-    "area",
-    "boundary",
+    "volume_of",
+    "area_of",
     "rasterize",
     "triangulate",
-    "triangulation",
-    "centroid",
+    "triangulation_of",
+    "centroid_of",
     "aabb_of",
     "any_point",
+    "edges_of",
+    "faces_of",
+    "vertices_of",
     "signed_distance",
+    "boundary_of",
 
     #### BINARY ####
     "intersection",  # representation problem
@@ -60,7 +70,7 @@ def get_new_func_name(func_decl: str, unary: bool):
     t = t[t_index:]
     try:
         dim_index = t.index("<")
-        if t[dim_index + 1] == "D" or t[dim_index + 1] == "ObjectD":
+        if t[dim_index + 1] == "D" or t[dim_index + 1:].startswith("ObjectD"):
             dim = ""
         if t[dim_index + 1] == "3":
             dim = "3"
@@ -68,6 +78,8 @@ def get_new_func_name(func_decl: str, unary: bool):
             dim = "2"
         if t[dim_index + 1] == "1":
             dim = "1"
+        if t[dim_index + 1] == "4":
+            dim = "4"
         if t[dim_index + 1:].startswith("BaseT"):
             dim = "3"
 
@@ -145,11 +157,14 @@ def get_new_func_name(func_decl: str, unary: bool):
 
 ######## MAIN #######
 
+# Rename all function names according to following schema:
+# For unary functions: func_of_type'Dim'(...)
+# For binary functions: func_type1'Dim'_type2'Dim'(...)
+
 if not os.path.exists(out_file):
     os.makedirs(out_file)
 
 for func_file in function_files:
-    # stores lines in array(?) -> access via 
     in_file = src_path + func_file
     text = open(in_file, "r").read()
     lines = text.split('\n')

@@ -1,25 +1,26 @@
 import json
+import os
+
+# TODO: Extend for binary functions
+
+# Dump function declarations of function files (renamed files) in json objects and store in '"function".json'
 
 #in_file = "../src/typed-geometry/functions/objects/aabb.hh"
 in_path = "renamed_files/"
 out_path = "function_lists/"
 
-files = [
-    "area",
-    "closest_points",
-    "contains",
-    "distance",
-    "intersection",
-    "project",
-    "any_point",
-    "aabb",
-    "triangulate",
-    "triangulation"
-]
-
-functions = [
-    "aabb_of"
-]
+# files = [
+#     "area",
+#     "closest_points",
+#     "contains",
+#     "distance",
+#     "intersection",
+#     "project",
+#     "any_point",
+#     "aabb",
+#     "triangulate",
+#     "triangulation"
+# ]
 
 def index_of_closing(text: str, start: int) -> int:
     opening = text[start]
@@ -186,10 +187,12 @@ def parse_function_declaration(s: str):
     s = s.strip()
 
     if return_type == "auto":
-        assert (s.startswith("->"))
-        s = s[2:]
-        s = s.strip()
-        return_type = s
+        if (s.startswith("->")):
+            s = s[2:]
+            s = s.strip()
+            return_type = s
+        else:
+            return_type = 'auto'
 
     parsed_function = {}
     parsed_function["modyfiers"] = modifyers
@@ -243,12 +246,13 @@ def collect_functions(text: str, output_file: str):
                 body += lines[i] + "\n"
             line_index = body_end
 
+            # build up JSON object for each function consisting of template parameters, function decl. and body
             function = {}
             function["template-parameters"] = parse_template_parameters(
                 template_declaration)
             function["function_declaration"] = parse_function_declaration(
                 function_declaration)
-            function["body"] = body
+            function["body"] = body.strip()
 
             functions.append(function)
 
@@ -263,15 +267,10 @@ def collect_functions(text: str, output_file: str):
     #print(json.dumps(functions))
 
 
-for file in files:
-    in_file = in_path + file + '.hh'
+### MAIN APP ###
+#for file in files:
+for file in os.listdir(in_path):
+    in_file = in_path + file #+ '.hh'
     text = open(in_file, "r").read()
-    collect_functions(text, file)
+    collect_functions(text, file[:-3])
 
-
-# previous_line = ""
-# for line in lines:
-#     if("aabb_of" in line):
-#         print(line)
-
-#     previous_line = line
