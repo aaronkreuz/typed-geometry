@@ -50,7 +50,7 @@ functions = [
 
     #### BINARY ####
     "intersection",  # representation problem
-    "intersects"
+    "intersects",
     "closest_points",
     "distance",
     "distance_sqr",
@@ -60,34 +60,33 @@ functions = [
     "project"
 ]
 
-# parse a file and change function names
-def get_new_func_name(func_decl: str, unary: bool):
-    dim = "-1" 
+def get_dim_from_template(templ_args: str):
+    templ_args = templ_args.strip()
+    templ_args = templ_args[1:-1] #deleting enclosing "<" & ">"
+    arg_list = templ_args.split(",")
 
-    ##### look for dimension #####
-    t = func_decl
-    t_index = t.index("(")
-    t = t[t_index:]
-    try:
-        dim_index = t.index("<")
-        if t[dim_index + 1] == "D" or t[dim_index + 1:].startswith("ObjectD"):
-            dim = ""
-        if t[dim_index + 1] == "3":
-            dim = "3"
-        if t[dim_index + 1] == "2":
-            dim = "2"
-        if t[dim_index + 1] == "1":
-            dim = "1"
-        if t[dim_index + 1] == "4":
-            dim = "4"
-        if t[dim_index + 1:].startswith("BaseT"):
-            dim = "3"
+    if(len(arg_list) >= 3 and not arg_list[2].strip().startswith('TraitsT')): # could be 2in3 case
+        dim1 = arg_list[0].strip()
+        dim2 = arg_list[2].strip()
+        return dim1 + "in" + dim2
 
-    except ValueError as ve:
-        dim = ""
-    ##### #####
+    if arg_list[0] == "D" or arg_list[0].startswith("ObjectD"):
+        return ""
+    if arg_list[0] == "3":
+        return "3"
+    if arg_list[0] == "2":
+        return "2"
+    if arg_list[0] == "1":
+        return "1"
+    if arg_list[0] == "4":
+        return "4"
+    if arg_list[0] == ("BaseT"):
+        return "3"
 
-    #start_param = func_decl.index("(")
+    return ""
+
+    
+def get_new_func_name(func_decl: str, params): #params: list of argument name strings
     s = func_decl
     modifyers = []
     if s.startswith("[[nodiscard]]"):
@@ -102,58 +101,52 @@ def get_new_func_name(func_decl: str, unary: bool):
 
     end_idx = s.index("(")
     return_type_and_function_name = s[:end_idx].split()
-    function_name = return_type_and_function_name[-1]
+    function_name = return_type_and_function_name[-1] # first from the end
 
     if(not function_name in functions):
         return func_decl
-
-    s = s[end_idx:]
 
     start_func_name = func_decl.find(function_name)
     length = len(function_name)
 
     first_part = func_decl[:start_func_name]
-    third_part = func_decl[start_func_name+length: len(func_decl)]
+    third_part = func_decl[start_func_name+length:] #containing erverything from params on (Obj,....) -> ...
 
-    # get argument names
-    function_arguments = s[end_idx:]
-    end_first_arg = 0
-    first_arg = " "
+    # get argument dimensions and typenames for the renaming
+    s = s[end_idx:] # containing arguments and evtl "-> return_type"
+    params_with_dims = ""
 
-    end_func_decl = -1
-    try:
-        end_func_decl = s.index("->")
-    except ValueError as ve:
-        end_func_decl = len(s)
-
-    s = s[:end_func_decl]
-        
-    try:
-        end_first_arg = s.index("<")
-        first_arg = s[1:end_first_arg]
-    except ValueError as ve:
-        return (first_part + function_name + "TODO_MANUALLY" + third_part)
-
-    s = s[s.index(">"):] # cut off first argument
-
-    start_second_arg = 0
-    end_second_arg = 0
-    second_arg = ""
-
-    if(not unary):
+    for arg in params:
+        # get dim
         try:
-            start_second_arg = s.index(", ")
-            end_second_arg = s.index("<")
-            second_arg = s[start_second_arg+2:end_second_arg]
+            start_temp = arg.index("<")
+            end_temp = arg.index(">")
+            dim = get_dim_from_template(arg[start_temp: end_temp+1])
+            # get type name isolated
+            name = arg[:start_temp] 
+            params_with_dims += "_" + name + dim
         except ValueError as ve:
-            return (first_part + function_name + "TODO_MANUALLY" + third_part)
+            start_temp = arg.index(" ")
+            name = arg[:start_temp]
+            params_with_dims += "_" + name
 
-        return (first_part + function_name + "_" + first_arg + dim + "_" + second_arg + dim + third_part)
-
-    else:
-        return (first_part + function_name + "_" + first_arg + dim + third_part)
+    return first_part + function_name + params_with_dims + third_part
 
 
+def index_of_closing(text: str, start: int) -> int:
+    opening = text[start]
+    assert opening == "{" or opening == "(" or opening == "<"
+    closing = "}" if opening == "{" else ")" if opening == "(" else ">"
+    count = 1
+    for i in range(start + 1, len(text)):
+        if text[i] == opening:
+            count += 1
+        elif text[i] == closing:
+            count -= 1
+
+        if count == 0:
+            return i
+    return -1
 
 ######## MAIN #######
 
@@ -173,80 +166,44 @@ for func_file in function_files:
 
     line_index = 0
 
-
     while line_index < len(lines):
-        #TODO: Check binary or unary function and call correct function
         line_temp = lines[line_index] + '\n'
 
-        if line_temp.startswith("[[nodiscard]] constexpr"):
-            ########## separate function
+        if line_temp.startswith("[[nodiscard]] constexpr"): # found a function
             start_args = line_temp.index('(')
 
-            # DEBUG
-            #print(line_temp + "line: " +  str(line_index))
-
             # args along multiple lines
-            try:
-                end_args = line_temp.index(')')
-            except ValueError as ve:
-                line_temp = lines[line_index] + lines[line_index+1] + '\n'
-                try:
-                    end_args = line_temp.index(')')
-                except ValueError as ve:
-                    line_temp = lines[line_index] + lines[line_index+1] + lines[line_index+2] + 'n'
-                    end_args = line_temp.index(')')
+            end_args = index_of_closing(line_temp, start_args)
+            count = 0
+            while(end_args == -1):
+                line_temp += lines[line_index + count + 1] +'\n'
+                end_args = index_of_closing(line_temp, start_args)
+                count += 1
+            
+            line_index += count
 
-            args = line_temp[start_args:end_args]
-
+            # arguments in string
+            args = line_temp[start_args+1:end_args]
+            args_list = []
             found_arg = True
 
-
-            while found_arg:
-                #print(args)
+            # separate arguments and store in 'args_list'
+            while "const&" in args:
                 try:
-                    start = args.index('<')
-                    end = args.index('>')
-                    args = args[start-1] + args[end+1:]
+                    start = args.find("const&")
+                    divisor = args[start:].index(',')
+                    args_list.append(args[:divisor+start])
+                    args = args[divisor+start+1:].strip()
                 except ValueError as ve:
-                    found_arg = False
+                    args_list.append(args)
+                    break
 
-            args = args.split(",")
-
-            #print(args)
-
-            unary = (len(args) == 1)
-            # TEST
-            #if unary:
-            #    print("unary function: " + str(args))
-            #else:
-                #print("binary function")
-            #########################
-            new_line = get_new_func_name(line_temp, unary)
+            new_line = get_new_func_name(line_temp, args_list)
             line_temp = new_line
 
         lines_updated.append(line_temp)
         line_index += 1
 
-    # Parse the file into lines
-    # with open(in_file, 'r') as f:
-    #     for line in f:
-    #         if line.startswith("[[nodiscard]] constexpr"):
-    #             new_line = get_new_func_name(line)
-    #             line = new_line
-    #         
-    #         lines_updated.append(line)
-
     # Write them back to the file
     with open(out_file + func_file, 'w') as f:
         f.writelines(lines_updated)
-
-        # Or: f.write(''.join(lines))
-
-    # line_index = 0
-    # 
-    # while line_index < len(lines):
-    #     line_index += 1
-    # 
-    # print(line_index)
-    #lines = text.split(/n)msg = "Test"
-    #print(msg)

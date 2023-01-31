@@ -217,7 +217,7 @@ def collect_functions(text: str, output_file: str):
             line_index += 1
             continue
 
-        if line.startswith("[[nodiscard]] constexpr"):
+        if line.startswith("[[nodiscard]] constexpr"): # function found
             template_declaration = lines[line_index-1]
 
             # check if templated function
@@ -236,6 +236,7 @@ def collect_functions(text: str, output_file: str):
                 function_declaration = function_declaration.strip()
                 line_index += 1
 
+            # collect the function body
             body_start = line_index + 2
             body_end = line_index + 2
             while lines[body_end].strip() != "}":
