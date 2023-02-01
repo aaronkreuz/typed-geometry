@@ -41,6 +41,10 @@ def index_of_closing(text: str, start: int) -> int:
 def read_type(s: str):
     if "<" in s:
         closing_index = index_of_closing(s, s.index("<"))
+        if "," in s:
+            comma = s.index(',')
+            if(comma < s.index('<')):
+                return s.split()[0]
         return s[:(closing_index + 1)]
     return s.split()[0]
 
@@ -90,6 +94,49 @@ def parse_template_parameters(s: str):
     return parsed_params
 
 
+def get_domain_dim(s :str):
+    try:
+        start_template = s.index("<")
+        end_template = index_of_closing(s, start_template)
+        s = s[start_template+1:end_template]
+        l = s.split(',')
+        l = [e.strip() for e in l]
+
+        filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
+        l = list(filtered_list)
+
+        if len(l) == 1:
+            return l[0]
+
+        if len(l) == 2:
+            return l[1]
+
+    except ValueError as ve:
+        return ""
+    
+    return ""
+
+def get_object_dim(s :str):
+    try:
+        start_template = s.index("<")
+        end_template = index_of_closing(s, start_template)
+        s = s[start_template+1:end_template]
+        l = s.split(',')
+        l = [e.strip() for e in l]
+
+        filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
+
+        l = list(filtered_list)
+        if len(l) < 2:
+            return ""
+        
+        return l[0]
+
+    except ValueError as ve:
+        return ""
+    
+    return ""
+
 def parse_function_declaration(s: str):
     # "[[nodiscard]] constexpr aabb<D, ScalarT> aabb_of(pos<D, ScalarT> const& v)",
     modifyers = []
@@ -113,8 +160,10 @@ def parse_function_declaration(s: str):
     closing_index = s.index(")")
     function_parameters_raw = s[:closing_index]
     function_parameters = []
+
     while function_parameters_raw:
         type_name = read_type(function_parameters_raw)
+
         function_parameters_raw = function_parameters_raw[len(
             type_name):].strip()
 
@@ -181,7 +230,7 @@ def parse_function_declaration(s: str):
         if function_parameters_raw.startswith(","):
             function_parameters_raw = function_parameters_raw[1:].strip()
         function_parameters.append(
-            {"type_name": type_name, "parameter_name": parameter_name, "default_value": default_value})
+            {"type_name": type_name, "parameter_name": parameter_name, "default_value": default_value, "domain_dim": get_domain_dim(type_name), "object_dim": get_object_dim(type_name)})
 
     s = s[(closing_index + 1):]
     s = s.strip()
