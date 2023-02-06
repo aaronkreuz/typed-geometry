@@ -127,10 +127,11 @@ def get_object_dim(s :str):
         filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
 
         l = list(filtered_list)
-        if len(l) < 2:
-            return ""
-        
-        return l[0]
+        # if len(l) < 2:
+        #     return ""
+        # 
+        # return l[0]
+        return l[0] # in case of no deviation of objectDim and domainDim this will just return the domainDim which is intended
 
     except ValueError as ve:
         return ""
