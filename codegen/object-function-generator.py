@@ -113,6 +113,7 @@ struct object_functions
 };"""
 
 # NOTE: Generating object function for unary functions
+# TODO: Tidy up!
 def generate_function_unary(gen : ofp.code_generator, function_name : str, type: str, deserial_file):
     # 1st iterate through file and write functions into list incl. name and dimension
     # 2nd sort list according to dimension
@@ -250,37 +251,35 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
         gen.append_line("}")
         return
 
-    # TODO: Check if this always works
+    # TODO: Check if this always works -> another way of sorting when also 'type_b_object_dim'?
     if(type_a_object_dim): # type with (possibly) varying object and domain dim
-        functions_parsed.sort(key = lambda f : tuple((f['domain_dim'], f['object_dim']))) # sort according to dim in ascending order
+        functions_parsed.sort(key = lambda f : tuple((f['params'][0]['domain_dim'], f['params'][0]['object_dim']))) # sort according to dim in ascending order
 
     else:
-        functions_parsed.sort(key = lambda f : f['domain_dim']) # sort according to dim in ascending order
+        functions_parsed.sort(key = lambda f : f['params'][0]['object_dim']) # sort according to dim in ascending order
 
-
-    #TODO: outsourcing -> Different implementations when object dim deviating from domain dim.
     # 3rd pass -> write to code generator
     if(not type_a_object_dim and not type_b_object_dim):
         # Header of object functions file
         gen.append_line("static constexpr {ret_type} {function_name}({type_a}{templ_a} const& obj_a, {type_b}{templ_b} const& obj_b)".format(ret_type = return_type, function_name=function_name, type_a=type_a, templ_a = template_a_printable, type_b = type_b, templ_b = template_b_printable))
-        gen.append_line("{")
-        gen.indent()
-        # TODO: use 'write_bin_symmetric_DomainD' -> separate the functionality
-        ofp.write_bin_symmetric_TypeAObjectD(gen, functions_parsed, type_a, type_b, template_a_printable, template_b_printable)
+        ofp.begin_scope(gen)
+        ofp.write_bin_symmetric_DomainD(gen, functions_parsed, type_a, type_b, template_a_printable, template_b_printable)
+        # ending scope included in 'write_bin_symmetric_DomainD'
 
-    if(type_a_object_dim):
-        # to handle -> actually 2 cases. A ODD and B ODDD + A ODD and B not ODD
+    if(type_a_object_dim and not type_b_object_dim):
+        # A ODD and B not ODD
         gen.append_line("static constexpr {ret_type} {function_name}({type_a}{templ_a} const& obj_a, {type_b}{templ_b} const& obj_b)".format(ret_type = return_type, function_name=function_name, type_a=type_a, templ_a = template_a_printable, type_b = type_b, templ_b = template_b_printable))
-        gen.append_line("{")
-        gen.indent()
+        ofp.begin_scope(gen)
         ofp.write_bin_symmetric_TypeAObjectD(gen, functions_parsed, type_a, type_b, template_a_printable, template_b_printable)
+        # ending scope included in 'write_bin_symmetric_TypeAObjectD'
     
-    else: # special case with overloading
+    else: # special case with overloading -> B ODD and (A ODD or A not ODD)
         if(type_b_object_dim):
             # TODO: For every objectDim of Type B build up own function -> Separate 'functions_parsed' and call 'write_bin_symmetric_DomainD'
+            # or call 'write_bin_symmetricTypeAObjectD' depending on whether Type A ODD or not ODD
             # from 'processing.py' for every sub-list.
             # to handle
-            ofp.write_bin_symmetric_DomainD(gen, functions_parsed) # NOT WORKING
+            ofp.write_bin_symmetric_DomainD(gen, functions_parsed, type_a, type_b, template_a_printable, template_b_printable) # NOT WORKING
 
 
     #gen.append_line("static constexpr auto {function_name}({type_a}<D, ScalarT> const& a, {type_b}<D, ScalarT> const& b)".format(function_name=function_name, type_a=type_a, type_b=type_b))
