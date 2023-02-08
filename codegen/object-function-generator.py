@@ -8,20 +8,20 @@ import processing as ofp
 type_path = "../src/typed-geometry/types/"
 
 common_types = [
-    # "aabb",
-    # "pos",
+    "aabb",
+    "pos",
     "ray",
-    # "line",
-    # "segment",
-    "sphere"
-    # "triangle",
-    # "plane"
+    "line",
+    "segment",
+    "sphere",
+    "triangle",
+    "plane"
 ]
 
 advanced_types = [
     "aabb_boundary",
     "box",
-    "box_boundary"
+    "box_boundary",
     "capsule", # currently only 3d
     "capsule_boundary",# currently only 3d
     "cone",
@@ -74,14 +74,14 @@ unary_functions = [
     ["centroid_of", "centroid"],
     ["aabb_of", "aabb"],
     ["any_point", "any_point"],
-    #["signed_distance", "signed_distance"]
+    #["signed_distance", "distance"]
 ]
 
 binary_symmetric_functions = [
-    ["intersects", "intersection"]
-    #"intersection",  # representation problem
-    # "closest_points",
-    # "distance",
+    ["intersects", "intersection"],
+    ["intersection", "intersection"], # representation problem
+    ["closest_points", "closest_points"],
+    ["distance", "distance"]
     # "distance_sqr"
 ]
 
@@ -252,11 +252,7 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
         return
 
     # TODO: Check if this always works -> another way of sorting when also 'type_b_object_dim'?
-    if(type_a_object_dim): # type with (possibly) varying object and domain dim
-        functions_parsed.sort(key = lambda f : tuple((f['params'][0]['domain_dim'], f['params'][0]['object_dim']))) # sort according to dim in ascending order
-
-    else:
-        functions_parsed.sort(key = lambda f : f['params'][0]['object_dim']) # sort according to dim in ascending order
+    ofp.sorting_funcs(functions_parsed, type_a_object_dim, type_b_object_dim)
 
     # 3rd pass -> write to code generator
     if(not type_a_object_dim and not type_b_object_dim):
@@ -275,11 +271,21 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
     
     else: # special case with overloading -> B ODD and (A ODD or A not ODD)
         if(type_b_object_dim):
-            # TODO: For every objectDim of Type B build up own function -> Separate 'functions_parsed' and call 'write_bin_symmetric_DomainD'
-            # or call 'write_bin_symmetricTypeAObjectD' depending on whether Type A ODD or not ODD
-            # from 'processing.py' for every sub-list.
-            # to handle
-            ofp.write_bin_symmetric_DomainD(gen, functions_parsed, type_a, type_b, template_a_printable, template_b_printable) # NOT WORKING
+            # For every objectDim of Type B build up own function -> Separate 'functions_parsed' and call 'write_bin_symmetric_DomainD'
+            # or call 'write_bin_symmetricTypeAObjectD' depending on whether Type A ODD or not ODD from 'processing.py' for every sub-list.
+            functions_parsed_sep = ofp.separate_funcs(functions_parsed)
+            for f_list in functions_parsed_sep:
+                # fix the object domain of the template of type b
+                objD_type_b = f_list[0]['params'][1]['object_dim']
+
+                if "int O" in objD_type_b:
+                    start_obj_dim = template_b_printable.index("O")
+                    template_b_printable = template_b_printable[:start_obj_dim] + objD_type_b + template_b_printable[start_obj_dim + 1:]
+
+                # objD_type_b_read = ofp.get_object_dim_from_name(template_b_printable)
+                gen.append_line("static constexpr {ret_type} {function_name}({type_a}{templ_a} const& obj_a, {type_b}{templ_b} const& obj_b)".format(ret_type = return_type, function_name=function_name, type_a=type_a, templ_a = template_a_printable, type_b = type_b, templ_b = template_b_printable))
+                ofp.begin_scope(gen)
+                ofp.write_bin_symmetric_DomainD(gen, f_list, type_a, type_b, template_a_printable, template_b_printable)
 
 
     #gen.append_line("static constexpr auto {function_name}({type_a}<D, ScalarT> const& a, {type_b}<D, ScalarT> const& b)".format(function_name=function_name, type_a=type_a, type_b=type_b))
@@ -289,6 +295,7 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
     #gen.unindent()
     #gen.append_line("}")
 
+# TODO
 def generate_function_binary_asymmetric(gen : ofp.code_generator, function_name : str, type_a : str, type_b : str):
     gen.append_line("static constexpr auto {function_name}({type_a}<D, ScalarT> const& a, {type_b}<D, ScalarT> const& b)".format(function_name=function_name, type_a=type_a, type_b=type_b))
     gen.append_line("{")
@@ -304,18 +311,22 @@ def generate_object_functions(type : str):
     gen.newline()
     gen.append_line("#include <{}>".format(default_object_functions_path))
     gen.newline()
-    gen.append_line("template <int D, class ScalarT>")
-    gen.append_line("struct object_functions<{}<D, ScalarT>>".format(type))
+    # TODO: correct template!
+    type_template = ofp.get_type_template(type, type_path)
+    type_template = ofp.adapt_template_format(type_template)
+    type_template_values = ofp.template_format_values(type_template)
+    gen.append_line("template {templ}".format(templ = type_template))
+    gen.append_line("struct object_functions<{typeA}{templ}>".format(typeA = type, templ = type_template_values))
     gen.append_line("{")
     gen.indent()
 
     # generate function descriptions for all unary functions
-    # for function in unary_functions:
-    #     # deserialize json files - hard coded for the moment
-    #     f = open('function_lists/' + function[1] + '.json')
-    #     deserial_functions = json.load(f) # list format
-    #     generate_function_unary(gen, function[0], type, deserial_functions)
-    #     gen.newline()
+    for function in unary_functions:
+        # deserialize json files - hard coded for the moment
+        f = open('function_lists/' + function[1] + '.json')
+        deserial_functions = json.load(f) # list format
+        generate_function_unary(gen, function[0], type, deserial_functions)
+        gen.newline()
 
     # generate function descriptions for all binary symmetric functions
     for function in binary_symmetric_functions:

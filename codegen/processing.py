@@ -64,6 +64,24 @@ def get_dim_from_name(func_name: str) -> str:
     else:
         return "D"
 
+def get_object_dim_from_name(s :str):
+    try:
+        start_template = s.index("<")
+        end_template = index_of_closing(s, start_template)
+        s = s[start_template+1:end_template]
+        l = s.split(',')
+        l = [e.strip() for e in l]
+
+        filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
+
+        l = list(filtered_list)
+        if(len(l) >= 1):
+            return l[0] # in case of no deviation of objectDim and domainDim this will just return the domainDim which is intended
+        else:
+            return ""
+    except ValueError as ve:
+        return ""
+
 # returning string containing the template information for 'type'
 def get_type_template(type: str, type_path: str):
     if (type+'.hh') in os.listdir(type_path):
@@ -117,10 +135,41 @@ def adapt_template_format(s : str):
     return s
 
 
+def template_format_values(s: str):
+    t = s
+    t = t[1:len(s)-1]
+    arguments = []
+    # TODO: not sure if required here
+    while "<" in t:
+        start = t.index("<")
+        end = index_of_closing(t, start)
+        t = t[:start] + t[end+1:]
+
+    t_list = t.split(",") # containing the arguments
+
+    output = "<"
+
+    for arg in t_list:
+        arg = arg.strip() # remove leading whitespaces
+        while " " in arg:
+            start = arg.index(" ")
+            arg = arg[start+1:]
+            output += arg + ", "
+
+    output = output[:-2]
+    output += ">"
+
+    return output
+
+
+
 # NOTE: parse relevant information of the given function and store info in dictionary
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
     if(func['function_declaration']['name'].startswith(function_name)):
             func_decl_params = func['function_declaration']['parameters']
+
+            if(len(func_decl_params) != 2): # ensure 2 parameters
+                return {}
 
             type_name_a = func_decl_params[0]['type_name']
             type_name_b = func_decl_params[1]['type_name']
@@ -186,6 +235,48 @@ def get_return_type(functions_parsed) -> str:
 
     return return_type
 
+# NOTE: return the index of the given list where the objec dim of the second parameter type is matching 'dim'
+def contains_object_dim(separated_funcs, dim: int):
+    count = 0
+    for f_list in separated_funcs:
+        if f_list[0]['params'][1]['object_dim'] == dim:
+            return count
+        count += 1
+    return -1
+
+# NOTE: separate the given function into sub-lists based on the object-domain of the 2nd type (binary symmetric case)
+def separate_funcs(funcs):
+    separated_funcs = [] # list containing the domain-classes regarding type b
+    for f in funcs:
+        object_dim_b = f['params'][1]['object_dim']
+        assert (object_dim_b != "")
+        ind = contains_object_dim(separated_funcs, object_dim_b)
+        if ind != -1: # object dim already in 'separated_funcs' at index 'ind'
+            separated_funcs[ind].append(f)
+        else: # object dim not seen before -> append to list
+            separated_funcs.append([f])
+
+    return separated_funcs
+        
+
+# NOTE: sorting the function list 'functions_parsed' according to the dimensionalities of the parameters distinguishing between cases where types depend on the object dimensions
+def sorting_funcs(functions_parsed, a_obj_dim: bool, b_obj_dim: bool):
+    if(a_obj_dim and b_obj_dim):
+        functions_parsed.sort(key = lambda f : tuple((f['params'][1]['object_dim'], f['params'][0]['domain_dim'], f['params'][0]['object_dim']))) # sort according to dim in ascending order
+        return
+
+    if(a_obj_dim): # implicitly 'and not b_obj_dim'
+        functions_parsed.sort(key = lambda f : tuple((f['params'][0]['domain_dim'], f['params'][0]['object_dim']))) # sort according to dim in ascending order
+        return
+
+    if(b_obj_dim): # implicitly 'and not a_obj_dim'
+        functions_parsed.sort(key = lambda f : tuple((f['params'][1]['object_dim'], f['params'][0]['domain_dim']))) # sort according to dim in ascending order
+        return
+    
+    else: # not a_obj_dim and not b_obj_dim
+        functions_parsed.sort(key = lambda f : (f['params'][0]['domain_dim'])) # sort according to dim in ascending order
+        return
+
 
 # NOTE: Cases depending on DomainDimension AND ObjectDimension, but only type_a! If type_b also has deviating objectDim, overloading is required
 def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, type_b: str, template_a: str, template_b: str):
@@ -210,7 +301,7 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
             if object_D != 'D':
                 object_dim_appendix = "&& O == {}".format(object_D)
 
-            gen.append_line("if constexpr(D == {dom_dim} {object_dim})".format(dom_dim = f['domain_dim'], object_dim = object_dim_appendix))
+            gen.append_line("if constexpr(D == {dom_dim} {object_dim})".format(dom_dim = dom_D, object_dim = object_dim_appendix))
             begin_scope(gen)
             gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
             end_scope(gen)
@@ -288,8 +379,7 @@ def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b:
                     break
 
                 if(func_counter == 0):
-                    gen.append_line("return {function_name}(obj_a, oj_b);".format(function_name = f['function_name']))
-
+                    gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
         it += 1
 
     if not found_D:
