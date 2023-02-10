@@ -162,8 +162,33 @@ def template_format_values(s: str):
     return output
 
 
+# NOTE: parse relevant information of the given function and store info in dictionary (unary function case)
+def parse_function_info_unary(func, function_name: str, type: str):
+    
+    if not (func['function_declaration']['name'].startswith(function_name)):
+        return {}
 
-# NOTE: parse relevant information of the given function and store info in dictionary
+    func_decl_params = func['function_declaration']['parameters']
+
+    # check if function params contain type (requirement)
+    param_name =  func_decl_params[0]['type_name']
+    if ('<' in param_name):
+        param_name = param_name[:param_name.index('<')]
+
+    if not param_name == type:
+        return {} # types not matching
+
+    # build object for specific function implementation
+    function = {} #empty object
+    function["function_name"] = func['function_declaration']['name']
+    function["domain_dim"] = func_decl_params[0]['domain_dim']
+    function["object_dim"] = func_decl_params[0]['object_dim']
+    function["return_type"] = func['function_declaration']['return_type']
+
+    return function
+
+
+# NOTE: parse relevant information of the given function and store info in dictionary (binary sym. function case)
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
     if(func['function_declaration']['name'].startswith(function_name)):
             func_decl_params = func['function_declaration']['parameters']
@@ -278,12 +303,155 @@ def sorting_funcs(functions_parsed, a_obj_dim: bool, b_obj_dim: bool):
         return
 
 
+# NOTE: write unary function to file for type with varying domain dim and object dim
+def write_unary_domain_object_d(gen: code_generator, funcs, type: str, template: str):
+    found_dom_d = False
+    found_obj_d = [False] # per entry info if arbitrary object dim has been found for i-th domain dim (keeping track via 'dom_d_it')
+    curr_dom_d = funcs[0]["domain_dim"]
+    dom_d_it = 0 # keeping track of current nbr of different domain dims seen
+    func_counter = 0 # tracking number of functions written to the file
+
+    # iterating over parsed functions
+    for f in funcs:
+        dom_d = f['domain_dim']
+        obj_d = f['object_dim']
+
+        if dom_d != curr_dom_d:
+            curr_dom_d = dom_d
+            found_obj_d.append(False)
+            dom_d_it += 1
+
+        # case 1: domain dim is not arbitrary (object dim may be arbitrary or not arbitrary)
+        if dom_d != 'D':
+            object_dim_appendix = ""
+            if dom_d != 'O' and not found_obj_d[dom_d_it]:
+                object_dim_appendix = "and O == {}".format(obj_d)
+            else:
+                 # found object dim 'O' for current domain dim -> no object dim. distinctions for curr domain dim from here
+                found_obj_d[dom_d_it] = True
+
+            gen.append_line("if constexpr(D == {dom_d} {obj_d_appendix})".format(dom_d = dom_d, obj_d_appendix = object_dim_appendix))
+            begin_scope(gen)
+            gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+            end_scope(gen)
+            func_counter += 1
+            continue
+        
+        # case 2: domain dim is arbitrary and object dim is not arbitrary
+        if dom_d == 'D' and obj_d != 'O':
+            if found_obj_d[dom_d_it]:
+                continue
+            found_dom_d = True
+
+            gen.append_line("if constexpr(O == {obj_d})".format(obj_d = obj_d))
+            begin_scope(gen)
+            gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+            end_scope(gen)
+            func_counter += 1
+            continue
+
+        # case 3: domain dim arbitrary and object dim equal to domain dim
+        if(dom_d == 'D' and obj_d == 'D'):
+            if found_dom_d and found_obj_d[dom_d_it]:
+                continue # case already handled
+            found_dom_d = True
+            found_obj_d[dom_d_it] = True
+
+            gen.append_line("if constexpr(D == 0)")
+            begin_scope(gen)
+            gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+            end_scope(gen)
+            func_counter += 1
+            continue
+
+        # case 4: domain dim and object dim arbitrary
+        if dom_d == 'D' and obj_d == 'O':
+            if found_dom_d and all(found_obj_d):
+                continue # case already handled
+
+            found_dom_d = True
+            for e in found_obj_d:
+                e = True
+
+            if(func_counter > 0): # else appropriate
+                gen.append_line("else")
+                begin_scope(gen)
+                gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+                end_scope(gen)
+
+            else:
+                gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+
+            func_counter += 1
+            break #all cases handled
+
+    if not (found_dom_d and all(found_obj_d)):
+        # not all domain dim and object dim configurations are handled by the given functions
+        if func_counter == 0:
+             gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
+        else:
+            gen.append_line("else")
+            begin_scope(gen)
+            gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
+            end_scope(gen)
+
+    end_scope(gen)
+    return 
+
+
+# NOTE: writing unary function to file for type only depending on the domain dim (i.e. always domain_dim == object_dim)
+def write_unary_domain_d(gen: code_generator, funcs, type: str, template: str):
+    found_dom_d = False
+    func_counter = 0
+
+    # iterating over parsed functions
+    for f in funcs:
+        dom_d = f["domain_dim"]
+
+        # case 1: domain dim is not arbitrary
+        if dom_d != 'D' and not found_dom_d:
+            gen.append_line("if constexpr(D == {dom_d})".format(dom_d = dom_d))
+            begin_scope(gen)
+            gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+            end_scope(gen)
+            func_counter += 1
+            continue
+        
+        # case 2: domain dim is not abitrary
+        if dom_d == 'D' and not found_dom_d:
+            found_dom_d = True
+            if func_counter > 0:
+                gen.append_line("else")
+                begin_scope(gen)
+                gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+                end_scope(gen)
+            else:
+                gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+            func_counter += 1
+            break
+
+        if not found_dom_d:
+            # not all domain_dim cases are handled by the given functions
+            if func_counter == 0:
+                gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type = type, templ = template))
+            else:
+                gen.append_line("else")
+                begin_scope(gen)
+                gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
+                end_scope(gen)
+
+    end_scope(gen)
+
+    return
+
+
 # NOTE: Cases depending on DomainDimension AND ObjectDimension, but only type_a! If type_b also has deviating objectDim, overloading is required
 def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, type_b: str, template_a: str, template_b: str):
     found_dom_D = False
-    found_obj_D = False
-    func_counter = 0 # counting number of cases written to file
-    it = 0 # counting the number of iterations done
+    found_obj_D = [False]
+    curr_dom_D = funcs[0]['params'][0]["domain_dim"]
+    dom_d_it = 0 # keeping track of current nbr of different domain dims seen
+    func_counter = 0 # tracking number of functions written to the file
 
     for f in funcs:
         # dims of the types for given function f
@@ -295,50 +463,76 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
 
         dom_D = dom_D_a # dom is the same -> just take one for convenience
 
-        # objectDim and domainDim not D
+        if(dom_D != curr_dom_D): # new domain dim
+            curr_dom_D = dom_D
+            found_obj_D.append(False)
+            dom_d_it += 1
+
+        # case 1: objectDim arbitrary and domainDim not arbitrary
         if dom_D != 'D':
             object_dim_appendix = ""
-            if object_D != 'D':
+            if object_D != 'D' and not found_obj_D[dom_d_it]:
                 object_dim_appendix = "&& O == {}".format(object_D)
+            else:
+                # found object dim 'O' for current domain dim -> no object dim. distinctions for curr domain dim from here
+                found_obj_D[dom_d_it] = True
 
             gen.append_line("if constexpr(D == {dom_dim} {object_dim})".format(dom_dim = dom_D, object_dim = object_dim_appendix))
             begin_scope(gen)
             gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
             end_scope(gen)
-            it += 1
+
             func_counter += 1
             continue
 
-        # domainDim is D and objectDim not D
-        if dom_D == 'D' and object_D != 'D':
+        # Case 2: domainDim arbitrary and objectDim not arbitrary
+        if dom_D == 'D' and object_D != 'O':
             found_dom_D = True
             gen.append_line("if constexpr(O == {object_dim})".format(object_dim = object_D))
             begin_scope(gen)
             gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
             end_scope(gen)
-            it += 1
+
             func_counter += 1
             continue
 
-        # objectDim and domainDim are D
+        # Case 3 objectDim and domainDim are arbitrary but equal
         if dom_D == 'D' and object_D == 'D':
             if not found_dom_D or not found_obj_D:
                 found_dom_D = True
-                found_obj_D = True
+                found_obj_D[dom_d_it] = True
 
                 if func_counter > 0: # found some funcs before -> else appropriate
-                    gen.append_line("else")
+                    gen.append_line("if constexpr(D == O)")
                     begin_scope(gen)
                     gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
                     end_scope(gen)
 
-                else: # no funcs found before
-                    gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
-                    
-                it += 1
-                break
+                func_counter += 1                    
+                continue
+        
+        # case 4: domain dim and object dim arbitrary
+        if dom_D == 'D' and object_D == 'O':
+            if found_dom_d and all(found_obj_D):
+                continue # case already handled
 
-    if not found_dom_D or not found_obj_D :
+            found_dom_d = True
+            for e in found_obj_D:
+                e = True
+
+            if(func_counter > 0): # else appropriate
+                gen.append_line("else")
+                begin_scope(gen)
+                gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
+                end_scope(gen)
+
+            else:
+                gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
+
+            func_counter += 1
+            break #all cases handled
+
+    if not (found_dom_D and all(found_obj_D)):
         if func_counter > 0:
             gen.append_line("else")
             begin_scope(gen)

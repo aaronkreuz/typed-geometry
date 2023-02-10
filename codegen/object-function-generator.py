@@ -118,93 +118,52 @@ def generate_function_unary(gen : ofp.code_generator, function_name : str, type:
     # 1st iterate through file and write functions into list incl. name and dimension
     # 2nd sort list according to dimension
     # 3rd write function to object file according to schema (see notes)
+    type_objectD = False
     
+    # Requiring type template information
+    templ_type = ofp.get_type_template(type, type_path)
+    if('ObjectD' in templ_type):
+        type_objectD = True
+
+    templ_type_printable = ofp.adapt_template_format(templ_type)
+
     found_func = False
 
-    # 1st iteration - pre pass
-    functions_parsed = [] # empty list
-    for i in deserial_file:
-        if(i['function_declaration']['name'].startswith(function_name)):
-            func_decl_params = i['function_declaration']['parameters']
+    functions_parsed = []
 
-            # check if function params contain type (requirement)
-            if not any(d['type_name'].startswith(type) for d in func_decl_params):
-                continue
-            func_name_parsed = i['function_declaration']['name']
-            dim = ofp.get_dim_from_name(func_name_parsed)
+    # 1st: iterate over function info and store matching functions in 'functions_parsed'
+    for f in deserial_file:
+        func = ofp.parse_function_info_unary(f, function_name, type)
+        if(len(func) > 0):
+            functions_parsed.append(func)
+ 
+    # Extract the return type
+    return_type = ofp.get_return_type(functions_parsed)
 
-            # build object for specific function implementation
-            function = {} #empty object
-            function["function_name"] = func_name_parsed
-            function["dim"] = dim
-            function["return_type"] = i['function_declaration']['return_type']
-            functions_parsed.append(function)
-
-    # Extract the return type -> in-between pass
-    return_type_list = []
-    if(len(functions_parsed) > 0):
-        return_type_list = np.array(list(functions_parsed[0]['return_type']))
-        # check if return type contains dimensional information:
-        if '<' in return_type_list:
-            inds = np.where(return_type_list == '<')
-            for i in inds[0]:
-                #ind = return_type_list.index('<')
-                if return_type_list[i+1] == 'D' or return_type_list[i+1] == '1' or return_type_list[i+1] == '2' or return_type_list[i+1] == '3' or return_type_list[i+1] == '4':
-                    return_type_list[i+1] = 'D'
-    else:
-        return_type_list = np.array(['a','u','t','o'])
-
-    return_type = return_type_list.tolist()
-    return_type = "".join(return_type)
-    # Header of object functions file
-    gen.append_line("static constexpr {ret_type} {function_name}({type}<D, ScalarT> const& obj)".format(ret_type = return_type, function_name=function_name, type=type))
-    gen.append_line("{")
-    gen.indent()
-
+    # Header of functions in object function file
+    gen.append_line("static constexpr {ret_type} {function_name}({type}{templ} const& obj)".format(ret_type = return_type, function_name=function_name, type=type, templ = templ_type_printable))
+    ofp.begin_scope(gen)
     
-    # 2nd pass -> sort according to dimensions (ascending order) or early-out if no function for 'type' found
+    # early-out if no function for 'type' found
     if len(functions_parsed) == 0:
-        gen.append_line('static_assert(cc::always_false<{type}<D, ScalarT>>, "TODO: not yet implemented");'.format(type=type)) # TODO: Add "Should not be implemented"
-        gen.unindent()
-        gen.append_line("}")
+        gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = templ_type_printable)) # TODO: Add "Should not be implemented"
+        ofp.end_scope(gen)
         return
 
-    functions_parsed.sort(key = lambda f : f['dim']) # sort according to dim in ascending order
+    #2nd: sort according to dimensions (ascending order) based on domain dim (and evtl. object dim)
+    if not type_objectD:
+        functions_parsed.sort(key = lambda f : f['domain_dim']) # sort according to dim in ascending order
 
-    # 3rd pass -> write to code generator
+    else:
+        functions_parsed.sort(key = lambda f : tuple((f['domain_dim'], f['object_dim'])))
 
-    found_dim_d = False
-    for f in functions_parsed:
-        if f['dim'] != 'D':
-            gen.append_line("if constexpr(D == {dimension})".format(dimension = f['dim']))
-            gen.append_line("{")
-            gen.indent()
-            gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
-            gen.unindent()
-            gen.append_line("}")
-        else:
-            if not found_dim_d: # dimension D
-                found_dim_d = True
-                if len(functions_parsed) > 1:
-                    gen.append_line("else{")
-                    gen.indent()
-                    gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
-                    gen.unindent()
-                    gen.append_line("}")
-                else:
-                    gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
-        
-    if not found_dim_d:
-        if len(functions_parsed) >= 1:
-            gen.append_line("else{")
-            gen.indent()
-            gen.append_line('static_assert(cc::always_false<{type}<D, ScalarT>>, "TODO: not yet implemented");'.format(type=type))
-            gen.unindent()
-            gen.append_line("}")
-        # else:
-                #should not happen
-    gen.unindent()
-    gen.append_line("}")
+    # 3rd pass -> write to code generator based on type object-domain dependency
+    if(type_objectD):
+        ofp.write_unary_domain_object_d(gen, functions_parsed, type, templ_type_printable)
+    
+    else:
+        ofp.write_unary_domain_d(gen, functions_parsed, type, templ_type_printable)
+
     
 
 # NOTE: Generating object function for binary symmetric functions
@@ -227,7 +186,6 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
     template_a_printable = ofp.adapt_template_format(template_a)
     template_b_printable = ofp.adapt_template_format(template_b)
 
-    # 1st iteration - pre pass - revised
     functions_parsed = []
 
     # iteration over functions in file. Store if name equal to function name and types are matching
@@ -237,7 +195,7 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
             if len(function) != 0:
                 functions_parsed.append(function)
 
-    # Extract the return type -> in-between pass
+    # Extract the return type
     return_type = ofp.get_return_type(functions_parsed)
 
     # 2nd pass -> sort according to dimensions (ascending order) or early-out if no function for 'type' found
