@@ -68,6 +68,13 @@ def get_dim_from_template(templ_args: str):
     if(len(arg_list) >= 3 and not arg_list[2].strip().startswith('TraitsT')): # could be 2in3 case
         dim1 = arg_list[0].strip()
         dim2 = arg_list[2].strip()
+
+        if dim1 == "ObjectD":
+            dim1 = "O"
+
+        if dim2 == "DomainD":
+            dim2 = "D"
+
         if dim1 != dim2:
             return dim1 + "in" + dim2
 

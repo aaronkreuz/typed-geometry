@@ -29,9 +29,11 @@ def end_scope(gen: code_generator):
     gen.unindent()
     gen.append_line("}")
 
+
 def begin_scope(gen: code_generator):
     gen.append_line("{")
     gen.indent()
+
 
 def index_of_closing(text: str, start: int) -> int:
     opening = text[start]
@@ -64,6 +66,7 @@ def get_dim_from_name(func_name: str) -> str:
     else:
         return "D"
 
+
 def get_object_dim_from_name(s :str):
     try:
         start_template = s.index("<")
@@ -82,13 +85,13 @@ def get_object_dim_from_name(s :str):
     except ValueError as ve:
         return ""
 
-# returning string containing the template information for 'type'
-def get_type_template(type: str, type_path: str):
-    if (type+'.hh') in os.listdir(type_path):
-        in_file = type_path + type +'.hh'
 
+# returning string containing the template information for 'type' from type_file
+def get_type_template(type, type_path: str):
+    if (type[1]+'.hh') in os.listdir(type_path):
+        in_file = type_path + type[1] +'.hh'
     else:
-        in_file = type_path + "objects/" + type + '.hh'
+        in_file = type_path + "objects/" + type[1] + '.hh'
 
     text = open(in_file, "r").read()
 
@@ -99,6 +102,17 @@ def get_type_template(type: str, type_path: str):
         line_temp = lines[line_index]
 
         if line_temp.startswith('template'):
+            line_next = lines[line_index+1]
+
+            if type[0] in line_next:
+                start_ind = line_next.index(type[0])
+                if not (start_ind + len(type[0]) > (len(line_next) - 1)):
+                    if not (line_next[start_ind + len(type[0])] != " " or line_next[start_ind + len(type[0])] != ";"):
+                        # wrong type declaration -> continue searching
+                        line_index += 1
+                        continue    
+                    
+
             # line containing template info about the type
             start_template = line_temp.index('<')
             end_template = index_of_closing(line_temp, start_template)
@@ -107,10 +121,11 @@ def get_type_template(type: str, type_path: str):
 
         line_index += 1
     
+    # default case -> might not be matching
     return "<int D, class ScalarT>"
 
 
-# NOTE: just beautifying and making the template names uniform
+# NOTE: just beautifying and making the template names uniform to print into object function file
 def adapt_template_format(s : str):
     # cut of traits
     if("class TraitsT" in s):
@@ -260,6 +275,7 @@ def get_return_type(functions_parsed) -> str:
 
     return return_type
 
+
 # NOTE: return the index of the given list where the objec dim of the second parameter type is matching 'dim'
 def contains_object_dim(separated_funcs, dim: int):
     count = 0
@@ -268,6 +284,7 @@ def contains_object_dim(separated_funcs, dim: int):
             return count
         count += 1
     return -1
+
 
 # NOTE: separate the given function into sub-lists based on the object-domain of the 2nd type (binary symmetric case)
 def separate_funcs(funcs):
@@ -366,12 +383,11 @@ def write_unary_domain_object_d(gen: code_generator, funcs, type: str, template:
 
         # case 4: domain dim and object dim arbitrary
         if dom_d == 'D' and obj_d == 'O':
-            if found_dom_d and all(found_obj_d):
-                continue # case already handled
+            # if found_dom_d and all(found_obj_d):
+            #     continue # case already handled
 
             found_dom_d = True
-            for e in found_obj_d:
-                e = True
+            found_obj_d = [True for elem in found_obj_d]
 
             if(func_counter > 0): # else appropriate
                 gen.append_line("else")
@@ -395,7 +411,6 @@ def write_unary_domain_object_d(gen: code_generator, funcs, type: str, template:
             gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
             end_scope(gen)
 
-    end_scope(gen)
     return 
 
 
@@ -417,7 +432,7 @@ def write_unary_domain_d(gen: code_generator, funcs, type: str, template: str):
             func_counter += 1
             continue
         
-        # case 2: domain dim is not abitrary
+        # case 2: domain dim is abitrary
         if dom_d == 'D' and not found_dom_d:
             found_dom_d = True
             if func_counter > 0:
@@ -430,26 +445,24 @@ def write_unary_domain_d(gen: code_generator, funcs, type: str, template: str):
             func_counter += 1
             break
 
-        if not found_dom_d:
-            # not all domain_dim cases are handled by the given functions
-            if func_counter == 0:
-                gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type = type, templ = template))
-            else:
-                gen.append_line("else")
-                begin_scope(gen)
-                gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
-                end_scope(gen)
-
-    end_scope(gen)
+    if not found_dom_d:
+        # not all domain_dim cases are handled by the given functions
+        if func_counter == 0:
+            gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type = type, templ = template))
+        else:
+            gen.append_line("else")
+            begin_scope(gen)
+            gen.append_line('static_assert(cc::always_false<{type}{templ}>, "TODO: not yet implemented");'.format(type=type, templ = template))
+            end_scope(gen)
 
     return
 
 
 # NOTE: Cases depending on DomainDimension AND ObjectDimension, but only type_a! If type_b also has deviating objectDim, overloading is required
 def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, type_b: str, template_a: str, template_b: str):
-    found_dom_D = False
-    found_obj_D = [False]
-    curr_dom_D = funcs[0]['params'][0]["domain_dim"]
+    found_dom_d = False
+    found_obj_d = [False]
+    curr_dom_d = funcs[0]['params'][0]["domain_dim"]
     dom_d_it = 0 # keeping track of current nbr of different domain dims seen
     func_counter = 0 # tracking number of functions written to the file
 
@@ -463,20 +476,20 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
 
         dom_D = dom_D_a # dom is the same -> just take one for convenience
 
-        if(dom_D != curr_dom_D): # new domain dim
-            curr_dom_D = dom_D
-            found_obj_D.append(False)
+        if(dom_D != curr_dom_d): # new domain dim
+            curr_dom_d = dom_D
+            found_obj_d.append(False)
             dom_d_it += 1
 
-        # case 1: objectDim arbitrary and domainDim not arbitrary
+        # case 1: objectDim arbitrary and domainDim not D
         if dom_D != 'D':
             object_dim_appendix = ""
-            if object_D != 'D' and not found_obj_D[dom_d_it]:
+            if object_D != 'O' and not found_obj_d[dom_d_it]:
                 object_dim_appendix = "&& O == {}".format(object_D)
             else:
                 # found object dim 'O' for current domain dim -> no object dim. distinctions for curr domain dim from here
-                found_obj_D[dom_d_it] = True
-
+                found_obj_d[dom_d_it] = True
+                
             gen.append_line("if constexpr(D == {dom_dim} {object_dim})".format(dom_dim = dom_D, object_dim = object_dim_appendix))
             begin_scope(gen)
             gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
@@ -485,9 +498,9 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
             func_counter += 1
             continue
 
-        # Case 2: domainDim arbitrary and objectDim not arbitrary
+        # Case 2: domainDim D and objectDim not O
         if dom_D == 'D' and object_D != 'O':
-            found_dom_D = True
+            found_dom_d = True
             gen.append_line("if constexpr(O == {object_dim})".format(object_dim = object_D))
             begin_scope(gen)
             gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
@@ -496,29 +509,26 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
             func_counter += 1
             continue
 
-        # Case 3 objectDim and domainDim are arbitrary but equal
+        # Case 3 objectDim D and domainDim D (objectDim = domainDim)
         if dom_D == 'D' and object_D == 'D':
-            if not found_dom_D or not found_obj_D:
-                found_dom_D = True
-                found_obj_D[dom_d_it] = True
+            if not found_dom_d or not found_obj_d:
+                found_dom_d = True
+                found_obj_d[dom_d_it] = True
 
-                if func_counter > 0: # found some funcs before -> else appropriate
-                    gen.append_line("if constexpr(D == O)")
-                    begin_scope(gen)
-                    gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
-                    end_scope(gen)
+                gen.append_line("if constexpr(D == O)")
+                begin_scope(gen)
+                gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
+                end_scope(gen)
 
                 func_counter += 1                    
                 continue
         
-        # case 4: domain dim and object dim arbitrary
+        # case 4: domainDim D and objectDim O
         if dom_D == 'D' and object_D == 'O':
-            if found_dom_d and all(found_obj_D):
-                continue # case already handled
-
+            # if found_dom_d and all(found_obj_D): # all cases already handled
+            #     continue 
             found_dom_d = True
-            for e in found_obj_D:
-                e = True
+            found_obj_d = [True for elem in found_obj_d]
 
             if(func_counter > 0): # else appropriate
                 gen.append_line("else")
@@ -530,9 +540,9 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
                 gen.append_line("return {function_name}(obj);".format(function_name = f['function_name']))
 
             func_counter += 1
-            break #all cases handled
+            break # all cases handled
 
-    if not (found_dom_D and all(found_obj_D)):
+    if not (found_dom_d and all(found_obj_d)):
         if func_counter > 0:
             gen.append_line("else")
             begin_scope(gen)
@@ -540,9 +550,8 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
             end_scope(gen)
         else:
             gen.append_line('static_assert(cc::always_false<{type_a}{templ_a},{type_b}{templ_b}>, "TODO: not yet implemented");'.format(type_a=type_a,templ_a = template_a, type_b=type_b, templ_b = template_b))
-
-    end_scope(gen) # end of function
-
+    
+    return
 
 # NOTE: Cases only depending on DomainDimension, simpler case. Input funcs sorted in ascending order regarding domain.
 def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b: str, template_a: str, template_b: str):
@@ -568,7 +577,7 @@ def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b:
                     gen.append_line("else")
                     begin_scope(gen)
                     gen.append_line("return {function_name}(obj_a, obj_b);".format(function_name = f['function_name']))
-                    end_scope
+                    end_scope(gen)
                     # TODO: HERE TO RETURN? -> Reached else-case
                     break
 
@@ -586,5 +595,4 @@ def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b:
             gen.append_line('static_assert(cc::always_false<{type_a}{templ_a},{type_b}{templ_b}>, "TODO: not yet implemented");'.format(type_a=type_a,templ_a = template_a, type_b=type_b, templ_b = template_b))
             end_scope(gen)
 
-    end_scope(gen) # end of function
     return

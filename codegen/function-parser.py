@@ -102,14 +102,16 @@ def get_domain_dim(s :str):
         l = s.split(',')
         l = [e.strip() for e in l]
 
-        filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
+        filtered_list = filter(lambda a: (a == "DomainD" or a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
         l = list(filtered_list)
 
         if len(l) == 1:
-            return l[0]
+            ret = "D" if l[0] == "DomainD" else l[0]
+            return ret
 
         if len(l) == 2:
-            return l[1]
+            ret = "D" if l[1] == "ObjectD" else l[1]
+            return ret
 
     except ValueError as ve:
         return ""
@@ -124,18 +126,18 @@ def get_object_dim(s :str):
         l = s.split(',')
         l = [e.strip() for e in l]
 
-        filtered_list = filter(lambda a: (a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
+        filtered_list = filter(lambda a: (a == "ObjectD" or a == "D" or a == "O" or a == "1" or a == "2" or a == "3" or a == "4"), l)
 
         l = list(filtered_list)
         if(len(l) >= 1):
-            return l[0] # in case of no deviation of objectDim and domainDim this will just return the domainDim which is intended
+            ret = "O" if l[0] == "ObjectD" else l[0]
+            return ret # in case of no deviation of objectDim and domainDim this will just return the domainDim which is intended
         else:
             return ""
     except ValueError as ve:
         return ""
     
 def parse_function_declaration(s: str):
-    # "[[nodiscard]] constexpr aabb<D, ScalarT> aabb_of(pos<D, ScalarT> const& v)",
     modifyers = []
     if s.startswith("[[nodiscard]]"):
         modifyers.append("[[nodiscard]]")
