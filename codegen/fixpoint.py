@@ -70,6 +70,12 @@ def get_impl_info(lines, start_ind: int, end_ind: int, object_dim_dep: bool, bin
     objectDimB = ""
     impl = ""
 
+    if line.startswith("return"):
+        if(object_dim_dep):
+            objectDimA = 'O'
+
+        domainDim = 'D'
+
     if line.startswith("if"):
         # get domain and possibly object dimensional information
         if "O == D" in line:
@@ -114,6 +120,7 @@ def get_impl_info(lines, start_ind: int, end_ind: int, object_dim_dep: bool, bin
         
         start_ind += 1
 
+    # storing informtion in object
     impl_info["objectDimA"] = objectDimA
     impl_info["objectDimB"] = objectDimB
     impl_info["domainDim"] = domainDim
@@ -122,74 +129,68 @@ def get_impl_info(lines, start_ind: int, end_ind: int, object_dim_dep: bool, bin
     return impl_info
 
 
-# adapted parser -> parse files and search for non-implemented function. If found any -> check in ruleset if can be implemented via other function
+# NOTE: adapted parser: parse files and search for non-implemented function. If found any -> check in ruleset if can be implemented via other function
+def fixpoint_step(text: str):
+    # TODO
+    lines = text.split("\n")
+    return
+
+
+# NOTE: intermediate parser: parse given file (text) and store some relevant information for the contained functions and their implementations in .json format
 def parse_function_file(text: str, output_file: str):
     # separate into lines
     lines = text.split("\n")
 
     typeA_objectD = False
 
-    # output_file = file_name
     type_info = lines[4]
     if "O" in type_info:
         typeA_objectD = True
 
-    function_decls = []
+    function_decls = [] # storing all function information (list of json objects)
     line_index = 0
 
     while line_index < (len(lines) - 2):
         line = lines[line_index]
         line = line.strip()
 
-        if(line.startswith("static constexpr")):
-            # found new function -> context info
-            curr_function_decl = {}
+        if(line.startswith("static constexpr")): # found new function declaration
+            curr_function_decl = {} # json object
             curr_function_decl["func_name"] = get_func_name(line)
             curr_function_decl["line_nbr"] = line_index
             types = get_types(line)
             curr_function_decl["types"] = types
-            implementations = [] # store impl infos
+            implementations = [] # store implementation infos
 
             binary = False
             if len(types) > 1: # binary function
                 binary = True
                 
-
             line_temp_ind = line_index + 1
 
-            # TODO: searching till end of the function and store domain and impl infos for function implementations
+            # while not found the end of the function declaration
             while not (lines[line_temp_ind].strip().startswith("}") and (lines[line_temp_ind + 2].strip().startswith("static constexpr") or lines[line_temp_ind + 2].strip().startswith("};"))): # found end of function
                 line_temp = lines[line_temp_ind].strip()
                 
+                # found an implementation or static assert case -> begin of scope
                 if line_temp.startswith("if") or line_temp.startswith("else"):
                     start_impl = line_temp_ind
-                    end_impl = line_temp_ind
 
-                    while not lines[end_impl].strip().startswith("}"):
-                        end_impl += 1
+                    # looking for end of scope
+                    while not lines[line_temp_ind].strip().startswith("}"):
                         line_temp_ind += 1
 
-                    impl_info = get_impl_info(lines, start_impl, end_impl, typeA_objectD, binary)
+                    impl_info = get_impl_info(lines, start_impl, line_temp_ind, typeA_objectD, binary)
 
                     # only store if not the static non-impl message
                     if len(impl_info) > 0:
                         implementations.append(impl_info)
                     continue
-
+                
                 else:
+                    # found direct return statement in declaration scope -> only one implementation
                     if line_temp.startswith("return"):
-                        impl_info = {}
-                        impl_info["objectDimA"] = ""
-                        if(typeA_objectD):
-                            impl_info["objectDimA"] = "O"
-                        impl_info["objectDimB"] = ""
-                        if(binary):
-                            start_args = line_temp.index('(')
-                            if(line_temp[start_args-3:start_args-2] == "in"): # object domain info
-                                    objectDimB = line_temp[start_args-4]
-                                    impl_info["objectDimB"] = objectDimB
-                        impl_info["domainDim"] = "D"
-                        impl_info["impl"] = line_temp + "\n"
+                        impl_info = get_impl_info(lines, line_temp_ind-2, line_temp_ind+1, typeA_objectD, binary)
                         implementations.append(impl_info)
                     
                 line_temp_ind += 1
@@ -222,11 +223,10 @@ def parse_function_file(text: str, output_file: str):
 if not os.path.exists(out_path):
     os.makedirs(out_path)
 
-# TODO outer_loop till convergence
+# TODO fixpoint-iteration till convergence
 changes = False
 
 for f in os.listdir("typed-geometry/object-functions/"):
     in_file = "typed-geometry/object-functions/" + f #+ '.hh'
     text = open(in_file, "r").read()
     parse_function_file(text, f[:-3])
-
