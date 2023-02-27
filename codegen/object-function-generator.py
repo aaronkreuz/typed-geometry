@@ -56,7 +56,6 @@ advanced_types = [
     # "inf_tube", # same as inf_cylinder_boundary
     ] 
 
-# todo: <type>2in3
 
 all_types = common_types + advanced_types
 
