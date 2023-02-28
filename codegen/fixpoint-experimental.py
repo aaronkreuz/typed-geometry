@@ -99,7 +99,7 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
     type_objectD = False
     
     # Requiring type template information
-    templ_type = ofp.get_type_template(type[1], type_path)
+    templ_type = ofp.get_type_template(type, type_path)
     if('ObjectD' in templ_type):
         type_objectD = True
 
@@ -115,29 +115,28 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
     found_domains = []
 
     for func in functions_parsed:
-        function_params = func['function_declaration']['parameters'][0]
-        domD = function_params['domain_dim']
-        objD = function_params['object_dim']
+        domD = func['domain_dim']
+        objD = func['object_dim']
         if type_objectD:
-            found_domains.append(tuple(objD, domD))
+            found_domains.append((objD, domD))
         else:
             found_domains.append(domD)
 
     # identify missing cases:
-    if tuple("O","D") in found_domains or "D" in found_domains: # does this work?
+    if ("O","D") in found_domains or "D" in found_domains: # does this work?
         return # all cases handled
     
     missing_cases = []
     
     if type_objectD:
         for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
-            if tuple(obj_i,"D") in found_domains:
+            if (obj_i,"D") in found_domains:
                 continue
             
             dom_i = obj_i
             while int(dom_i) <= (int(obj_i) + 1):
                 if not (obj_i, dom_i) in found_domains:
-                    missing_cases.append(tuple(obj_i, dom_i))
+                    missing_cases.append((obj_i, dom_i))
                 dom_i = str(int(dom_i) + 1)
 
     else:
@@ -166,11 +165,11 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     typeB_objectD = False
     
     # Requiring type template information
-    templ_type = ofp.get_type_template(type_a[1], type_path)
+    templ_type = ofp.get_type_template(type_a, type_path)
     if('ObjectD' in templ_type):
         typeA_objectD = True
 
-    templ_type = ofp.get_type_template(type_b[1], type_path)
+    templ_type = ofp.get_type_template(type_b, type_path)
     if('ObjectD' in templ_type):
         typeB_objectD = True
 
@@ -178,31 +177,32 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 
     # parsing file
     for f in deserial_funcs:
-        func = ofp.parse_function_info_binary_symmetric(f, func_name, type_a[0], type_b[0])
-        if len(func) > 0:
-            functions_parsed.append(func)
+        if(f['function_declaration']['name'].startswith(func_name)): # TODO: forbid functions with same prefix. startswith check is too weak.
+            func = ofp.parse_function_info_binary_symmetric(f, func_name, type_a[0], type_b[0])
+            if len(func) > 0:
+                functions_parsed.append(func)
     
     # check if an implementation is missing -> requires info if type is object-dim.-dependent
     found_domains = []
 
     # store domain combinations that are handled
     for func in functions_parsed:
-        function_paramsA = func['function_declaration']['parameters'][0]
-        function_paramsB = func['function_declaration']['parameters'][1]
+        function_paramsA = func['params'][0]
+        function_paramsB = func['params'][1]
         domD = function_paramsA['domain_dim'] # domain dimension equal for type A and B
         objD_A = function_paramsA['object_dim']
         objD_B = function_paramsB['object_dim']
 
         if typeA_objectD and typeB_objectD:
-            found_domains.append(tuple(objD_A, objD_B, domD))
+            found_domains.append((objD_A, objD_B, domD))
             continue
         
         if typeA_objectD and not typeB_objectD:
-            found_domains.append(tuple(objD_A, domD))
+            found_domains.append((objD_A, domD))
             continue
 
         if not typeA_objectD and typeB_objectD:
-            found_domains.append(tuple(objD_B, domD))
+            found_domains.append((objD_B, domD))
             continue
 
         else: # A not ODD and B not ODD (Object Domanin Dependent)
@@ -210,7 +210,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 
         
     # identify missing cases:
-    if tuple("O","O","D") in found_domains or tuple("O","D") in found_domains or "D" in found_domains: # does this work?
+    if ("O","O","D") in found_domains or ("O","D") in found_domains or "D" in found_domains: # does this work?
         return # all cases handled
     
     missing_cases = []
@@ -218,24 +218,24 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     if typeA_objectD and typeB_objectD:
         for objA_i in ["1","2","3"]:
             for objB_i in ["1","2","3"]:
-                if tuple(objA_i, objB_i, "D") in found_domains:
+                if (objA_i, objB_i, "D") in found_domains:
                     continue
 
                 dom_i = max(int(objA_i), int(objB_i))
                 while int(dom_i) <= 3:
-                    if not tuple(objA_i, objB_i, dom_i) in found_domains:
-                        missing_cases.append(tuple(objA_i, objB_i, dom_i))
+                    if not (objA_i, objB_i, dom_i) in found_domains:
+                        missing_cases.append((objA_i, objB_i, dom_i))
                     dom_i = str(int(dom_i)+1)
     
     if (typeA_objectD and not typeB_objectD) or (typeB_objectD and not typeA_objectD):
         for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
-            if tuple(obj_i,"D") in found_domains:
+            if (obj_i,"D") in found_domains:
                 continue
             
             dom_i = obj_i
             while int(dom_i) <= (int(obj_i) + 1): # TODO: Maybe instead of "(int(obj_i)+1)" just "3" as above
                 if not (obj_i, dom_i) in found_domains: #tuple identifier required?
-                    missing_cases.append(tuple(obj_i, dom_i))
+                    missing_cases.append((obj_i, dom_i))
                 dom_i = str(int(dom_i) + 1)
 
     if not typeA_objectD and not typeB_objectD:
@@ -259,13 +259,13 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 def fixpoint_iteration(type):
     # unary fixpoint-step -> TODO: Nothin happens here probably
     for func in unary_functions:
-        f = open('function_lists/' + func[1])
+        f = open('function_lists/' + func[1] + ".json")
         deserial_functions = json.load(f) # list format
         fixpoint_step_unary(func[0], func[1], deserial_functions, type)
 
     # binary symmetric fixpoint-step
     for func in binary_symmetric_functions:
-        f = open('function_lists/' + func[1])
+        f = open('function_lists/' + func[1] + ".json")
         deserial_functions = json.load(f)
         for other_type in common_types:
             fixpoint_step_binary_symmetric(func[0], func[1], deserial_functions, type, other_type)

@@ -97,10 +97,14 @@ binary_asymmetric_functions = [
 
 tg_src_root = "" # todo
 default_object_functions_path ="typed-geometry/object_functions.hh" # todo
-object_functions_dir = "typed-geometry/object-functions/"
+object_functions_dir_common = "typed-geometry/object-functions/"
+object_functions_dir_advanced = "typed-geometry/object-functions-advanced"
 
-if not os.path.exists(object_functions_dir):
-    os.makedirs(object_functions_dir)
+if not os.path.exists(object_functions_dir_common):
+    os.makedirs(object_functions_dir_common)
+
+if not os.path.exists(object_functions_dir_advanced):
+    os.makedirs(object_functions_dir_advanced)
 
 # Generate template default
 default_object_functions = \
@@ -277,35 +281,58 @@ def generate_function_binary_asymmetric(gen : ofp.code_generator, function_name 
 
 # Generate the object functions for a given type
 def generate_object_functions(type):
-    gen = ofp.code_generator()
-    gen.append_line("#pragma once")
-    gen.newline()
-    gen.append_line("#include <{}>".format(default_object_functions_path))
-    gen.newline()
-    # TODO: correct template!
-    type_template = ofp.get_type_template(type, type_path)
-    type_template = ofp.adapt_template_format(type_template)
-    type_template_values = ofp.template_format_values(type_template)
-    gen.append_line("template {templ}".format(templ = type_template))
-    gen.append_line("struct object_functions<{typeA}{templ}>".format(typeA = type[0], templ = type_template_values))
-    gen.append_line("{")
-    gen.indent()
+
+    common = False # storing info if type is a common type
+    if type in common_types:
+        common = True
+
+    gen_common = ofp.code_generator()
+    gen_advanced = ofp.code_generator()
+    gens = [gen_common]
+
+    if not common:
+        gens.append(gen_advanced)
+
+    for gen in gens:
+        gen.append_line("#pragma once")
+        gen.newline()
+        gen.append_line("#include <{}>".format(default_object_functions_path))
+        gen.newline()
+        type_template = ofp.get_type_template(type, type_path)
+        type_template = ofp.adapt_template_format(type_template)
+        type_template_values = ofp.template_format_values(type_template)
+        gen.append_line("template {templ}".format(templ = type_template))
+        gen.append_line("struct object_functions<{typeA}{templ}>".format(typeA = type[0], templ = type_template_values))
+        gen.append_line("{")
+        gen.indent()
 
     # generate function descriptions for all unary functions
     for function in unary_functions:
         # deserialize json files - hard coded for the moment
         f = open('function_lists/' + function[1] + '.json')
         deserial_functions = json.load(f) # list format
-        generate_function_unary(gen, function[0], type, deserial_functions)
-        gen.newline()
+        if common:
+            generate_function_unary(gen_common, function[0], type, deserial_functions)
+            gen_common.newline()
+        else:
+            generate_function_unary(gen_advanced, function[0], type, deserial_functions)
+            gen_advanced.newline()
 
     # generate function descriptions for all binary symmetric functions
     for function in binary_symmetric_functions:
-        for other_type in all_types:
-            f = open('function_lists/' + function[1] +'.json')
-            deserial_functions = json.load(f) # list format
-            generate_function_binary_symmetric(gen, function[0], type, other_type , deserial_functions)
-            gen.newline()        
+        f = open('function_lists/' + function[1] +'.json')
+        deserial_functions = json.load(f) # list format
+
+        if common:
+            for other_type in common_types:
+                generate_function_binary_symmetric(gen_common, function[0], type, other_type , deserial_functions)
+                gen_common.newline()
+        else:
+            for other_type in common_types:
+                generate_function_binary_symmetric(gen_advanced, function[0], type, other_type, deserial_functions)
+
+        for other_type in advanced_types:
+            generate_function_binary_symmetric(gen_advanced, function[0], type, other_type, deserial_functions)
 
     # generate function descriptions for all binary symmetric functions
     for function in binary_asymmetric_functions:
@@ -316,7 +343,7 @@ def generate_object_functions(type):
     gen.unindent()
     gen.append_line("};")
     
-    filepath = object_functions_dir + type[0] + ".hh"
+    filepath = object_functions_dir_common + type[0] + ".hh"
 
     with open(filepath, "w") as file:
         file.write(gen.string)
