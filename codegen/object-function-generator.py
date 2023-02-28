@@ -98,7 +98,7 @@ binary_asymmetric_functions = [
 tg_src_root = "" # todo
 default_object_functions_path ="typed-geometry/object_functions.hh" # todo
 object_functions_dir_common = "typed-geometry/object-functions/"
-object_functions_dir_advanced = "typed-geometry/object-functions-advanced"
+object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
 
 if not os.path.exists(object_functions_dir_common):
     os.makedirs(object_functions_dir_common)
@@ -286,13 +286,14 @@ def generate_object_functions(type):
     if type in common_types:
         common = True
 
-    gen_common = ofp.code_generator()
-    gen_advanced = ofp.code_generator()
-    gens = [gen_common]
+    gen_common = ofp.code_generator()   # code generator for functions with only common type parameter
+    gen_advanced = ofp.code_generator() # code generator for functions with at least one advanced type parameter
+    gens = []
 
-    if not common:
-        gens.append(gen_advanced)
-
+    if common:
+        gens.append(gen_common) # if type is non-common, no file for the common case has to be generated
+    gens.append(gen_advanced)
+    
     for gen in gens:
         gen.append_line("#pragma once")
         gen.newline()
@@ -336,17 +337,33 @@ def generate_object_functions(type):
 
     # generate function descriptions for all binary symmetric functions
     for function in binary_asymmetric_functions:
-        for other_type in all_types:
-            generate_function_binary_asymmetric(gen, function, type, other_type)
-            gen.newline()        
 
-    gen.unindent()
-    gen.append_line("};")
+        if common:
+            for other_type in common_types:
+                generate_function_binary_asymmetric(gen_common, function, type, other_type)
+                gen_common.newline()        
+        else:
+            for other_type in common_types:
+                generate_function_binary_asymmetric(gen_advanced, function, type, other_type)
+                gen_advanced.newline()
+
+        for other_type in advanced_types:
+            generate_function_binary_asymmetric(gen_advanced, function, type, other_type)
+            gen_advanced.newline()
+
+    for gen in gens:
+        gen.unindent()
+        gen.append_line("};")
     
-    filepath = object_functions_dir_common + type[0] + ".hh"
+    filepath_common = object_functions_dir_common + type[0] + ".hh"
+    filepath_advanced = object_functions_dir_advanced + type[0] + ".hh"
 
-    with open(filepath, "w") as file:
-        file.write(gen.string)
+    if common: # only generate common-case file if type is common
+        with open(filepath_common, "w") as file:
+            file.write(gen_common.string)
+
+    with open(filepath_advanced, "w") as file:
+        file.write(gen_advanced.string)
 
 
 ### MAIN APP ###
