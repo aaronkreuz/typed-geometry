@@ -158,6 +158,14 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
     return
 
 
+def get_type_minus_template(type: str):
+    if '<' in type:
+        end_idx = type.index('<')
+        type = type[:end_idx]
+    
+    return type
+
+
 def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_funcs, type_a, type_b):
     output_file_path = in_file_path + file_name
 
@@ -234,7 +242,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             
             dom_i = obj_i
             while int(dom_i) <= (int(obj_i) + 1): # TODO: Maybe instead of "(int(obj_i)+1)" just "3" as above
-                if not (obj_i, dom_i) in found_domains: #tuple identifier required?
+                if not (obj_i, dom_i) in found_domains:
                     missing_cases.append((obj_i, dom_i))
                 dom_i = str(int(dom_i) + 1)
 
@@ -243,18 +251,57 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             return # all cases handled
         for dom_i in ["2", "3"]:
             if not dom_i in found_domains:
-                missing_cases.append(dom_i)
+                missing_cases.append((dom_i))
 
-    # missing cases stored in "missing_cases"
+    # missing cases stored in "missing_cases" (domain info of missing case)
     if len(missing_cases) == 0:
         return # no missing cases found
     
+    #print(missing_cases)
+    
     # TODO: iterate over missing cases
     for mc in missing_cases:
-        # TODO: check for corresponding rule
+        l = []
+        
+        ### check for symmetry in deserial funcs ###
+        l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: (get_type_minus_template(func_decl_params[0]["type_name"]) == type_b[0]) and (get_type_minus_template(func_decl_params[1]["type_name"]) == type_a[0]) and (func["function_declaration"]["name"].startswith("func_name")), deserial_funcs))
+        if len(missing_cases[0]) == 1:
+            l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[0],deserial_funcs))
+            if len(l) > 0:
+                # TODO: append according function to deserial_funcs
+                continue
+
+        if len(missing_cases[0]) == 2:
+            if typeA_objectD:
+                l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[1] and func_decl_params[0]["object_dim"] == mc[0], deserial_funcs))
+            elif typeB_objectD:
+                l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[1] and func_decl_params[1]["object_dim"] == mc[0], deserial_funcs))
+            
+            if len(l) > 0:
+                # TODO: append according function to deserial_funcs
+                continue
+
+        if len(missing_cases[0]) == 3:
+            l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_din"] == mc[2] and func_decl_params[0]["object_dim"] == mc[0] and func_decl_params[1]["object_dim"] == mc[1], deserial_funcs))
+
+            if len(l) > 0:
+                # TODO: append according function to deserial_funcs
+                continue
+
+        print(l)
+
+        ### check for rules ###
+
+        # TODO: check for corresponding rule in ruleset
+
+        # NOTE: format of elements in missing cases may differ -> 3 cases to handle
+
+        # TODO: write deserial_funcs to file if changes appeared
+        
         return
 
     return
+
 
 def fixpoint_iteration(type):
     # unary fixpoint-step -> TODO: Nothin happens here probably
@@ -270,7 +317,6 @@ def fixpoint_iteration(type):
         for other_type in common_types:
             fixpoint_step_binary_symmetric(func[0], func[1], deserial_functions, type, other_type)
         
-
     return
 
 

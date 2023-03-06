@@ -208,6 +208,7 @@ def parse_function_info_unary(func, function_name: str, type: str):
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
     if(func['function_declaration']['name'].startswith(function_name)):
             func_decl_params = func['function_declaration']['parameters']
+            symmetric = False # true if function implemented via symmetric case
 
             if(len(func_decl_params) != 2): # ensure 2 parameters
                 return {}
@@ -223,10 +224,14 @@ def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, 
             if not (func_decl_params[0]['type_name'].startswith(type_a) and func_decl_params[1]['type_name'].startswith(type_b)):
                 return {}
 
+            # check if types are matching
             if not (type_name_a == type_a and type_name_b == type_b):
-                return {}
+                if (type_name_b == type_a and type_name_a == type_b):
+                    symmetric = True # sysmmetric case (swap implementation later)
+                else:
+                    return {}
 
-            if not (func_decl_params[0]['domain_dim'] == func_decl_params[1]['domain_dim']):
+            if not (func_decl_params[0]['domain_dim'] == func_decl_params[1]['domain_dim']): # should not appear
                 return {}
 
             func_name_parsed = func['function_declaration']['name']
@@ -252,6 +257,7 @@ def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, 
             # function["object_dim"] = object_dim
             # function["domain_dim"] = domain_dim
             function["return_type"] = func['function_declaration']['return_type']
+            function["symmetric"] = symmetric
             function["func_decl_params"] = func_decl_params # TODO: Maybe do not need to write out all param info
 
             return function
@@ -472,6 +478,7 @@ def write_bin_symmetric_TypeAObjectD(gen: code_generator, funcs, type_a: str, ty
         dom_D_a = f['params'][0]["domain_dim"]
         object_D = f['params'][0]["object_dim"]
         dom_D_b = f['params'][1]["domain_dim"]
+        symmetric_impl = f['symmetric']
 
         assert(dom_D_a == dom_D_b) # domain dims have to be the same
 

@@ -1,0 +1,35 @@
+[
+    {
+        "implementer" : ["intersection"],
+        "implementee" : "intersects",
+        "type_A" : "",
+        "type_B" : "",
+        "implementation" : "return intersection(AAA, BBB).has_value();",
+        "file" : "intersection.json"
+    },
+    {
+        "implementer" : ["closest_intersection_parameter"],
+        "implementee" : "intersects",
+        "type_A" : "",
+        "type_B" : "",
+        "implementation" : "return closest_intersection_parameter(a, b).has_value();",
+        "file" : "intersection.json"
+    },
+    {
+        "implementer" : [""],
+        "implementee" : "",
+        "type_A" : "aabb",
+        "type_B" : "",
+        "implementation" : "",
+        "file" : ""
+    },
+    {
+        "implementer" : [""],
+        "implementee" : "",
+        "type_A" : "",
+        "type_B" : "",
+        "implementation" : "",
+        "file" : ""
+    }
+
+]
