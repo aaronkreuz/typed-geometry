@@ -199,9 +199,14 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
     functions_parsed = [] # storing function info for functions matching function_name and type names
 
     # iteration over functions in file. Store if name equal to function name and types are matching
-    for i in deserial_file:
-        if(i['function_declaration']['name'].startswith(function_name)): # TODO: forbid functions with same prefix. startswith check is too weak.
-            function = ofp.parse_function_info_binary_symmetric(i, function_name, type_a[0], type_b[0])
+    for f in deserial_file:
+        f_name = f['function_declaration']['name']
+        if not f_name.startswith(function_name):
+            continue
+
+        f_name_prefix = ofp.get_func_prefix_binary(f_name)
+        if f_name_prefix == function_name:
+            function = ofp.parse_function_info_binary_symmetric(f, function_name, type_a[0], type_b[0])
             if len(function) != 0:
                 functions_parsed.append(function)
 

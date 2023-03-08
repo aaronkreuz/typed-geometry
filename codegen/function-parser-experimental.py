@@ -2,24 +2,66 @@ import json
 import os
 import processing as ofp
 
-# Dump function declarations of function files (renamed files) in json objects and store in '"function".json'
+function_files = [
+    "area.hh",
+    "centroid.hh",
+    "vertices.hh",
+    "edges.hh",
+    "boundary.hh",
+    "closest_points.hh",
+    "contains.hh",
+    "distance.hh",
+    "intersection.hh",
+    "project.hh",
+    "any_point.hh",
+    "aabb.hh",
+    "triangulate.hh",
+    "triangulation.hh",
+    "rasterize.hh",
+    "volume.hh",
+    "faces.hh",
+]
 
-#in_file = "../src/typed-geometry/functions/objects/aabb.hh"
-in_path = "renamed_files/"
-out_path = "function_lists/"
+# only these functions will be renamed
+functions = [
+    "edges",
+    "faces",
+    "vertices",
+    "volume_of",
+    "area_of",
+    "rasterize",
+    "triangulate",
+    "triangulation_of",
+    "centroid_of",
+    "aabb_of",
+    "any_point",
+    "edges_of",
+    "faces_of",
+    "vertices_of",
+    "signed_distance",
+    "boundary_of",
 
-# files = [
-#     "area",
-#     "closest_points",
-#     "contains",
-#     "distance",
-#     "intersection",
-#     "project",
-#     "any_point",
-#     "aabb",
-#     "triangulate",
-#     "triangulation"
-# ]
+    #### BINARY ####
+    "intersection",  # representation problem
+    "intersects",
+    "closest_points",
+    "distance",
+    "distance_sqr",
+    "intersection_parameter",
+    "intersection_parameters",
+    "contains",  # potentially impl difficulty
+    "project"
+]
+
+in_path = "../src/typed-geometry/functions/objects/"
+out_path_renamed = "renamed_files_test/"
+out_path_dump = "function_lists_test/"
+
+if not os.path.exists(out_path_renamed):
+    os.makedirs(out_path_renamed)
+
+if not os.path.exists(out_path_dump):
+    os.makedirs(out_path_dump)
 
 def read_type(s: str):
     if "<" in s:
@@ -101,6 +143,7 @@ def get_domain_dim(s :str):
     
     return ""
 
+
 def get_object_dim(s :str):
     try:
         start_template = s.index("<")
@@ -119,7 +162,8 @@ def get_object_dim(s :str):
             return ""
     except ValueError as ve:
         return ""
-    
+
+
 def parse_function_declaration(s: str):
     modifyers = []
     if s.startswith("[[nodiscard]]"):
@@ -227,56 +271,93 @@ def parse_function_declaration(s: str):
 
     parsed_function = {}
     parsed_function["modyfiers"] = modifyers
-    parsed_function["name"] = function_name
+    parsed_function["name_prefix"] = function_name
     parsed_function["parameters"] = function_parameters
     parsed_function["return_type"] = return_type
 
     return parsed_function
 
-def collect_functions(text: str, output_file: str):
+def get_new_func_name(function_declaration):
+    function_name = function_declaration["name_prefix"]
+    params = function_declaration["parameters"]
+
+    # only change functions listed in "functions"
+    if(not function_name in functions):
+        return function_name
+
+    new_funcname = function_name
+
+    for arg in params:
+        type_name = read_type(arg["type_name"])
+        object_dim = arg["object_dim"]
+        domain_dim = arg["domain_dim"]
+        if not (object_dim == domain_dim) and not (object_dim == 'D'):
+            new_funcname += "_" + type_name + object_dim + "in" + domain_dim
+        else:
+            if not domain_dim == 'D':
+                new_funcname += "_" + type_name + domain_dim
+            else:
+                new_funcname += "_" + type_name
+    
+    return new_funcname
+
+# replace old function name by new name in a given function declaration line
+def get_new_function_name_line(line: str, new_func_name: str, old_func_name: str):
+    start_func_name = line.find(old_func_name)
+
+    first_part = line[:start_func_name]
+    last_part = line[start_func_name + len(old_func_name):]
+
+    return first_part + new_func_name + last_part
+
+
+# rename functions and store in json objects at the same time
+def parse_functions(text: str, output_file: str):
     lines = text.split('\n')
 
     functions = []
+    new_lines = []
 
     line_index = 0
     while line_index < len(lines):
-        line = lines[line_index]
+        line = lines[line_index] + '\n'
 
         line = line.strip()
 
-        if line == "":
+        if line == "\n":
+            new_lines.append(line)
             line_index += 1
             continue
 
         if line.startswith("[[nodiscard]] constexpr"): # function found
             template_declaration = lines[line_index-1]
+            temp_line_index = line_index
 
             # check if templated function
             try:
                 x = template_declaration.index('<')
             except ValueError as ve:
                 line_index += 1
+                new_lines.append(line)
                 continue
 
             function_declaration = line
-            print(str(line_index) + " " + function_declaration)
-
             # function declaration over multiple lines
-            while lines[line_index+1].strip() != "{":
-                function_declaration += lines[line_index+1]
+            while lines[temp_line_index+1].strip() != "{":
+                function_declaration += lines[temp_line_index+1]
                 function_declaration = function_declaration.strip()
-                line_index += 1
+                temp_line_index += 1
 
             # collect the function body
-            body_start = line_index + 2
-            body_end = line_index + 2
+            body_start = temp_line_index + 2
+            body_end = temp_line_index + 2
             while lines[body_end].strip() != "}":
                 body_end += 1
 
             body = ""
             for i in range(body_start, body_end):
                 body += lines[i] + "\n"
-            line_index = body_end
+            temp_line_index = body_end
 
             # build up JSON object for each function consisting of template parameters, function decl. and body
             function = {}
@@ -286,19 +367,35 @@ def collect_functions(text: str, output_file: str):
                 function_declaration)
             function["body"] = body.strip()
 
+            # rename_function
+            new_func_name = get_new_func_name(function["function_declaration"])
+
+            function["function_declaration"]["name"] = new_func_name
             functions.append(function)
+
+            new_line = get_new_function_name_line(line, new_func_name,  function["function_declaration"]["name_prefix"])
+            new_lines.append(new_line)
+
+            # catch up till end of the current parsed function
+            while(line_index < temp_line_index):
+                line_index += 1
+                line = lines[line_index] + '\n'
+                new_lines.append(line)
 
         line_index += 1
 
-    # write to file
-    with open(out_path + output_file + '.json', 'w') as f:
+    # write to file json dumps
+    with open(out_path_dump + output_file + '.json', 'w') as f:
         json_object = json.dumps(functions, indent = 4)
         f.write(json_object)
 
-### MAIN APP ###
-#for file in files:
-for file in os.listdir(in_path):
-    in_file = in_path + file #+ '.hh'
-    text = open(in_file, "r").read()
-    collect_functions(text, file[:-3])
+    # write to file 
+    with open(out_path_renamed + output_file + '.hh', 'w') as f:
+        f.writelines(new_lines)
 
+
+### MAIN APP ###
+for file in function_files:
+    in_file = in_path + file
+    text = open(in_file, "r").read()
+    parse_functions(text, file[:-3])

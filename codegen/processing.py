@@ -35,6 +35,30 @@ def begin_scope(gen: code_generator):
     gen.append_line("{")
     gen.indent()
 
+def get_func_prefix_unary(func_name: str):
+    func_name_rev = func_name[::-1]
+
+    if "_" in func_name_rev:
+        func_name_rev = func_name_rev[func_name_rev.index("_"):]
+        func_name = func_name_rev[::-1]
+        func_name = func_name[:-1]
+
+    return func_name
+
+def get_func_prefix_binary(func_name: str):
+    func_name_rev = func_name[::-1]
+
+    if "_" in func_name_rev:
+        func_name_rev = func_name_rev[func_name_rev.index("_")+1:]
+        if "_" in func_name_rev:
+            func_name_rev = func_name_rev[func_name_rev.index("_"):]
+        else:
+            return func_name
+        func_name = func_name_rev[::-1]
+        func_name = func_name[:-1]
+
+    return func_name
+
 
 def index_of_closing(text: str, start: int) -> int:
     opening = text[start]

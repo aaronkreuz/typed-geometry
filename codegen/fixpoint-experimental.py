@@ -251,7 +251,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             return # all cases handled
         for dom_i in ["2", "3"]:
             if not dom_i in found_domains:
-                missing_cases.append((dom_i))
+                missing_cases.append(dom_i)
 
     # missing cases stored in "missing_cases" (domain info of missing case)
     if len(missing_cases) == 0:
@@ -259,32 +259,44 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     
     #print(missing_cases)
     
+    lam_func_decl = lambda func: func["function_declaration"]["parameters"] # lambda to ease accessing parameter data within filter-function
     # TODO: iterate over missing cases
     for mc in missing_cases:
         l = []
         
         ### check for symmetry in deserial funcs ###
-        l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: (get_type_minus_template(func_decl_params[0]["type_name"]) == type_b[0]) and (get_type_minus_template(func_decl_params[1]["type_name"]) == type_a[0]) and (func["function_declaration"]["name"].startswith("func_name")), deserial_funcs))
-        if len(missing_cases[0]) == 1:
-            l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[0],deserial_funcs))
+        l = list(filter(lambda func: (get_type_minus_template(lam_func_decl(func)[0]["type_name"]) == type_b[0]) and (get_type_minus_template(lam_func_decl(func)[1]["type_name"]) == type_a[0]) and (ofp.get_func_prefix_binary(func["function_declaration"]["name"]) == func_name), deserial_funcs))
+        if len(mc) == 1:
+            l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc, deserial_funcs))
             if len(l) > 0:
-                # TODO: append according function to deserial_funcs
+                # taking the first matching symmetric implementation
+                function_new = l[0] 
+                # swap the parameters
+                lam_func_decl(function_new)[0] = lam_func_decl(l[0])[1]
+                lam_func_decl(function_new)[1] = lam_func_decl(l[0])[0]
+                # append to deserial funcs
+                deserial_funcs.append(function_new)
+                # TODO: DEBUG
                 continue
 
         if len(missing_cases[0]) == 2:
             if typeA_objectD:
-                l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[1] and func_decl_params[0]["object_dim"] == mc[0], deserial_funcs))
+                l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[0]["object_dim"] == mc[0], deserial_funcs))
             elif typeB_objectD:
-                l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_dim"] == mc[1] and func_decl_params[1]["object_dim"] == mc[0], deserial_funcs))
+                l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[1]["object_dim"] == mc[0], deserial_funcs))
             
             if len(l) > 0:
+                # print("Case 2: ")
+                # print(l) # DEBUG
                 # TODO: append according function to deserial_funcs
                 continue
 
         if len(missing_cases[0]) == 3:
-            l = list(filter(lambda func, func_decl_params = func["function_declaration"]["parameters"]: func_decl_params[0]["domain_din"] == mc[2] and func_decl_params[0]["object_dim"] == mc[0] and func_decl_params[1]["object_dim"] == mc[1], deserial_funcs))
+            l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[2] and lam_func_decl(func)[0]["object_dim"] == mc[0] and lam_func_decl(func)[1]["object_dim"] == mc[1], deserial_funcs))
 
             if len(l) > 0:
+                # print("Case 3: ")
+                # print(l) # DEBUG
                 # TODO: append according function to deserial_funcs
                 continue
 
@@ -321,5 +333,6 @@ def fixpoint_iteration(type):
 
 
 ### MAIN ###
+# TODO: Maybe just iterate over content of "function_lists/"?
 for type in all_types:
     fixpoint_iteration(type)
