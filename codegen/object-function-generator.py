@@ -5,7 +5,20 @@ import processing as ofp
 
 # TODO: separate object_functions + object_function_uncommon
 
+tg_src_root = "" # todo
+default_object_functions_path ="typed-geometry/object_functions.hh" # todo
+object_functions_dir_common = "typed-geometry/object-functions/"
+object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
+
+# read from
 type_path = "../src/typed-geometry/types/"
+function_path = "function_lists/"
+
+if not os.path.exists(object_functions_dir_common):
+    os.makedirs(object_functions_dir_common)
+
+if not os.path.exists(object_functions_dir_advanced):
+    os.makedirs(object_functions_dir_advanced)
 
 common_types = [
     #[type_name, file_name]
@@ -95,16 +108,7 @@ binary_asymmetric_functions = [
     # "contains"  # potentially impl difficulty
 ]
 
-tg_src_root = "" # todo
-default_object_functions_path ="typed-geometry/object_functions.hh" # todo
-object_functions_dir_common = "typed-geometry/object-functions/"
-object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
 
-if not os.path.exists(object_functions_dir_common):
-    os.makedirs(object_functions_dir_common)
-
-if not os.path.exists(object_functions_dir_advanced):
-    os.makedirs(object_functions_dir_advanced)
 
 # Generate template default
 default_object_functions = \
@@ -315,7 +319,7 @@ def generate_object_functions(type):
     # generate function descriptions for all unary functions
     for function in unary_functions:
         # deserialize json files - hard coded for the moment
-        f = open('function_lists/' + function[1] + '.json')
+        f = open(function_path + function[1] + '.json')
         deserial_functions = json.load(f) # list format
         if common:
             generate_function_unary(gen_common, function[0], type, deserial_functions)
@@ -326,7 +330,7 @@ def generate_object_functions(type):
 
     # generate function descriptions for all binary symmetric functions
     for function in binary_symmetric_functions:
-        f = open('function_lists/' + function[1] +'.json')
+        f = open(function_path + function[1] +'.json')
         deserial_functions = json.load(f) # list format
 
         if common:

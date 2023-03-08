@@ -54,8 +54,8 @@ functions = [
 ]
 
 in_path = "../src/typed-geometry/functions/objects/"
-out_path_renamed = "renamed_files_test/"
-out_path_dump = "function_lists_test/"
+out_path_renamed = "renamed_files/"
+out_path_dump = "function_lists/"
 
 if not os.path.exists(out_path_renamed):
     os.makedirs(out_path_renamed)
@@ -79,7 +79,6 @@ def parse_template_parameters(s: str):
     end = ofp.index_of_closing(s, start)
     params = s[start + 1:end].split(",")
 
-    #print(params)
     # TODO preprocessing template args
     it = 0
     while(it < len(params)):
@@ -94,8 +93,6 @@ def parse_template_parameters(s: str):
 
         it += 1
             # params = [params[0], "".join(params[1:])]
-
-    #print(params)
 
     parsed_params = []
     for p in params:
@@ -288,9 +285,22 @@ def get_new_func_name(function_declaration):
     new_funcname = function_name
 
     for arg in params:
+        type_name = arg["type_name"]
+
+        if not "const&" in type_name:
+            continue
+
         type_name = read_type(arg["type_name"])
+
+        if "<" in type_name:
+            type_name = type_name[:type_name.index("<")]
+
         object_dim = arg["object_dim"]
         domain_dim = arg["domain_dim"]
+
+        if domain_dim == "DomainD":
+            domain_dim = "D"
+
         if not (object_dim == domain_dim) and not (object_dim == 'D'):
             new_funcname += "_" + type_name + object_dim + "in" + domain_dim
         else:
@@ -320,14 +330,12 @@ def parse_functions(text: str, output_file: str):
 
     line_index = 0
     while line_index < len(lines):
-        line = lines[line_index] + '\n'
+        line = lines[line_index].strip() + '\n'
 
-        line = line.strip()
-
-        if line == "\n":
-            new_lines.append(line)
-            line_index += 1
-            continue
+        #if line == "\n":
+        #    new_lines.append(line)
+        #    line_index += 1
+        #    continue
 
         if line.startswith("[[nodiscard]] constexpr"): # function found
             template_declaration = lines[line_index-1]
@@ -381,6 +389,9 @@ def parse_functions(text: str, output_file: str):
                 line_index += 1
                 line = lines[line_index] + '\n'
                 new_lines.append(line)
+
+        else:
+            new_lines.append(line)
 
         line_index += 1
 
