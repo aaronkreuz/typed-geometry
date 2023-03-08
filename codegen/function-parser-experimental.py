@@ -53,16 +53,6 @@ functions = [
     "project"
 ]
 
-in_path = "../src/typed-geometry/functions/objects/"
-out_path_renamed = "renamed_files/"
-out_path_dump = "function_lists/"
-
-if not os.path.exists(out_path_renamed):
-    os.makedirs(out_path_renamed)
-
-if not os.path.exists(out_path_dump):
-    os.makedirs(out_path_dump)
-
 def read_type(s: str):
     if "<" in s:
         closing_index = ofp.index_of_closing(s, s.index("<"))
@@ -396,17 +386,23 @@ def parse_functions(text: str, output_file: str):
         line_index += 1
 
     # write to file json dumps
-    with open(out_path_dump + output_file + '.json', 'w') as f:
+    with open(ofp.function_list_path + output_file + '.json', 'w') as f:
         json_object = json.dumps(functions, indent = 4)
         f.write(json_object)
 
-    # write to file 
-    with open(out_path_renamed + output_file + '.hh', 'w') as f:
+    # write renamed functions to file
+    with open(ofp.renamed_files_path + output_file + '.hh', 'w') as f:
         f.writelines(new_lines)
 
 
 ### MAIN APP ###
+if not os.path.exists(ofp.renamed_files_path):
+    os.makedirs(ofp.renamed_files_path)
+
+if not os.path.exists(ofp.function_list_path):
+    os.makedirs(ofp.function_list_path)
+
 for file in function_files:
-    in_file = in_path + file
+    in_file = ofp.src_function_path + file
     text = open(in_file, "r").read()
     parse_functions(text, file[:-3])

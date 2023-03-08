@@ -6,109 +6,8 @@ import processing as ofp
 # TODO: separate object_functions + object_function_uncommon
 
 tg_src_root = "" # todo
-default_object_functions_path ="typed-geometry/object_functions.hh" # todo
-object_functions_dir_common = "typed-geometry/object-functions/"
-object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
 
-# read from
-type_path = "../src/typed-geometry/types/"
-function_path = "function_lists/"
-
-if not os.path.exists(object_functions_dir_common):
-    os.makedirs(object_functions_dir_common)
-
-if not os.path.exists(object_functions_dir_advanced):
-    os.makedirs(object_functions_dir_advanced)
-
-common_types = [
-    #[type_name, file_name]
-    ["aabb", "aabb"],
-    ["pos", "pos"],
-    ["ray", "ray"],
-    ["line", "line"],
-    ["segment", "segment"],
-    ["sphere", "sphere"],
-    ["triangle", "triangle"],
-    ["plane", "plane"]
-]
-
-advanced_types = [
-    #[type_name, file_name]
-    ["aabb_boundary", "aabb"],
-    ["box", "box"],
-    ["box_boundary", "box"],
-    ["capsule", "capsule"], # currently only 3d
-    ["capsule_boundary", "capsule"],# currently only 3d
-    ["cone", "cone"],
-    ["cone_boundary", "cone"]
-    #"cone_boundary_no_caps",
-    #"cylinder",
-    #"cylinder_boundary",
-    #"cylinder_boundary_no_caps",
-    #"ellipse",
-    #"ellipse_boundary",
-    #"frustum", # currently only 3d
-    #"halfspace",
-    #"hemisphere",
-    #"hemisphere_boundary",
-    #"hemisphere_boundary_no_caps",
-    #"inf_cone",
-    #"inf_cone_boundary",
-    #"inf_cylinder",
-    #"inf_cylinder_boundary",
-    #"inf_frustum", # currently only 3d
-    # "polygon", # not yet implemented
-    # "polyline", # not yet implemented
-    # "pyramid", # difficult due to varying base
-    #"quad", # difficult, because currently no guarantee that planar
-    #"sphere_boundary",
-    #"disk",
-    #"disk_boundary",
-    # "circle", # same as disc_boundary
-    # "tube", # same as cylinder_boundary_no_caps
-    # "inf_tube", # same as inf_cylinder_boundary
-    ] 
-
-
-all_types = common_types + advanced_types
-
-print("Total types: {}".format(len(all_types)))
-
-unary_functions = [
-    #[func_name, file_name]
-    ["edges_of", "edges"],  
-    ["faces_of", "faces"],
-    ["vertices_of", "vertices"],
-    ["volume_of", "volume"],
-    ["area_of", "area"],
-    ["boundary_of", "boundary"],
-    ["rasterize", "rasterize"],
-    ["triangulate", "triangulate"],
-    ["triangulation", "triangulation"],
-    ["centroid_of", "centroid"],
-    ["aabb_of", "aabb"],
-    ["any_point", "any_point"],
-    #["signed_distance", "distance"]
-]
-
-binary_symmetric_functions = [
-    #[func_name, file_name]
-    ["intersects", "intersection"],
-    ["intersection", "intersection"], # representation problem
-    ["closest_points", "closest_points"],
-    ["distance", "distance"],
-    ["distance_sqr", "distance"]
-]
-
-# TODO
-binary_asymmetric_functions = [
-    #["project", "project"],
-    # "intersection_parameter",
-    # "intersection_parameters",
-    # "contains"  # potentially impl difficulty
-]
-
-
+#print("Total types: {}".format(len(all_types)))
 
 # Generate template default
 default_object_functions = \
@@ -132,7 +31,7 @@ def generate_function_unary(gen : ofp.code_generator, function_name : str, type,
     type_objectD = False
     
     # Requiring type template information
-    templ_type = ofp.get_type_template(type, type_path)
+    templ_type = ofp.get_type_template(type, ofp.type_path)
     if('ObjectD' in templ_type):
         type_objectD = True
 
@@ -188,11 +87,11 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
     type_b_object_dim = False
 
     # getting template spec. for type_a and type_b
-    template_a = ofp.get_type_template(type_a, type_path) 
+    template_a = ofp.get_type_template(type_a, ofp.type_path) 
     if "ObjectD" in template_a: # checking if type_a objectDim dependent
         type_a_object_dim = True
     
-    template_b = ofp.get_type_template(type_b, type_path)
+    template_b = ofp.get_type_template(type_b, ofp.type_path)
     if "ObjectD" in template_b: # checking if type_b objectDim dependent
         type_b_object_dim = True
 
@@ -292,7 +191,7 @@ def generate_function_binary_asymmetric(gen : ofp.code_generator, function_name 
 def generate_object_functions(type):
 
     common = False # storing info if type is a common type
-    if type in common_types:
+    if type in ofp.common_types:
         common = True
 
     gen_common = ofp.code_generator()   # code generator for functions with only common type parameter
@@ -306,9 +205,9 @@ def generate_object_functions(type):
     for gen in gens:
         gen.append_line("#pragma once")
         gen.newline()
-        gen.append_line("#include <{}>".format(default_object_functions_path))
+        gen.append_line("#include <{}>".format(ofp.default_object_functions_path))
         gen.newline()
-        type_template = ofp.get_type_template(type, type_path)
+        type_template = ofp.get_type_template(type, ofp.type_path)
         type_template = ofp.adapt_template_format(type_template)
         type_template_values = ofp.template_format_values(type_template)
         gen.append_line("template {templ}".format(templ = type_template))
@@ -317,9 +216,9 @@ def generate_object_functions(type):
         gen.indent()
 
     # generate function descriptions for all unary functions
-    for function in unary_functions:
+    for function in ofp.unary_functions:
         # deserialize json files - hard coded for the moment
-        f = open(function_path + function[1] + '.json')
+        f = open(ofp.function_list_path + function[1] + '.json')
         deserial_functions = json.load(f) # list format
         if common:
             generate_function_unary(gen_common, function[0], type, deserial_functions)
@@ -329,34 +228,34 @@ def generate_object_functions(type):
             gen_advanced.newline()
 
     # generate function descriptions for all binary symmetric functions
-    for function in binary_symmetric_functions:
-        f = open(function_path + function[1] +'.json')
+    for function in ofp.binary_symmetric_functions:
+        f = open(ofp.function_list_path + function[1] +'.json')
         deserial_functions = json.load(f) # list format
 
         if common:
-            for other_type in common_types:
+            for other_type in ofp.common_types:
                 generate_function_binary_symmetric(gen_common, function[0], type, other_type , deserial_functions)
                 gen_common.newline()
         else:
-            for other_type in common_types:
+            for other_type in ofp.common_types:
                 generate_function_binary_symmetric(gen_advanced, function[0], type, other_type, deserial_functions)
 
-        for other_type in advanced_types:
+        for other_type in ofp.advanced_types:
             generate_function_binary_symmetric(gen_advanced, function[0], type, other_type, deserial_functions)
 
     # generate function descriptions for all binary symmetric functions
-    for function in binary_asymmetric_functions:
+    for function in ofp.binary_asymmetric_functions:
 
         if common:
-            for other_type in common_types:
+            for other_type in ofp.common_types:
                 generate_function_binary_asymmetric(gen_common, function, type, other_type)
                 gen_common.newline()        
         else:
-            for other_type in common_types:
+            for other_type in ofp.common_types:
                 generate_function_binary_asymmetric(gen_advanced, function, type, other_type)
                 gen_advanced.newline()
 
-        for other_type in advanced_types:
+        for other_type in ofp.advanced_types:
             generate_function_binary_asymmetric(gen_advanced, function, type, other_type)
             gen_advanced.newline()
 
@@ -364,8 +263,8 @@ def generate_object_functions(type):
         gen.unindent()
         gen.append_line("};")
     
-    filepath_common = object_functions_dir_common + type[0] + ".hh"
-    filepath_advanced = object_functions_dir_advanced + type[0] + ".hh"
+    filepath_common = ofp.object_functions_dir_common + type[0] + ".hh"
+    filepath_advanced = ofp.object_functions_dir_advanced + type[0] + ".hh"
 
     if common: # only generate common-case file if type is common
         with open(filepath_common, "w") as file:
@@ -377,5 +276,11 @@ def generate_object_functions(type):
 
 ### MAIN APP ###
 
-for type in all_types:
+if not os.path.exists(ofp.object_functions_dir_common):
+    os.makedirs(ofp.object_functions_dir_common)
+
+if not os.path.exists(ofp.object_functions_dir_advanced):
+    os.makedirs(ofp.object_functions_dir_advanced)
+
+for type in ofp.all_types:
     generate_object_functions(type)

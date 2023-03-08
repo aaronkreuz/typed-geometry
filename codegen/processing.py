@@ -4,6 +4,106 @@ import numpy as np
 
 # NOTE: file containing shared functionalities
 
+# file paths
+type_path = "../src/typed-geometry/types/"
+src_function_path = "../src/typed-geometry/functions/objects/"
+function_list_path = "function_lists/"
+renamed_files_path = "renamed_files/"
+object_functions_dir_common = "typed-geometry/object-functions/"
+object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
+default_object_functions_path ="typed-geometry/object_functions.hh" # todo
+function_list_path_test = "function_lists_test/"
+
+# types
+common_types = [
+    #[type_name, file_name]
+    ["aabb", "aabb"],
+    ["pos", "pos"],
+    ["ray", "ray"],
+    ["line", "line"],
+    ["segment", "segment"],
+    ["sphere", "sphere"],
+    ["triangle", "triangle"],
+    ["plane", "plane"]
+]
+
+advanced_types = [
+    #[type_name, file_name]
+    ["aabb_boundary", "aabb"],
+    ["box", "box"],
+    ["box_boundary", "box"],
+    ["capsule", "capsule"], # currently only 3d
+    ["capsule_boundary", "capsule"],# currently only 3d
+    ["cone", "cone"],
+    ["cone_boundary", "cone"]
+    #"cone_boundary_no_caps",
+    #"cylinder",
+    #"cylinder_boundary",
+    #"cylinder_boundary_no_caps",
+    #"ellipse",
+    #"ellipse_boundary",
+    #"frustum", # currently only 3d
+    #"halfspace",
+    #"hemisphere",
+    #"hemisphere_boundary",
+    #"hemisphere_boundary_no_caps",
+    #"inf_cone",
+    #"inf_cone_boundary",
+    #"inf_cylinder",
+    #"inf_cylinder_boundary",
+    #"inf_frustum", # currently only 3d
+    # "polygon", # not yet implemented
+    # "polyline", # not yet implemented
+    # "pyramid", # difficult due to varying base
+    #"quad", # difficult, because currently no guarantee that planar
+    #"sphere_boundary",
+    #"disk",
+    #"disk_boundary",
+    # "circle", # same as disc_boundary
+    # "tube", # same as cylinder_boundary_no_caps
+    # "inf_tube", # same as inf_cylinder_boundary
+    ]
+
+# function types
+unary_functions = [
+    #[func_name, file_name]
+    ["edges_of", "edges"],  
+    ["faces_of", "faces"],
+    ["vertices_of", "vertices"],
+    ["volume_of", "volume"],
+    ["area_of", "area"],
+    ["boundary_of", "boundary"],
+    ["rasterize", "rasterize"],
+    ["triangulate", "triangulate"],
+    ["triangulation", "triangulation"],
+    ["centroid_of", "centroid"],
+    ["aabb_of", "aabb"],
+    ["any_point", "any_point"],
+    #["signed_distance", "distance"]
+]
+
+binary_symmetric_functions = [
+    #[func_name, file_name]
+    ["closest_points", "closest_points"],
+    ["intersects", "intersection"],
+    ["intersection", "intersection"], # representation problem
+    ["distance", "distance"],
+    ["distance_sqr", "distance"]
+]
+
+# TODO
+binary_asymmetric_functions = [
+    #["project", "project"],
+    # "intersection_parameter",
+    # "intersection_parameters",
+    # "contains"  # potentially impl difficulty
+]
+    
+
+    
+all_types = common_types + advanced_types
+
+
 # containing file information
 class code_generator:
     def __init__(self) -> None:
