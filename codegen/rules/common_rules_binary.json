@@ -12,7 +12,7 @@
         "implementee" : "intersects",
         "type_A" : "",
         "type_B" : "",
-        "implementation" : "return closest_intersection_parameter(a, b).has_value();",
+        "implementation" : "return closest_intersection_parameter(AAA, BBB).has_value();",
         "file" : "intersection.json"
     },
     {

@@ -2,6 +2,12 @@ import os
 import json
 import numpy as np
 import processing as ofp
+import time # temporary
+
+# load common rules from file
+# TODO: there can also be rules that are only applicable for specific type of functions
+r = open(ofp.rules_path + "common_rules_binary" + ".json") 
+common_rules_sym = json.load(r) # list format
 
 
 # NOTE: There does not seem to be any rule for unary functions being applied by another function -> This case might be ignored
@@ -36,7 +42,7 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
 
     # identify missing cases:
     if ("O","D") in found_domains or "D" in found_domains: # does this work?
-        return # all cases handled
+        return False # all cases handled
     
     missing_cases = []
     
@@ -53,29 +59,52 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
 
     else:
         if "D" in found_domains:
-            return # all cases handled
+            return False # all cases handled
         for dom_i in ["2", "3"]:
             if not dom_i in found_domains:
                 missing_cases.append(dom_i)
 
     # missing cases stored in "missing_cases"
     if len(missing_cases) == 0:
-        return # no missing cases found
+        return False # no missing cases found
     
     # iterate over missing cases
     for mc in missing_cases:
         # check for corresponding rule
-        return
+        return False
 
-    return
+    return False
 
 
 def get_type_minus_template(type: str):
     if '<' in type:
         end_idx = type.index('<')
         type = type[:end_idx]
-    
     return type
+
+
+# NOTE: check if requirements for rule application are fulfilled
+def are_implemented(rule, type_a: str, type_b: str):
+    # iterating over implementers that have to be implemented
+    for impl in rule["implementer"]: # TODO: does this also work if rule["implementers"] is not iterable? i.e. len == 1
+        # open corresponding file by looking up table
+        funcs = list(filter(lambda func: func[0] == impl, ofp.all_functions))
+        if len(funcs) == 0: # should not happen
+            return False
+        func = funcs[0]
+        # open the corresponding json file from "function_lists"
+        f = open(ofp.function_list_path + func[1] + ".json", "r")
+        funcs_implementer = json.load(f) # list format
+
+        filtered_funcs = list(filter(lambda func: (func["function_declaration"]["name_prefix"] == impl), funcs_implementer))
+        filtered_funcs = list(filter(lambda func: get_type_minus_template(func["function_declaration"]["parameters"][0]["type_name"]) == type_a, filtered_funcs))
+        if type_b != "": # binary func
+            filtered_funcs = list(filter(lambda func: get_type_minus_template(func["function_declaration"]["parameters"][1]["type_name"]) == type_b, filtered_funcs))
+
+        if len(filtered_funcs) == 0: # implementation missing, can't apply rule
+            return False
+        
+    return True
 
 
 def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_funcs, type_a, type_b):
@@ -175,7 +204,8 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     change_flag = False
 
     lam_func_decl = lambda func: func["function_declaration"]["parameters"] # lambda to ease accessing parameter data within filter-function
-    # TODO: iterate over missing cases
+   
+    # iterate over missing cases
     for mc in missing_cases:
         l = []
         
@@ -203,17 +233,44 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             # append to deserial funcs
             deserial_funcs.append(new_function)
             # TODO: DEBUG
-            change_flag = True
+            change_flag = True # changes appeared. Another step necessary
+            continue
+
+        ### check for rules ###
+        # TODO: Maybe consider more rules (special rulesets)
+        # TODO: Check for matching types in rule set
+        rules_applicable = list(filter(lambda rule: (rule["implementee"] == func_name) and (rule["type_A"] == "") and (rule["type_B"] == ""), common_rules_sym))
+
+        for rule in rules_applicable:
+            if not are_implemented(rule, type_a[0], type_b[0]):
+                rules_applicable.remove(rule)
+                continue
+
+        if len(rules_applicable) == 0:
+            # there are no applicable rules
             continue
 
 
-        # print(l)
+        new_function = {}
+        
+        # NOTE: format of elements in missing cases may differ -> 4 cases to handle
+        if typeA_objectD and typeB_objectD:
+            new_function = ofp.generate_function_entry_binary(rules_applicable[0], mc[0], mc[1], mc[2], type_a, type_b)
 
-        ### check for rules ###
+        elif typeA_objectD:
+            new_function = ofp.generate_function_entry_binary(rules_applicable[0], mc[0], "", mc[1], type_a, type_b)
+        
+        elif typeB_objectD:
+            new_function = ofp.generate_function_entry_binary(rules_applicable[0], "", mc[0], mc[1], type_a, type_b)
 
-        # TODO: check for corresponding rule in ruleset
+        else: # not typeA_objectD and not typeB_objectD
+            new_function = ofp.generate_function_entry_binary(rules_applicable[0], "", "", mc[0], type_a, type_b)
 
-        # NOTE: format of elements in missing cases may differ -> 3 cases to handle
+        deserial_funcs.append(new_function)
+        change_flag = True # changes appeared. Another step necessary
+        continue
+
+
 
     # TODO: write deserial_funcs to file if changes appeared
     if change_flag:
@@ -224,29 +281,49 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     return change_flag
 
 
-def fixpoint_iteration(type):
+def fixpoint_iteration_step(type):
+    change_flag = False
     # unary fixpoint-step -> TODO: Nothin happens here probably
     for func in ofp.unary_functions:
         f = open('function_lists/' + func[1] + ".json")
         deserial_functions = json.load(f) # list format
-        fixpoint_step_unary(func[0], func[1], deserial_functions, type)
+        if fixpoint_step_unary(func[0], func[1], deserial_functions, type):
+            change_flag = True
 
     # binary symmetric fixpoint-step
     for func in ofp.binary_symmetric_functions:
         f = open('function_lists/' + func[1] + ".json")
         deserial_functions = json.load(f)
         for other_type in ofp.common_types:
-            fixpoint_step_binary_symmetric(func[0], func[1], deserial_functions, type, other_type)
-        
-    return
+            if fixpoint_step_binary_symmetric(func[0], func[1], deserial_functions, type, other_type):
+                change_flag = True
+
+    # TODO: binary asymmetric fixpoint-step
+
+    return change_flag
 
 
 ### MAIN ###
-# TODO: Exchange by "ofp.function_list_path"
+it_count = 0
+max_iterations = 10 # max number of iterations until iteration stops
+change_flag = True # indicate if any changes appeared in current fixpoint step
+
 if not os.path.exists(ofp.function_list_path):
     os.makedirs(ofp.function_list_path)
 
-# TODO: Maybe just iterate over content of "function_lists/"?
-# TODO: Should be a while-loop running for a max number of steps or until convergence
-for type in ofp.all_types:
-    fixpoint_iteration(type)
+# DEBUG
+time_start = time.time() # in seconds
+
+# Fixpoint iteration running for a max number of steps or until convergenc
+while change_flag and (it_count < max_iterations):
+    change_flag = False
+    for type in ofp.all_types:
+        if fixpoint_iteration_step(type):
+            change_flag = True
+    it_count += 1
+
+# DEBUG
+time_end = time.time() # in seconds
+dif = time_end - time_start # in seconds
+print("nbr_iterations: " + str(it_count))
+print("duration in seconds:" + str(dif))

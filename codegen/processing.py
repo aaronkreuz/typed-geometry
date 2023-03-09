@@ -13,6 +13,7 @@ object_functions_dir_common = "typed-geometry/object-functions/"
 object_functions_dir_advanced = "typed-geometry/object-functions-advanced/"
 default_object_functions_path ="typed-geometry/object_functions.hh" # todo
 function_list_path_test = "function_lists_test/"
+rules_path = "rules/"
 
 # types
 common_types = [
@@ -100,7 +101,7 @@ binary_asymmetric_functions = [
 ]
     
 
-    
+all_functions = unary_functions + binary_asymmetric_functions + binary_asymmetric_functions
 all_types = common_types + advanced_types
 
 
@@ -305,7 +306,7 @@ def parse_function_info_unary(func, function_name: str, type: str):
 
 # NOTE: parse relevant information of the given function and store info in dictionary (binary sym. function case)
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
-    if(func['function_declaration']['name'].startswith(function_name)):
+    if(func['function_declaration']['name_prefix'] == function_name): # TODO: check already performed?
             func_decl_params = func['function_declaration']['parameters']
             symmetric = False # true if function implemented via symmetric case
 
@@ -703,3 +704,57 @@ def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b:
             end_scope(gen)
 
     return
+
+# generate function entry by rule application
+def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim: str, type_a, type_b):
+    # Requiring type template information
+    templ_type_a = get_type_template(type_a, type_path)
+    # if('ObjectD' in templ_type_a):
+    #     typeA_objectD = True
+
+    templ_type_b = get_type_template(type_b, type_path)
+    # if('ObjectD' in templ_type_b):
+    #     typeB_objectD = True
+
+    function = {}
+
+    # do not require template-parameters
+    function["template_parameters"] = []
+    
+    # function declaration
+    function_declaration = {}
+    function_declaration["modifiers"] = []
+    function_declaration["name_prefix"] = rule["implementee"] # function that is actually implemented
+
+    # parameters
+    parameters = []
+    param_a = {}
+    param_a["type_name"] = type_a[0] + templ_type_a # TODO: correct domains missing!
+    param_a["parameter_name"] = "AAA" # TODO: placeholder
+    param_a["default_value"] = ""
+    param_a["domain_dim"] = dom_dim
+    param_a["object_dim"] = obj_dim_a
+
+    param_b = {}
+    param_b["type_name"] = type_b[0] + templ_type_b # TODO: correct domains missing!
+    param_b["parameter_name"] = "BBB" # TODO: placeholder
+    param_b["default_value"] = ""
+    param_b["domain_dim"] = dom_dim
+    param_b["object_dim"] = obj_dim_b
+
+    parameters.append(param_a)
+    parameters.append(param_b)
+
+    function_declaration["parameters"] = parameters
+
+    function_declaration["return_type"] = "auto" # TODO -> return correct type
+
+    # NOTE: func name is empty because no real function exists -> can be used to identify function generated
+    # by rule application in the object_function generation
+    function_declaration["name"] = ""
+
+    function["function_declaration"] = function_declaration
+
+    function["body"] = rule["implementation"]    
+
+    return function
