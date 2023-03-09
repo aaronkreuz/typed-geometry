@@ -364,6 +364,7 @@ def parse_functions(text: str, output_file: str):
             function["function_declaration"] = parse_function_declaration(
                 function_declaration)
             function["body"] = body.strip()
+            function["symmetric_implementation"] = False
 
             # rename_function
             new_func_name = get_new_func_name(function["function_declaration"])

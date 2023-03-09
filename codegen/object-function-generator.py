@@ -44,9 +44,10 @@ def generate_function_unary(gen : ofp.code_generator, function_name : str, type,
 
     # 1st: iterate over function info and store matching functions in 'functions_parsed'
     for f in deserial_file:
-        func = ofp.parse_function_info_unary(f, function_name, type[0])
-        if(len(func) > 0):
-            functions_parsed.append(func)
+        if f['function_declaration']['name_prefix'] == function_name:
+            func = ofp.parse_function_info_unary(f, function_name, type[0])
+            if(len(func) > 0):
+                functions_parsed.append(func)
  
     # Extract the return type
     return_type = ofp.get_return_type(functions_parsed)
@@ -103,11 +104,8 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
 
     # iteration over functions in file. Store if name equal to function name and types are matching
     for f in deserial_file:
-        f_name = f['function_declaration']['name']
-        if not f_name.startswith(function_name):
-            continue
+        f_name_prefix = f['function_declaration']['name_prefix']
 
-        f_name_prefix = ofp.get_func_prefix_binary(f_name)
         if f_name_prefix == function_name:
             function = ofp.parse_function_info_binary_symmetric(f, function_name, type_a[0], type_b[0])
             if len(function) != 0:

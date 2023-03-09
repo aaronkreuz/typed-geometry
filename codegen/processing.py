@@ -306,61 +306,68 @@ def parse_function_info_unary(func, function_name: str, type: str):
 
 # NOTE: parse relevant information of the given function and store info in dictionary (binary sym. function case)
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
-    if(func['function_declaration']['name_prefix'] == function_name): # TODO: check already performed?
-            func_decl_params = func['function_declaration']['parameters']
-            symmetric = False # true if function implemented via symmetric case
+    if not (func['function_declaration']['name_prefix'] == function_name):
+        return # TODO: check already performed?
+    
+    func_decl_params = func['function_declaration']['parameters']
+    symmetric = False # true if function implemented via symmetric case
 
-            if(len(func_decl_params) != 2): # ensure 2 parameters
-                return {}
+    if(len(func_decl_params) != 2): # ensure 2 parameters
+        return {}
+    
+    type_name_a = func_decl_params[0]['type_name']
+    type_name_b = func_decl_params[1]['type_name']
+    type_name_a_prefix = type_name_a[:]
+    type_name_b_prefix = type_name_b[:]
 
-            type_name_a = func_decl_params[0]['type_name']
-            type_name_b = func_decl_params[1]['type_name']
-            if ("<" in type_name_a):
-                type_name_a = type_name_a[:type_name_a.index("<")]
-            if("<" in type_name_b):
-                type_name_b = type_name_b[:type_name_b.index("<")]
+    boundary_tag_a = False
+    boundary_tag_b = False
 
-            # TODO: Maybe no longer required
-            if not (func_decl_params[0]['type_name'].startswith(type_a) and func_decl_params[1]['type_name'].startswith(type_b)):
-                return {}
+    # boundary tag a
+    if "boundary" in type_a:
+        boundary_tag_a = True
+    # boundary tag b
+    if "boundary" in type_b:
+        boundary_tag_b = True
 
-            # check if types are matching
-            if not (type_name_a == type_a and type_name_b == type_b):
-                if (type_name_b == type_a and type_name_a == type_b):
-                    symmetric = True # sysmmetric case (swap implementation later)
-                else:
-                    return {}
-
-            if not (func_decl_params[0]['domain_dim'] == func_decl_params[1]['domain_dim']): # should not appear
-                return {}
-
-            func_name_parsed = func['function_declaration']['name']
-
-            domain_dim_a = func_decl_params[0]['domain_dim']
-            object_dim_a = func_decl_params[0]['object_dim']
-            domain_dim_b = func_decl_params[1]['domain_dim']
-            object_dim_b = func_decl_params[1]['object_dim']
-
-            # build object for specific function implementation
-            function = {} #empty object
-            function["function_name"] = func_name_parsed
-
-            param_a = {}
-            param_a["object_dim"] = object_dim_a
-            param_a["domain_dim"] = domain_dim_a
-
-            param_b = {}
-            param_b["object_dim"] = object_dim_b
-            param_b["domain_dim"] = domain_dim_b
-
-            function["params"] = [param_a, param_b]
-            # function["object_dim"] = object_dim
-            # function["domain_dim"] = domain_dim
-            function["return_type"] = func['function_declaration']['return_type']
-            function["symmetric"] = symmetric
-            function["func_decl_params"] = func_decl_params # TODO: Maybe do not need to write out all param info
-
-            return function
+    if ("<" in type_name_a):
+        type_name_a_prefix = type_name_a[:type_name_a.index("<")]
+    if("<" in type_name_b):
+        type_name_b_prefix = type_name_b[:type_name_b.index("<")]
+    
+    # check if types are matching - considering also boundary tags
+    if not (type_name_a_prefix == type_a):
+        if not type_a.startswith(type_name_a_prefix) and not (boundary_tag_a and ("TraitsT" in type_name_a)):
+            return {}
+     
+    if not (type_name_b_prefix == type_b):
+        if not type_b.startswith(type_name_b_prefix) and not (boundary_tag_b and ("TraitsT" in type_name_b)):
+            return {}
+            
+    
+    if not (func_decl_params[0]['domain_dim'] == func_decl_params[1]['domain_dim']): # should not appear
+        return {}
+    func_name_parsed = func['function_declaration']['name']
+    domain_dim_a = func_decl_params[0]['domain_dim']
+    object_dim_a = func_decl_params[0]['object_dim']
+    domain_dim_b = func_decl_params[1]['domain_dim']
+    object_dim_b = func_decl_params[1]['object_dim']
+    # build object for specific function implementation
+    function = {} #empty object
+    function["function_name"] = func_name_parsed
+    param_a = {}
+    param_a["object_dim"] = object_dim_a
+    param_a["domain_dim"] = domain_dim_a
+    param_b = {}
+    param_b["object_dim"] = object_dim_b
+    param_b["domain_dim"] = domain_dim_b
+    function["params"] = [param_a, param_b]
+    # function["object_dim"] = object_dim
+    # function["domain_dim"] = domain_dim
+    function["return_type"] = func['function_declaration']['return_type']
+    function["symmetric"] = func["symmetric_implementation"]
+    function["func_decl_params"] = func_decl_params # TODO: Maybe do not need to write out all param info
+    return function
 
 
 # NOTE: get the correct return type of a function
@@ -756,5 +763,6 @@ def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim
     function["function_declaration"] = function_declaration
 
     function["body"] = rule["implementation"]    
+    function["symmetric_implementation"] = False
 
     return function

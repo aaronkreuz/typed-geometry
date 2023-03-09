@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import processing as ofp
+import copy
 import time # temporary
 
 # load common rules from file
@@ -104,6 +105,10 @@ def are_implemented(rule, type_a: str, type_b: str):
         if len(filtered_funcs) == 0: # implementation missing, can't apply rule
             return False
         
+        # TODO: Check for boundary tag
+        # if "boundary" in type_a:
+
+        
     return True
 
 
@@ -158,7 +163,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             found_domains.append(domD)
 
         
-    # identify missing cases:
+    # identify missing cases: # TODO: outsource
     if ("O","O","D") in found_domains or ("O","D") in found_domains or "D" in found_domains: # does this work?
         return # all cases handled
     
@@ -197,9 +202,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     # missing cases stored in "missing_cases" (domain info of missing case)
     if len(missing_cases) == 0:
         return # no missing cases found
-    
-    #print(missing_cases)
-    
+        
     ### fixpoint step ###
     change_flag = False
 
@@ -209,7 +212,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     for mc in missing_cases:
         l = []
         
-        ### symmetric cases ###
+        ### symmetric cases ### TODO: outsource
         list_prefiltered = list(filter(lambda func: (get_type_minus_template(lam_func_decl(func)[0]["type_name"]) == type_b[0]) and (get_type_minus_template(lam_func_decl(func)[1]["type_name"]) == type_a[0]) and (func["function_declaration"]["name_prefix"] == func_name), deserial_funcs)) 
         if not typeA_objectD and not typeB_objectD:
             l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc, list_prefiltered))
@@ -225,18 +228,19 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         
         if len(l) > 0:
             # taking the first matching symmetric implementation
-            new_function = l[0] 
+            new_function = copy.deepcopy(l[0])
             # swap the parameters
             temp_param = lam_func_decl(new_function)[0]
             lam_func_decl(new_function)[0] = lam_func_decl(l[0])[1]
             lam_func_decl(new_function)[1] = temp_param
+            new_function["symmetric_implementation"] = True
             # append to deserial funcs
             deserial_funcs.append(new_function)
             # TODO: DEBUG
-            change_flag = True # changes appeared. Another step necessary
+            change_flag = True # changes appeared - another step is necessary
             continue
 
-        ### check for rules ###
+        ### check for rules ### # TODO: outsource
         # TODO: Maybe consider more rules (special rulesets)
         # TODO: Check for matching types in rule set
         rules_applicable = list(filter(lambda rule: (rule["implementee"] == func_name) and (rule["type_A"] == "") and (rule["type_B"] == ""), common_rules_sym))
@@ -250,8 +254,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             # there are no applicable rules
             continue
 
-
-        new_function = {}
+        new_function = {} # new func to append to deserial_funcs
         
         # NOTE: format of elements in missing cases may differ -> 4 cases to handle
         if typeA_objectD and typeB_objectD:
@@ -272,7 +275,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 
 
 
-    # TODO: write deserial_funcs to file if changes appeared
+    # write deserial_funcs to file if changes appeared (indicated by 'change flag')
     if change_flag:
         with open(ofp.function_list_path + file_name + '.json', 'w') as f:
             json_object = json.dumps(deserial_funcs, indent = 4)
@@ -305,7 +308,7 @@ def fixpoint_iteration_step(type):
 
 ### MAIN ###
 it_count = 0
-max_iterations = 10 # max number of iterations until iteration stops
+max_iterations = 1 # max number of iterations until iteration stops
 change_flag = True # indicate if any changes appeared in current fixpoint step
 
 if not os.path.exists(ofp.function_list_path):
@@ -314,7 +317,7 @@ if not os.path.exists(ofp.function_list_path):
 # DEBUG
 time_start = time.time() # in seconds
 
-# Fixpoint iteration running for a max number of steps or until convergenc
+# Fixpoint iteration running for a max number of steps or until convergence
 while change_flag and (it_count < max_iterations):
     change_flag = False
     for type in ofp.all_types:
