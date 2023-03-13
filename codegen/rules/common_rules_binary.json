@@ -1,35 +1,82 @@
 [
     {
-        "implementer" : ["intersection"],
+        "implementer" : [
+            {
+                "func_name" : "intersection",
+                "param_types" : ["AAA","BBB"],
+                "return_type" : ""
+            }
+        ],
         "implementee" : "intersects",
+        "type_A_boundary_tag" : "",
+        "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
         "implementation" : "return intersection(AAA, BBB).has_value();",
         "file" : "intersection.json"
     },
     {
-        "implementer" : ["closest_intersection_parameter"],
+        "implementer" : [
+            {
+                "func_name" : "closest_intersection_parameter",
+                "param_types" : ["AAA","BBB"],
+                "return_type" : ""
+            }
+        ],
         "implementee" : "intersects",
+        "type_A_boundary_tag" : "",
+        "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
         "implementation" : "return closest_intersection_parameter(AAA, BBB).has_value();",
         "file" : "intersection.json"
     },
     {
-        "implementer" : [""],
-        "implementee" : "",
-        "type_A" : "aabb",
-        "type_B" : "",
-        "implementation" : "",
-        "file" : ""
-    },
-    {
-        "implementer" : [""],
-        "implementee" : "",
+        "implementer" : [
+            {
+                "func_name" : "contains",
+                "param_types" : ["solid_of(AAA)","BBB","dont_deduce<ScalarT>"],
+                "return_type" : ""
+            }
+        ],
+        "implementee" : "intersects",
+        "type_A_boundary_tag" : "required",
+        "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
-        "implementation" : "",
-        "file" : ""
+        "implementation" : "using ScalarT = typename A::scalar_t;\nauto const solidA = solid_of(a);\nif (contains(solidA, b, ScalarT(-16) * tg::epsilon<ScalarT>))\n    return false;\nreturn intersects(solidA, b);",
+        "file" : "intersection.json"
+    },
+    {
+        "implementer" : [
+            {
+                "func_name" : "intersection_parameter",
+                "param_types" : ["AAA","BBB"],
+                "return_type" : "cc::optional"
+            }
+        ],
+        "implementee" : "intersection",
+        "type_A_boundary_tag" : "",
+        "type_B_boundary_tag" : "",
+        "type_A" : "",
+        "type_B" : "",
+        "implementation" : "if (auto t = intersection_parameter(a, b); t.has_value())\n    return a[t.value()];\nreturn {};",
+        "file" : "intersection.json"
+    },
+    {
+        "implementer" : [
+            {
+                "func_name" : "intersection_parameter",
+                "param_types" : ["AAA","BBB"],
+                "return_type" : ""
+            }
+        ],
+        "implementee" : "intersection",
+        "type_A_boundary_tag" : "",
+        "type_B_boundary_tag" : "",
+        "type_A" : "",
+        "type_B" : "",
+        "implementation" : "return a[intersection_parameter(a, b)];",
+        "file" : "intersection.json"
     }
-
 ]

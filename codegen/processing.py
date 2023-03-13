@@ -281,18 +281,25 @@ def template_format_values(s: str):
 # NOTE: parse relevant information of the given function and store info in dictionary (unary function case)
 def parse_function_info_unary(func, function_name: str, type: str):
     
-    if not (func['function_declaration']['name'].startswith(function_name)):
-        return {}
+    if not (func['function_declaration']['name_prefix'] == function_name):
+        return {} # TODO: check already performed?
 
     func_decl_params = func['function_declaration']['parameters']
 
     # check if function params contain type (requirement)
-    param_name =  func_decl_params[0]['type_name']
-    if ('<' in param_name):
-        param_name = param_name[:param_name.index('<')]
+    type_name =  func_decl_params[0]['type_name']
+    type_name_prefix = type_name[:]
+    if ('<' in type_name_prefix):
+        type_name_prefix = type_name_prefix[:type_name.index('<')]
 
-    if not param_name == type:
-        return {} # types not matching
+    boundary_tag = False
+    if "boundary" in type:
+        boundary_tag = True
+
+    # check if types are matching - considering also boundary tags
+    if not type_name_prefix == type:
+        if not type.startswith(type_name_prefix) and not (boundary_tag and ("TraitsT" in type_name)):
+            return {} # types not matching
 
     # build object for specific function implementation
     function = {} #empty object
@@ -307,7 +314,7 @@ def parse_function_info_unary(func, function_name: str, type: str):
 # NOTE: parse relevant information of the given function and store info in dictionary (binary sym. function case)
 def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, type_b: str):
     if not (func['function_declaration']['name_prefix'] == function_name):
-        return # TODO: check already performed?
+        return {} # TODO: check already performed?
     
     func_decl_params = func['function_declaration']['parameters']
     symmetric = False # true if function implemented via symmetric case
@@ -332,7 +339,7 @@ def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, 
 
     if ("<" in type_name_a):
         type_name_a_prefix = type_name_a[:type_name_a.index("<")]
-    if("<" in type_name_b):
+    if ("<" in type_name_b):
         type_name_b_prefix = type_name_b[:type_name_b.index("<")]
     
     # check if types are matching - considering also boundary tags
@@ -344,7 +351,6 @@ def parse_function_info_binary_symmetric(func, function_name: str, type_a: str, 
         if not type_b.startswith(type_name_b_prefix) and not (boundary_tag_b and ("TraitsT" in type_name_b)):
             return {}
             
-    
     if not (func_decl_params[0]['domain_dim'] == func_decl_params[1]['domain_dim']): # should not appear
         return {}
     func_name_parsed = func['function_declaration']['name']
@@ -714,14 +720,30 @@ def write_bin_symmetric_DomainD(gen: code_generator, funcs, type_a: str, type_b:
 
 # generate function entry by rule application
 def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim: str, type_a, type_b):
+    typeA_objectD = False
+    typeB_objectD = False
+
     # Requiring type template information
     templ_type_a = get_type_template(type_a, type_path)
-    # if('ObjectD' in templ_type_a):
-    #     typeA_objectD = True
+    if('ObjectD' in templ_type_a):
+        typeA_objectD = True
 
     templ_type_b = get_type_template(type_b, type_path)
-    # if('ObjectD' in templ_type_b):
-    #     typeB_objectD = True
+    if('ObjectD' in templ_type_b):
+        typeB_objectD = True
+
+    boundary_tag_a = False
+    boundary_tag_b = False
+    if "boundary" in type_a[0]:
+        boundary_tag_a = True
+    if "boundary" in type_b[0]:
+        boundary_tag_b = True
+
+    if obj_dim_a == "":
+        obj_dim_a = dom_dim
+
+    if obj_dim_b == "":
+        obj_dim_b = dom_dim
 
     function = {}
 
@@ -736,14 +758,59 @@ def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim
     # parameters
     parameters = []
     param_a = {}
-    param_a["type_name"] = type_a[0] + templ_type_a # TODO: correct domains missing!
+    type_name_a = type_a[0] + templ_type_a
+    # adapting the template
+
+    if "class ScalarT" in type_name_a:
+        type_name_a.replace("class ScalarT", "ScalarT")
+
+    if not typeA_objectD:
+        if "int D" in type_name_a:
+            type_name_a.replace("int D", dom_dim)
+        if "int DomainD" in type_name_a:
+            type_name_a.replace("int DomainD", dom_dim)
+        
+    if typeA_objectD:
+        if "int DomainD = ObjectD" in type_name_a:
+            type_name_a.replace("int DomainD = ObjectD", obj_dim_a)
+
+    if boundary_tag_a:
+        if "class TraitsT = default_object_tag" in type_name_a:
+            type_name_a.replace("class TraitsT = default_object_tag", "boundary_tag")
+    elif ", class TraitsT = default_object_tag" in type_name_a:
+        type_name_a.replace(", class TraitsT = default_object_tag", "")
+        
+
+    param_a["type_name"] = type_name_a # TODO: correct domains missing!
+
     param_a["parameter_name"] = "AAA" # TODO: placeholder
     param_a["default_value"] = ""
     param_a["domain_dim"] = dom_dim
     param_a["object_dim"] = obj_dim_a
 
     param_b = {}
-    param_b["type_name"] = type_b[0] + templ_type_b # TODO: correct domains missing!
+    type_name_b = type_b[0] + templ_type_b
+
+    if "class ScalarT" in type_name_b:
+        type_name_b.replace("class ScalarT", "ScalarT")
+
+    if not typeB_objectD:
+        if "int D" in type_name_b:
+            type_name_b.replace("int D", dom_dim)
+        if "int DomainD" in type_name_b:
+            type_name_b.replace("int DomainD", dom_dim)
+        
+    if typeA_objectD:
+        if "int DomainD = ObjectD" in type_name_b:
+            type_name_b.replace("int DomainD = ObjectD", obj_dim_b)
+
+    if boundary_tag_b:
+        if "class TraitsT = default_object_tag" in type_name_b:
+            type_name_b.replace("class TraitsT = default_object_tag", "boundary_tag")
+    elif ", class TraitsT = default_object_tag" in type_name_b:
+            type_name_b.replace(", class TraitsT = default_object_tag", "")
+
+    param_b["type_name"] = type_name_b # TODO: correct domains missing!
     param_b["parameter_name"] = "BBB" # TODO: placeholder
     param_b["default_value"] = ""
     param_b["domain_dim"] = dom_dim
@@ -756,8 +823,7 @@ def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim
 
     function_declaration["return_type"] = "auto" # TODO -> return correct type
 
-    # NOTE: func name is empty because no real function exists -> can be used to identify function generated
-    # by rule application in the object_function generation
+    # NOTE: func name is empty because no real function exists -> can be used to identify function generated by rule application in the object_function generation
     function_declaration["name"] = ""
 
     function["function_declaration"] = function_declaration

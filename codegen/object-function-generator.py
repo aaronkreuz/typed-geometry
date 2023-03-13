@@ -185,7 +185,7 @@ def generate_function_binary_asymmetric(gen : ofp.code_generator, function_name 
     gen.append_line("}")
 
 
-# Generate the object functions for a given type
+# Generate the object functions for a given type [RULE APPLICATION]
 def generate_object_functions(type):
 
     common = False # storing info if type is a common type

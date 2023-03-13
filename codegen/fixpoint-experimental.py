@@ -84,32 +84,106 @@ def get_type_minus_template(type: str):
     return type
 
 
-# NOTE: check if requirements for rule application are fulfilled
+# NOTE: Checks if pre-conditions for rule application are fulfilled
 def are_implemented(rule, type_a: str, type_b: str):
     # iterating over implementers that have to be implemented
-    for impl in rule["implementer"]: # TODO: does this also work if rule["implementers"] is not iterable? i.e. len == 1
+    for impl in rule["implementer"]:
+        params = impl["param_types"]
         # open corresponding file by looking up table
-        funcs = list(filter(lambda func: func[0] == impl, ofp.all_functions))
+        funcs = list(filter(lambda func: func[0] == impl["func_name"], ofp.all_functions))
         if len(funcs) == 0: # should not happen
             return False
-        func = funcs[0]
+        func_found = funcs[0]
         # open the corresponding json file from "function_lists"
-        f = open(ofp.function_list_path + func[1] + ".json", "r")
+        f = open(ofp.function_list_path + func_found[1] + ".json", "r")
         funcs_implementer = json.load(f) # list format
 
-        filtered_funcs = list(filter(lambda func: (func["function_declaration"]["name_prefix"] == impl), funcs_implementer))
-        filtered_funcs = list(filter(lambda func: get_type_minus_template(func["function_declaration"]["parameters"][0]["type_name"]) == type_a, filtered_funcs))
-        if type_b != "": # binary func
-            filtered_funcs = list(filter(lambda func: get_type_minus_template(func["function_declaration"]["parameters"][1]["type_name"]) == type_b, filtered_funcs))
+        func_param = lambda func: func["function_declaration"]["parameters"]
+
+        # filtering function file for correct parameter types (considering boundary_tag)
+        filtered_funcs = list(filter(lambda func: (func["function_declaration"]["name_prefix"] == func_found[0]), funcs_implementer))
+
+        # checking for params
+        param_counter = 0
+        for param in params:
+
+            # special cases: # TODO: More special cases might arise!
+            try:
+                # ScalarT
+                if "ScalarT" in params:
+                    filtered_funcs = list(filter(lambda func: params in func_param(func)[param_counter],filtered_funcs))
+                    continue
+                
+                # solid_of()
+                if "solid_of" in param:
+                    if "AAA" in param:
+                        param = type_a[:]
+                    elif "BBB" in param:
+                        param = type_b[:]
+                    if "_boundary" in param:
+                        param.replace()
+
+                if "AAA" in param:
+                    param.replace("AAA", type_a)
+                if "BBB" in param:
+                    param.replace("BBB", type_b)
+
+                filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[param_counter]["type_name"]) == param or ((param.startswith(get_type_minus_template(func_param(func)[0]["type_name"]))) and ("boundary" in param) and ("TraitsT" in func_param(func)[0]["type_name"])), filtered_funcs))
+            except ValueError as ve:
+                param_counter += 1
+                continue
+
+            param_counter += 1
+
+            # filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[0]["type_name"]) == type_a or ((type_a.startswith(get_type_minus_template(func_param(func)[0]["type_name"]))) and ("boundary" in type_a) and ("TraitsT" in func_param(func)[0]["type_name"])), filtered_funcs))
+            # if type_b != "": # binary func
+            #     filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[1]["type_name"]) == type_b or ((type_b.startswith(get_type_minus_template(func_param(func)[1]["type_name"]))) and ("boundary" in type_b) and ("TraitsT" in func_param(func)[1]["type_name"])), filtered_funcs))
+
+        # filtering for return type
+        if impl["return_type"] != "":
+            filtered_funcs = list(filter(lambda func: impl["return_type"] in func["return_type"], filtered_funcs))
 
         if len(filtered_funcs) == 0: # implementation missing, can't apply rule
             return False
-        
-        # TODO: Check for boundary tag
-        # if "boundary" in type_a:
 
-        
     return True
+
+
+def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_domains):
+    missing_cases = []
+
+    if typeA_objectD and typeB_objectD:
+        for objA_i in ["1","2","3"]:
+            for objB_i in ["1","2","3"]:
+                if (objA_i, objB_i, "D") in found_domains:
+                    continue
+
+                dom_i = max(int(objA_i), int(objB_i))
+                while int(dom_i) <= 3:
+                    if not (objA_i, objB_i, dom_i) in found_domains:
+                        missing_cases.append((objA_i, objB_i, dom_i))
+                    dom_i = str(int(dom_i)+1)
+    
+    if (typeA_objectD and not typeB_objectD) or (typeB_objectD and not typeA_objectD):
+        for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
+            if (obj_i,"D") in found_domains:
+                continue
+            
+            dom_i = obj_i
+            while int(dom_i) <= (int(obj_i) + 1): # TODO: Maybe instead of "(int(obj_i)+1)" just "3" as above
+                if not (obj_i, dom_i) in found_domains:
+                    missing_cases.append((obj_i, dom_i))
+                dom_i = str(int(dom_i) + 1)
+
+    if not typeA_objectD and not typeB_objectD:
+        if "D" in found_domains:
+            return # all cases handled
+        for dom_i in ["2", "3"]:
+            if not dom_i in found_domains:
+                missing_cases.append(dom_i)
+
+    return missing_cases
+
 
 
 def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_funcs, type_a, type_b):
@@ -167,37 +241,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     if ("O","O","D") in found_domains or ("O","D") in found_domains or "D" in found_domains: # does this work?
         return # all cases handled
     
-    missing_cases = []
-
-    if typeA_objectD and typeB_objectD:
-        for objA_i in ["1","2","3"]:
-            for objB_i in ["1","2","3"]:
-                if (objA_i, objB_i, "D") in found_domains:
-                    continue
-
-                dom_i = max(int(objA_i), int(objB_i))
-                while int(dom_i) <= 3:
-                    if not (objA_i, objB_i, dom_i) in found_domains:
-                        missing_cases.append((objA_i, objB_i, dom_i))
-                    dom_i = str(int(dom_i)+1)
-    
-    if (typeA_objectD and not typeB_objectD) or (typeB_objectD and not typeA_objectD):
-        for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
-            if (obj_i,"D") in found_domains:
-                continue
-            
-            dom_i = obj_i
-            while int(dom_i) <= (int(obj_i) + 1): # TODO: Maybe instead of "(int(obj_i)+1)" just "3" as above
-                if not (obj_i, dom_i) in found_domains:
-                    missing_cases.append((obj_i, dom_i))
-                dom_i = str(int(dom_i) + 1)
-
-    if not typeA_objectD and not typeB_objectD:
-        if "D" in found_domains:
-            return # all cases handled
-        for dom_i in ["2", "3"]:
-            if not dom_i in found_domains:
-                missing_cases.append(dom_i)
+    missing_cases = get_missing_cases_binary(typeA_objectD, typeB_objectD, found_domains)
 
     # missing cases stored in "missing_cases" (domain info of missing case)
     if len(missing_cases) == 0:
@@ -242,10 +286,14 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 
         ### check for rules ### # TODO: outsource
         # TODO: Maybe consider more rules (special rulesets)
-        # TODO: Check for matching types in rule set
-        rules_applicable = list(filter(lambda rule: (rule["implementee"] == func_name) and (rule["type_A"] == "") and (rule["type_B"] == ""), common_rules_sym))
+        rules_applicable = list(filter(lambda rule: (rule["implementee"] == func_name), common_rules_sym))
+        # checking for matching typeA (including boundary_tag check)
+        rules_applicable = list(filter(lambda rule: (rule["type_A"] == "") or type_a[0].startswith(rule["type_A"]) and ((rule["type_A_boundary_tag"] == "") or ((rule["type_A_boundary_tag"] == "required") and "boundary" in type_a[0])), rules_applicable))
+        # checking for matching typeB (including boundary_tag check)
+        rules_applicable = list(filter(lambda rule: (rule["type_B"] == "") or type_b[0].startswith(rule["type_B"]) and ((rule["type_B_boundary_tag"] == "") or ((rule["type_B_boundary_tag"] == "required") and "boundary" in type_b[0])), rules_applicable))
 
         for rule in rules_applicable:
+            # check if rule pre-conditions are implemented
             if not are_implemented(rule, type_a[0], type_b[0]):
                 rules_applicable.remove(rule)
                 continue
