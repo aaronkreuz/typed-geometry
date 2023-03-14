@@ -86,13 +86,14 @@ def get_type_minus_template(type: str):
 
 # NOTE: Checks if pre-conditions for rule application are fulfilled
 def are_implemented(rule, type_a: str, type_b: str):
+    new_impl = rule["implementation"][:]
     # iterating over implementers that have to be implemented
     for impl in rule["implementer"]:
-        params = impl["param_types"]
+        params = impl["param_types"][:]
         # open corresponding file by looking up table
         funcs = list(filter(lambda func: func[0] == impl["func_name"], ofp.all_functions))
         if len(funcs) == 0: # should not happen
-            return False
+            return ""
         func_found = funcs[0]
         # open the corresponding json file from "function_lists"
         f = open(ofp.function_list_path + func_found[1] + ".json", "r")
@@ -121,7 +122,7 @@ def are_implemented(rule, type_a: str, type_b: str):
                     elif "BBB" in param:
                         param = type_b[:]
                     if "_boundary" in param:
-                        param.replace()
+                        param.replace() #???
 
                 if "AAA" in param:
                     param.replace("AAA", type_a)
@@ -139,14 +140,37 @@ def are_implemented(rule, type_a: str, type_b: str):
             # if type_b != "": # binary func
             #     filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[1]["type_name"]) == type_b or ((type_b.startswith(get_type_minus_template(func_param(func)[1]["type_name"]))) and ("boundary" in type_b) and ("TraitsT" in func_param(func)[1]["type_name"])), filtered_funcs))
 
-        # filtering for return type
+        # filtering for return type if necessary
         if impl["return_type"] != "":
             filtered_funcs = list(filter(lambda func: impl["return_type"] in func["return_type"], filtered_funcs))
 
         if len(filtered_funcs) == 0: # implementation missing, can't apply rule
-            return False
+            return ""
+        
+        # change implementation
+        func = filtered_funcs[0]
+        if func["function_declaration"]["name"] == "": # rule-generated -> copy impl
+            # build up lambda function
+            lambda_func = "auto " + impl["func_name"] + "[]" + "("
+            param_counter = 0
+            for param in impl["param_types"]:
+                lambda_func += func["function_declaration"]["parameters"][param_counter]["type_name"] + " " + func["function_declaration"]["parameters"][param_counter]["parameter_name"] + ","
+                param_counter += 1
+            lambda_func = lambda_func[:-1]
+            lambda_func += ")" + "{" + '\n'
+            lambda_func += func["body"]
+            lambda_func += "};"
+            # prepend lambda func to 'new_impl'
+            new_impl = lambda_func + new_impl
 
-    return True
+        # TODO: elif symmetric implementation
+
+        else: # real implementation exists -> rename the function in the implementation of the rule
+            real_name = func["function_declaration"]["name"]
+            # start_name = new_impl.find(impl["func_name"])
+            new_impl = new_impl.replace(impl["func_name"], real_name, 1)
+
+    return new_impl
 
 
 def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_domains):
@@ -158,7 +182,7 @@ def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_dom
                 if (objA_i, objB_i, "D") in found_domains:
                     continue
 
-                dom_i = max(int(objA_i), int(objB_i))
+                dom_i = str(max(int(objA_i), int(objB_i)))
                 while int(dom_i) <= 3:
                     if not (objA_i, objB_i, dom_i) in found_domains:
                         missing_cases.append((objA_i, objB_i, dom_i))
@@ -292,18 +316,24 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         # checking for matching typeB (including boundary_tag check)
         rules_applicable = list(filter(lambda rule: (rule["type_B"] == "") or type_b[0].startswith(rule["type_B"]) and ((rule["type_B_boundary_tag"] == "") or ((rule["type_B_boundary_tag"] == "required") and "boundary" in type_b[0])), rules_applicable))
 
+        new_rule_impl = ""
         for rule in rules_applicable:
             # check if rule pre-conditions are implemented
-            if not are_implemented(rule, type_a[0], type_b[0]):
+            new_rule_impl = are_implemented(rule, type_a[0], type_b[0])
+            if new_rule_impl == "":
                 rules_applicable.remove(rule)
                 continue
+            else:
+                break
 
         if len(rules_applicable) == 0:
             # there are no applicable rules
             continue
 
         new_function = {} # new func to append to deserial_funcs
-        
+        rule_to_be_applied = rules_applicable[0]
+        rule_to_be_applied["implementation"] = new_rule_impl
+
         # NOTE: format of elements in missing cases may differ -> 4 cases to handle
         if typeA_objectD and typeB_objectD:
             new_function = ofp.generate_function_entry_binary(rules_applicable[0], mc[0], mc[1], mc[2], type_a, type_b)
@@ -316,6 +346,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
 
         else: # not typeA_objectD and not typeB_objectD
             new_function = ofp.generate_function_entry_binary(rules_applicable[0], "", "", mc[0], type_a, type_b)
+
 
         deserial_funcs.append(new_function)
         change_flag = True # changes appeared. Another step necessary

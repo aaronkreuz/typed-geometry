@@ -44,7 +44,7 @@
         "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
-        "implementation" : "using ScalarT = typename A::scalar_t;\nauto const solidA = solid_of(a);\nif (contains(solidA, b, ScalarT(-16) * tg::epsilon<ScalarT>))\n    return false;\nreturn intersects(solidA, b);",
+        "implementation" : "using ScalarT = typename decltype(AAA)::scalar_t;\nauto const solidA = solid_of(AAA);\nif (contains(solidA, BBB, ScalarT(-16) * tg::epsilon<ScalarT>))\n    return false;\nreturn intersects(solidA, BBB);",
         "file" : "intersection.json"
     },
     {
@@ -60,7 +60,7 @@
         "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
-        "implementation" : "if (auto t = intersection_parameter(a, b); t.has_value())\n    return a[t.value()];\nreturn {};",
+        "implementation" : "if (auto t = intersection_parameter(AAA, BBB); t.has_value())\n    return AAA[t.value()];\nreturn {};",
         "file" : "intersection.json"
     },
     {
@@ -76,7 +76,7 @@
         "type_B_boundary_tag" : "",
         "type_A" : "",
         "type_B" : "",
-        "implementation" : "return a[intersection_parameter(a, b)];",
+        "implementation" : "return AAA[intersection_parameter(AAA, BBB)];",
         "file" : "intersection.json"
     }
 ]

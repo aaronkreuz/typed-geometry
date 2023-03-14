@@ -125,7 +125,7 @@ def generate_function_binary_symmetric(gen : ofp.code_generator, function_name :
         gen.append_line("}")
         return
 
-    # TODO: Check if this always works -> another way of sorting when also 'type_b_object_dim'?
+    # TODO: Check if this always produces correct order
     ofp.sorting_funcs(functions_parsed, type_a_object_dim, type_b_object_dim)
 
     # 3rd pass -> write to code generator
