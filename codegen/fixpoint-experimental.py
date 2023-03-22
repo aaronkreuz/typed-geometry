@@ -84,16 +84,19 @@ def get_type_minus_template(type: str):
     return type
 
 
-# NOTE: Checks if pre-conditions for rule application are fulfilled
-def are_implemented(rule, type_a: str, type_b: str):
-    new_impl = rule["implementation"][:]
+# NOTE: Checks if pre-conditions for rule application are fulfilled (i.e. necessary functions implemented)
+def are_implemented(rule, type_a: str, type_b: str, domainD: str, objectD_a: str, objectD_b: str):
+    new_impl = rule["implementation"][:] # copy
+
     # iterating over implementers that have to be implemented
     for impl in rule["implementer"]:
-        params = impl["param_types"][:]
+        params = impl["param_types"][:] # copy
         # open corresponding file by looking up table
         funcs = list(filter(lambda func: func[0] == impl["func_name"], ofp.all_functions))
+
         if len(funcs) == 0: # should not happen
             return ""
+        
         func_found = funcs[0]
         # open the corresponding json file from "function_lists"
         f = open(ofp.function_list_path + func_found[1] + ".json", "r")
@@ -101,18 +104,20 @@ def are_implemented(rule, type_a: str, type_b: str):
 
         func_param = lambda func: func["function_declaration"]["parameters"]
 
-        # filtering function file for correct parameter types (considering boundary_tag)
+        # filtering function file for correct func name
         filtered_funcs = list(filter(lambda func: (func["function_declaration"]["name_prefix"] == func_found[0]), funcs_implementer))
 
         # checking for params
         param_counter = 0
         for param in params:
+            objectDimToTest = ""
+            domainDimToTest = ""
 
             # special cases: # TODO: More special cases might arise!
             try:
                 # ScalarT
                 if "ScalarT" in params:
-                    filtered_funcs = list(filter(lambda func: params in func_param(func)[param_counter],filtered_funcs))
+                    filtered_funcs = list(filter(lambda func: params in func_param(func)[param_counter], filtered_funcs))
                     continue
                 
                 # solid_of()
@@ -125,12 +130,28 @@ def are_implemented(rule, type_a: str, type_b: str):
                         param.replace() #???
 
                 if "AAA" in param:
-                    param.replace("AAA", type_a)
+                    param = param.replace("AAA", type_a)
+                    domainDimToTest = domainD
+                    objectDimToTest = objectD_a
                 if "BBB" in param:
-                    param.replace("BBB", type_b)
+                    param = param.replace("BBB", type_b)
+                    domainDimToTest = domainD
+                    objectDimToTest = objectD_b
+
+                # TODO: What if parameter is not AAA or BBB and neither of the above but the result of an previous function
+                # -> should also be handled within the following filters
 
                 filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[param_counter]["type_name"]) == param or ((param.startswith(get_type_minus_template(func_param(func)[0]["type_name"]))) and ("boundary" in param) and ("TraitsT" in func_param(func)[0]["type_name"])), filtered_funcs))
+
+                if(objectDimToTest != "" and domainDimToTest != ""):
+                    filtered_funcs = list(filter(lambda func: (func_param(func)[param_counter]["domain_dim"] == domainDimToTest) or (func_param(func)[param_counter]["domain_dim"] == "D"), filtered_funcs))
+                    filtered_funcs = list(filter(lambda func: (func_param(func)[param_counter]["object_dim"] == objectDimToTest) or ((func_param(func)[param_counter]["object_dim"] == "D") and (objectDimToTest == domainDimToTest)) or (func_param(func)[param_counter]["object_dim"] == "O"), filtered_funcs))
+                else:
+                    # Dimensional infomation missing:
+                    print("[fixpoint-experimental]: Missing dimensional information for filtering in 'are_implemented'")
+                
             except ValueError as ve:
+                # TODO: shouldn't this be an error case where rule can't be applied??
                 param_counter += 1
                 continue
 
@@ -140,12 +161,18 @@ def are_implemented(rule, type_a: str, type_b: str):
             # if type_b != "": # binary func
             #     filtered_funcs = list(filter(lambda func: get_type_minus_template(func_param(func)[1]["type_name"]) == type_b or ((type_b.startswith(get_type_minus_template(func_param(func)[1]["type_name"]))) and ("boundary" in type_b) and ("TraitsT" in func_param(func)[1]["type_name"])), filtered_funcs))
 
+        # Check if filtered functions do not have more parameters than expected
+        filtered_funcs = list(filter(lambda func: len(func_param(func)) == len(params), filtered_funcs))
+            
         # filtering for return type if necessary
         if impl["return_type"] != "":
             filtered_funcs = list(filter(lambda func: impl["return_type"] in func["return_type"], filtered_funcs))
 
         if len(filtered_funcs) == 0: # implementation missing, can't apply rule
             return ""
+        
+        # DEBUG
+        print("found " + str(len(filtered_funcs)) + " applicable functions")
         
         # change implementation
         func = filtered_funcs[0]
@@ -317,9 +344,21 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         rules_applicable = list(filter(lambda rule: (rule["type_B"] == "") or type_b[0].startswith(rule["type_B"]) and ((rule["type_B_boundary_tag"] == "") or ((rule["type_B_boundary_tag"] == "required") and "boundary" in type_b[0])), rules_applicable))
 
         new_rule_impl = ""
-        for rule in rules_applicable:
-            # check if rule pre-conditions are implemented
-            new_rule_impl = are_implemented(rule, type_a[0], type_b[0])
+        rules_applicable_temp = rules_applicable.copy()
+        for rule in rules_applicable_temp:
+            # check if rule pre-conditions are implemented ; TODO: Check also for dimensionalities
+            if typeA_objectD and typeB_objectD:
+                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[2], mc[0], mc[1])
+
+            elif typeA_objectD:
+                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[1], mc[0], mc[1])
+
+            elif typeB_objectD:
+                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[1], mc[1], mc[0])
+
+            else:
+                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[0], mc[0], mc[0])
+                
             if new_rule_impl == "":
                 rules_applicable.remove(rule)
                 continue
@@ -331,21 +370,21 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
             continue
 
         new_function = {} # new func to append to deserial_funcs
-        rule_to_be_applied = rules_applicable[0]
+        rule_to_be_applied = copy.deepcopy(rules_applicable[0]) # will be modified
         rule_to_be_applied["implementation"] = new_rule_impl
 
         # NOTE: format of elements in missing cases may differ -> 4 cases to handle
         if typeA_objectD and typeB_objectD:
-            new_function = ofp.generate_function_entry_binary(rules_applicable[0], mc[0], mc[1], mc[2], type_a, type_b)
+            new_function = ofp.generate_function_entry_binary(rule_to_be_applied, mc[0], mc[1], mc[2], type_a, type_b)
 
         elif typeA_objectD:
-            new_function = ofp.generate_function_entry_binary(rules_applicable[0], mc[0], "", mc[1], type_a, type_b)
+            new_function = ofp.generate_function_entry_binary(rule_to_be_applied, mc[0], "", mc[1], type_a, type_b)
         
         elif typeB_objectD:
-            new_function = ofp.generate_function_entry_binary(rules_applicable[0], "", mc[0], mc[1], type_a, type_b)
+            new_function = ofp.generate_function_entry_binary(rule_to_be_applied, "", mc[0], mc[1], type_a, type_b)
 
         else: # not typeA_objectD and not typeB_objectD
-            new_function = ofp.generate_function_entry_binary(rules_applicable[0], "", "", mc[0], type_a, type_b)
+            new_function = ofp.generate_function_entry_binary(rule_to_be_applied, "", "", mc[0], type_a, type_b)
 
 
         deserial_funcs.append(new_function)

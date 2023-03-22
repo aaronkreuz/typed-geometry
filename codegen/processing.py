@@ -101,7 +101,7 @@ binary_asymmetric_functions = [
 ]
     
 
-all_functions = unary_functions + binary_asymmetric_functions + binary_asymmetric_functions
+all_functions = unary_functions + binary_symmetric_functions + binary_asymmetric_functions
 all_types = common_types + advanced_types
 
 
