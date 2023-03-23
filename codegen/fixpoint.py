@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import processing as ofp
+import object_type as ot
 import copy
 import time # temporary
 
@@ -12,21 +13,14 @@ common_rules_sym = json.load(r) # list format
 
 
 # NOTE: There does not seem to be any rule for unary functions being applied by another function -> This case might be ignored
-def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
+def fixpoint_unary(func_name: str, file_name: str, deserial_funcs, type: ot.geo_type):
     output_file_path = ofp.function_list_path + file_name
-
-    type_objectD = False
-    
-    # Requiring type template information
-    templ_type = ofp.get_type_template(type, ofp.type_path)
-    if('ObjectD' in templ_type):
-        type_objectD = True
 
     functions_parsed = []
 
     # parsing file
     for f in deserial_funcs:
-        func = ofp.parse_function_info_unary(f, func_name, type[0])
+        func = ofp.parse_function_info_unary(f, func_name, type.get_name())
         if len(func) > 0:
             functions_parsed.append(func)
     
@@ -36,7 +30,7 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
     for func in functions_parsed:
         domD = func['domain_dim']
         objD = func['object_dim']
-        if type_objectD:
+        if type.is_obj_dim_dependent():
             found_domains.append((objD, domD))
         else:
             found_domains.append(domD)
@@ -45,9 +39,10 @@ def fixpoint_step_unary(func_name: str, file_name: str, deserial_funcs, type):
     if ("O","D") in found_domains or "D" in found_domains: # does this work?
         return False # all cases handled
     
+    # missing cases in varying format -> TODO: missing cases as data type to obtain consistent representation
     missing_cases = []
     
-    if type_objectD:
+    if type.is_obj_dim_dependent():
         for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
             if (obj_i,"D") in found_domains:
                 continue
@@ -203,11 +198,16 @@ def are_implemented(rule, type_a: str, type_b: str, domainD: str, objectD_a: str
 def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_domains):
     missing_cases = []
 
+    valid_domain_values = ["1", "2", "3"] # TODO: What about D?
+
+    # Case 1: both types have object dim varying from domain dim
     if typeA_objectD and typeB_objectD:
-        for objA_i in ["1","2","3"]:
-            for objB_i in ["1","2","3"]:
+
+        for objA_i in valid_domain_values:
+            for objB_i in valid_domain_values:
+
                 if (objA_i, objB_i, "D") in found_domains:
-                    continue
+                    continue # case handled
 
                 dom_i = str(max(int(objA_i), int(objB_i)))
                 while int(dom_i) <= 3:
@@ -215,8 +215,9 @@ def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_dom
                         missing_cases.append((objA_i, objB_i, dom_i))
                     dom_i = str(int(dom_i)+1)
     
+    # Case 2: only one type has object dim varying from domain dim
     if (typeA_objectD and not typeB_objectD) or (typeB_objectD and not typeA_objectD):
-        for obj_i in ["1","2","3"]: # TODO: are this all possible obj. dims?
+        for obj_i in valid_domain_values: # TODO: are this all possible obj. dims?
             if (obj_i,"D") in found_domains:
                 continue
             
@@ -226,43 +227,32 @@ def get_missing_cases_binary(typeA_objectD: bool, typeB_objectD: bool, found_dom
                     missing_cases.append((obj_i, dom_i))
                 dom_i = str(int(dom_i) + 1)
 
+    # Case 3: none of the types has object dim varying from domain dim
     if not typeA_objectD and not typeB_objectD:
         if "D" in found_domains:
-            return # all cases handled
-        for dom_i in ["2", "3"]:
+            return [] # all cases handled
+        for dom_i in valid_domain_values:
             if not dom_i in found_domains:
                 missing_cases.append(dom_i)
 
     return missing_cases
 
 
-
-def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_funcs, type_a, type_b):
+def fixpoint_binary_symmetric(func_name: str, file_name: str, deserial_funcs, type_a: ot.geo_type, type_b: ot.geo_type):
     output_file_path = ofp.function_list_path + file_name
-
-    typeA_objectD = False
-    typeB_objectD = False
-    
-    # Requiring type template information
-    templ_type = ofp.get_type_template(type_a, ofp.type_path)
-    if('ObjectD' in templ_type):
-        typeA_objectD = True
-
-    templ_type = ofp.get_type_template(type_b, ofp.type_path)
-    if('ObjectD' in templ_type):
-        typeB_objectD = True
 
     functions_parsed = []
 
     # parsing file
     for f in deserial_funcs:
         if(f['function_declaration']['name_prefix'] == func_name):
-            func = ofp.parse_function_info_binary_symmetric(f, func_name, type_a[0], type_b[0])
+            # checking for matching parameters and store relevant information
+            func = ofp.parse_function_info_binary_symmetric(f, func_name, type_a.get_name(), type_b.get_name())
             if len(func) > 0:
                 functions_parsed.append(func)
     
     # check if an implementation is missing -> requires info if type is object-dim.-dependent
-    found_domains = []
+    found_domains = [] # TODO: Could probably be stored in instance of same data type as missing cases
 
     # store domain combinations that are handled
     for func in functions_parsed:
@@ -272,15 +262,15 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         objD_A = function_paramsA['object_dim']
         objD_B = function_paramsB['object_dim']
 
-        if typeA_objectD and typeB_objectD:
+        if type_a.is_obj_dim_dependent() and type_b.is_obj_dim_dependent():
             found_domains.append((objD_A, objD_B, domD))
             continue
         
-        if typeA_objectD and not typeB_objectD:
+        if type_a.is_obj_dim_dependent() and not type_b.is_obj_dim_dependent():
             found_domains.append((objD_A, domD))
             continue
 
-        if not typeA_objectD and typeB_objectD:
+        if not type_a.is_obj_dim_dependent() and type_b.is_obj_dim_dependent():
             found_domains.append((objD_B, domD))
             continue
 
@@ -292,7 +282,7 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     if ("O","O","D") in found_domains or ("O","D") in found_domains or "D" in found_domains: # does this work?
         return # all cases handled
     
-    missing_cases = get_missing_cases_binary(typeA_objectD, typeB_objectD, found_domains)
+    missing_cases = get_missing_cases_binary(type_a.is_obj_dim_dependent(), type_b.is_obj_dim_dependent(), found_domains)
 
     # missing cases stored in "missing_cases" (domain info of missing case)
     if len(missing_cases) == 0:
@@ -308,17 +298,17 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         l = []
         
         ### symmetric cases ### TODO: outsource
-        list_prefiltered = list(filter(lambda func: (get_type_minus_template(lam_func_decl(func)[0]["type_name"]) == type_b[0]) and (get_type_minus_template(lam_func_decl(func)[1]["type_name"]) == type_a[0]) and (func["function_declaration"]["name_prefix"] == func_name), deserial_funcs)) 
-        if not typeA_objectD and not typeB_objectD:
+        list_prefiltered = list(filter(lambda func: (get_type_minus_template(lam_func_decl(func)[0]["type_name"]) == type_b.get_name()) and (get_type_minus_template(lam_func_decl(func)[1]["type_name"]) == type_a.get_name()) and (func["function_declaration"]["name_prefix"] == func_name), deserial_funcs)) 
+        if not type_a.is_obj_dim_dependent() and not type_b.is_obj_dim_dependent():
             l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc, list_prefiltered))
 
-        elif typeA_objectD != typeB_objectD: # XOR
-            if typeA_objectD:
-                l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[0]["object_dim"] == mc[0], list_prefiltered))
-            elif typeB_objectD:
-                l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[1]["object_dim"] == mc[0], list_prefiltered))
+        elif type_a.is_obj_dim_dependent():
+            l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[0]["object_dim"] == mc[0], list_prefiltered))
+
+        elif type_b.is_obj_dim_dependent():
+            l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[1] and lam_func_decl(func)[1]["object_dim"] == mc[0], list_prefiltered))
         
-        elif typeA_objectD and typeB_objectD:
+        else: # typeA_objectD and typeB_objectD
             l = list(filter(lambda func: lam_func_decl(func)[0]["domain_dim"] == mc[2] and lam_func_decl(func)[0]["object_dim"] == mc[0] and lam_func_decl(func)[1]["object_dim"] == mc[1], list_prefiltered))
         
         if len(l) > 0:
@@ -339,25 +329,25 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         # TODO: Maybe consider more rules (special rulesets)
         rules_applicable = list(filter(lambda rule: (rule["implementee"] == func_name), common_rules_sym))
         # checking for matching typeA (including boundary_tag check)
-        rules_applicable = list(filter(lambda rule: (rule["type_A"] == "") or type_a[0].startswith(rule["type_A"]) and ((rule["type_A_boundary_tag"] == "") or ((rule["type_A_boundary_tag"] == "required") and "boundary" in type_a[0])), rules_applicable))
+        rules_applicable = list(filter(lambda rule: (rule["type_A"] == "") or type_a.get_name().startswith(rule["type_A"]) and ((rule["type_A_boundary_tag"] == "") or ((rule["type_A_boundary_tag"] == "required") and "boundary" in type_a.get_name())), rules_applicable))
         # checking for matching typeB (including boundary_tag check)
-        rules_applicable = list(filter(lambda rule: (rule["type_B"] == "") or type_b[0].startswith(rule["type_B"]) and ((rule["type_B_boundary_tag"] == "") or ((rule["type_B_boundary_tag"] == "required") and "boundary" in type_b[0])), rules_applicable))
+        rules_applicable = list(filter(lambda rule: (rule["type_B"] == "") or type_b.get_name().startswith(rule["type_B"]) and ((rule["type_B_boundary_tag"] == "") or ((rule["type_B_boundary_tag"] == "required") and "boundary" in type_b.get_name())), rules_applicable))
 
         new_rule_impl = ""
         rules_applicable_temp = rules_applicable.copy()
         for rule in rules_applicable_temp:
             # check if rule pre-conditions are implemented ; TODO: Check also for dimensionalities
-            if typeA_objectD and typeB_objectD:
-                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[2], mc[0], mc[1])
+            if type_a.is_obj_dim_dependent() and type_b.is_obj_dim_dependent():
+                new_rule_impl = are_implemented(rule, type_a.get_name(), type_b.get_name(), mc[2], mc[0], mc[1])
 
-            elif typeA_objectD:
-                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[1], mc[0], mc[1])
+            elif type_a.is_obj_dim_dependent():
+                new_rule_impl = are_implemented(rule, type_a.get_name(), type_b.get_name(), mc[1], mc[0], mc[1])
 
-            elif typeB_objectD:
-                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[1], mc[1], mc[0])
+            elif type_b.is_obj_dim_dependent():
+                new_rule_impl = are_implemented(rule, type_a.get_name(), type_b.get_name(), mc[1], mc[1], mc[0])
 
-            else:
-                new_rule_impl = are_implemented(rule, type_a[0], type_b[0], mc[0], mc[0], mc[0])
+            else: # not typeA_objectD and not typeB_objectD
+                new_rule_impl = are_implemented(rule, type_a.get_name(), type_b.get_name(), mc[0], mc[0], mc[0])
                 
             if new_rule_impl == "":
                 rules_applicable.remove(rule)
@@ -374,13 +364,13 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         rule_to_be_applied["implementation"] = new_rule_impl
 
         # NOTE: format of elements in missing cases may differ -> 4 cases to handle
-        if typeA_objectD and typeB_objectD:
+        if type_a.is_obj_dim_dependent() and type_b.is_obj_dim_dependent():
             new_function = ofp.generate_function_entry_binary(rule_to_be_applied, mc[0], mc[1], mc[2], type_a, type_b)
 
-        elif typeA_objectD:
+        elif type_a.is_obj_dim_dependent():
             new_function = ofp.generate_function_entry_binary(rule_to_be_applied, mc[0], "", mc[1], type_a, type_b)
         
-        elif typeB_objectD:
+        elif type_b.is_obj_dim_dependent():
             new_function = ofp.generate_function_entry_binary(rule_to_be_applied, "", mc[0], mc[1], type_a, type_b)
 
         else: # not typeA_objectD and not typeB_objectD
@@ -391,8 +381,6 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
         change_flag = True # changes appeared. Another step necessary
         continue
 
-
-
     # write deserial_funcs to file if changes appeared (indicated by 'change flag')
     if change_flag:
         with open(ofp.function_list_path + file_name + '.json', 'w') as f:
@@ -402,24 +390,76 @@ def fixpoint_step_binary_symmetric(func_name: str, file_name: str, deserial_func
     return change_flag
 
 
-def fixpoint_iteration_step(type):
+# def fixpoint_iteration_step(type):
+#     change_flag = False
+#     # unary fixpoint-step -> TODO: Nothin happens here probably
+#     for func in ofp.unary_functions:
+#         f = open('function_lists/' + func[1] + ".json")
+#         deserial_functions = json.load(f) # list format
+#         if fixpoint_unary(func[0], func[1], deserial_functions, type):
+#             change_flag = True
+# 
+#     # binary symmetric fixpoint-step
+#     for func in ofp.binary_symmetric_functions:
+#         f = open('function_lists/' + func[1] + ".json")
+#         deserial_functions = json.load(f)
+#         for other_type in ofp.common_types:
+#             if fixpoint_binary_symmetric(func[0], func[1], deserial_functions, type, other_type):
+#                 change_flag = True
+# 
+#     # TODO: binary asymmetric fixpoint-step
+# 
+#     return change_flag
+
+# fixpoint iteration for unary func
+def fixpoint_iteration_step_unary():
     change_flag = False
-    # unary fixpoint-step -> TODO: Nothin happens here probably
+
     for func in ofp.unary_functions:
         f = open('function_lists/' + func[1] + ".json")
-        deserial_functions = json.load(f) # list format
-        if fixpoint_step_unary(func[0], func[1], deserial_functions, type):
-            change_flag = True
+        deserial_funcs = json.load(f) # list format
 
-    # binary symmetric fixpoint-step
-    for func in ofp.binary_symmetric_functions:
-        f = open('function_lists/' + func[1] + ".json")
-        deserial_functions = json.load(f)
-        for other_type in ofp.common_types:
-            if fixpoint_step_binary_symmetric(func[0], func[1], deserial_functions, type, other_type):
+        for type in ofp.all_types:
+            # build type object
+            type_obj  = ot.geo_type(type[0], type[1])
+            type_obj.find_templateForm()
+            if fixpoint_unary(func[0], func[1], deserial_funcs, type_obj):
                 change_flag = True
 
-    # TODO: binary asymmetric fixpoint-step
+    change_flag = True
+
+def fixpoint_iteration_step_binary_symmetric():
+    change_flag = False
+
+    for func in ofp.binary_symmetric_functions:
+        f = open('function_lists/' + func[1] + ".json")
+        deserial_funcs = json.load(f) # list format
+
+        for type in ofp.all_types:
+            for other_type in ofp.all_types:
+                # build type objects
+                type_a_obj = ot.geo_type(type[0], type[1])
+                type_b_obj = ot.geo_type(other_type[0], other_type[1])
+
+                type_a_obj.find_templateForm()
+                type_b_obj.find_templateForm()
+
+                if fixpoint_binary_symmetric(func[0], func[1], deserial_funcs, type_a_obj, type_b_obj):
+                    change_flag = True
+
+    return change_flag
+
+def fixpoint_iteration_step_binary_asymmetric():
+    change_flag = False
+
+    for func in ofp.binary_asymmetric_functions:
+        f = open('function_lists/' + func[1] + ".json")
+        deserial_funcs = json.load(f) # list format
+
+        for type in ofp.all_types:
+            continue
+
+        # TODO binary asymmetric fixpoint-step
 
     return change_flag
 
@@ -436,12 +476,27 @@ if not os.path.exists(ofp.function_list_path):
 time_start = time.time() # in seconds
 
 # Fixpoint iteration running for a max number of steps or until convergence
+# while change_flag and (it_count < max_iterations):
+#     change_flag = False
+#     for type in ofp.all_types:
+#         if fixpoint_iteration_step(type):
+#             change_flag = True
+#     it_count += 1
+
 while change_flag and (it_count < max_iterations):
+    # DEBUG
+    print ("iteration: " + str(it_count + 1))
+
     change_flag = False
-    for type in ofp.all_types:
-        if fixpoint_iteration_step(type):
-            change_flag = True
+
+    change_flag = True if fixpoint_iteration_step_unary() else change_flag
+
+    change_flag = True if fixpoint_iteration_step_binary_symmetric() else change_flag
+
+    change_flag = True if fixpoint_iteration_step_binary_asymmetric() else change_flag
+
     it_count += 1
+
 
 # DEBUG
 time_end = time.time() # in seconds

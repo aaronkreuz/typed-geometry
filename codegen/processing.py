@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import object_type as ot
 
 # NOTE: file containing shared functionalities
 
@@ -188,11 +189,11 @@ def get_object_dim_from_name(s :str):
 
 
 # returning string containing the template information for 'type' from type_file
-def get_type_template(type, type_path: str):
-    if (type[1]+'.hh') in os.listdir(type_path):
+def get_type_template(type_name: str, file_name: str, type_path: str):
+    if (type_name +'.hh') in os.listdir(type_path):
         in_file = type_path + type[1] +'.hh'
     else:
-        in_file = type_path + "objects/" + type[1] + '.hh'
+        in_file = type_path + "objects/" + file_name + '.hh'
 
     text = open(in_file, "r").read()
 
@@ -205,10 +206,10 @@ def get_type_template(type, type_path: str):
         if line_temp.startswith('template'):
             line_next = lines[line_index+1]
 
-            if type[0] in line_next:
-                start_ind = line_next.index(type[0])
-                if not (start_ind + len(type[0]) > (len(line_next) - 1)):
-                    if not (line_next[start_ind + len(type[0])] != " " or line_next[start_ind + len(type[0])] != ";"):
+            if type_name in line_next:
+                start_ind = line_next.index(type_name)
+                if not (start_ind + len(type_name) > (len(line_next) - 1)):
+                    if not (line_next[start_ind + len(type_name)] != " " or line_next[start_ind + len(type_name)] != ";"):
                         # wrong type declaration -> continue searching
                         line_index += 1
                         continue    
@@ -769,11 +770,11 @@ def generate_function_entry_binary(rule, obj_dim_a: str, obj_dim_b: str, dom_dim
     typeB_objectD = False
 
     # Requiring type template information
-    templ_type_a = get_type_template(type_a, type_path)
+    templ_type_a = get_type_template(type_a.get_name(), type_a.get_file_name(), type_path)
     if('ObjectD' in templ_type_a):
         typeA_objectD = True
 
-    templ_type_b = get_type_template(type_b, type_path)
+    templ_type_b = get_type_template(type_b.get_name(), type_b.get_file_name(), type_path)
     if('ObjectD' in templ_type_b):
         typeB_objectD = True
 

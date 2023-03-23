@@ -53,21 +53,21 @@ functions = [
     "project"
 ]
 
-def read_type(s: str):
-    if "<" in s:
-        closing_index = ofp.index_of_closing(s, s.index("<"))
-        if "," in s:
-            comma = s.index(',')
-            if(comma < s.index('<')):
-                return s.split()[0]
-        return s[:(closing_index + 1)]
-    return s.split()[0]
+def read_type(type_decl: str):
+    if "<" in type_decl:
+        closing_index = ofp.index_of_closing(type_decl, type_decl.index("<"))
+        if "," in type_decl:
+            comma = type_decl.index(',')
+            if(comma < type_decl.index('<')):
+                return type_decl.split()[0]
+        return type_decl[:(closing_index + 1)]
+    return type_decl.split()[0]
 
 
-def parse_template_parameters(s: str):
-    start = s.index("<")
-    end = ofp.index_of_closing(s, start)
-    params = s[start + 1:end].split(",")
+def parse_template_parameters(type_decl: str):
+    start = type_decl.index("<")
+    end = ofp.index_of_closing(type_decl, start)
+    params = type_decl[start + 1:end].split(",")
 
     # TODO preprocessing template args
     it = 0
@@ -106,12 +106,12 @@ def parse_template_parameters(s: str):
     return parsed_params
 
 
-def get_domain_dim(s :str):
+def get_domain_dim(type_decl :str):
     try:
-        start_template = s.index("<")
-        end_template = ofp.index_of_closing(s, start_template)
-        s = s[start_template+1:end_template]
-        l = s.split(',')
+        start_template = type_decl.index("<")
+        end_template = ofp.index_of_closing(type_decl, start_template)
+        type_decl = type_decl[start_template+1:end_template]
+        l = type_decl.split(',')
         l = [e.strip() for e in l]
 
         filtered_list = filter(lambda a: (a == "DomainD" or a == "D" or a == "1" or a == "2" or a == "3" or a == "4"), l)
@@ -131,12 +131,12 @@ def get_domain_dim(s :str):
     return ""
 
 
-def get_object_dim(s :str):
+def get_object_dim(type_decl :str):
     try:
-        start_template = s.index("<")
-        end_template = ofp.index_of_closing(s, start_template)
-        s = s[start_template+1:end_template]
-        l = s.split(',')
+        start_template = type_decl.index("<")
+        end_template = ofp.index_of_closing(type_decl, start_template)
+        type_decl = type_decl[start_template+1:end_template]
+        l = type_decl.split(',')
         l = [e.strip() for e in l]
 
         filtered_list = filter(lambda a: (a == "ObjectD" or a == "D" or a == "O" or a == "1" or a == "2" or a == "3" or a == "4"), l)
@@ -302,7 +302,7 @@ def get_new_func_name(function_declaration):
     return new_funcname
 
 # replace old function name by new name in a given function declaration line
-def get_new_function_name_line(line: str, new_func_name: str, old_func_name: str):
+def replace_func_name_in_line(line: str, new_func_name: str, old_func_name: str):
     start_func_name = line.find(old_func_name)
 
     first_part = line[:start_func_name]
@@ -321,11 +321,6 @@ def parse_functions(text: str, output_file: str):
     line_index = 0
     while line_index < len(lines):
         line = lines[line_index].strip() + '\n'
-
-        #if line == "\n":
-        #    new_lines.append(line)
-        #    line_index += 1
-        #    continue
 
         if line.startswith("[[nodiscard]] constexpr"): # function found
             template_declaration = lines[line_index-1]
@@ -372,7 +367,7 @@ def parse_functions(text: str, output_file: str):
             function["function_declaration"]["name"] = new_func_name
             functions.append(function)
 
-            new_line = get_new_function_name_line(line, new_func_name,  function["function_declaration"]["name_prefix"])
+            new_line = replace_func_name_in_line(line, new_func_name,  function["function_declaration"]["name_prefix"])
             new_lines.append(new_line)
 
             # catch up till end of the current parsed function
