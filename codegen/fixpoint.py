@@ -382,10 +382,10 @@ def fixpoint_binary_symmetric(func_name: str, file_name: str, deserial_funcs, ty
         continue
 
     # write deserial_funcs to file if changes appeared (indicated by 'change flag')
-    if change_flag:
-        with open(ofp.function_list_path + file_name + '.json', 'w') as f:
-            json_object = json.dumps(deserial_funcs, indent = 4)
-            f.write(json_object)
+    # if change_flag:
+    #     with open(ofp.function_list_path + file_name + '.json', 'w') as f:
+    #         json_object = json.dumps(deserial_funcs, indent = 4)
+    #         f.write(json_object)
 
     return change_flag
 
@@ -412,12 +412,13 @@ def fixpoint_binary_symmetric(func_name: str, file_name: str, deserial_funcs, ty
 #     return change_flag
 
 # fixpoint iteration for unary func
-def fixpoint_iteration_step_unary():
+def fixpoint_iteration_step_unary(parsed_files):
     change_flag = False
 
     for func in ofp.unary_functions:
-        f = open('function_lists/' + func[1] + ".json")
-        deserial_funcs = json.load(f) # list format
+        #f = open('function_lists/' + func[1] + ".json")
+        deserial_funcs = parsed_files[func[1]+".hh"]
+        # deserial_funcs = json.load(f) # list format
 
         for type in ofp.all_types:
             # build type object
@@ -425,15 +426,18 @@ def fixpoint_iteration_step_unary():
             type_obj.find_templateForm()
             if fixpoint_unary(func[0], func[1], deserial_funcs, type_obj):
                 change_flag = True
+                f = deserial_funcs # update parsed files
 
     change_flag = True
 
-def fixpoint_iteration_step_binary_symmetric():
+def fixpoint_iteration_step_binary_symmetric(parsed_files):
     change_flag = False
 
     for func in ofp.binary_symmetric_functions:
-        f = open('function_lists/' + func[1] + ".json")
-        deserial_funcs = json.load(f) # list format
+        #f = open('function_lists/' + func[1] + ".json")
+        deserial_funcs = parsed_files[func[1]+".hh"]
+
+        #deserial_funcs = json.load(f) # list format
 
         for type in ofp.all_types:
             for other_type in ofp.all_types:
@@ -446,15 +450,17 @@ def fixpoint_iteration_step_binary_symmetric():
 
                 if fixpoint_binary_symmetric(func[0], func[1], deserial_funcs, type_a_obj, type_b_obj):
                     change_flag = True
+                    f = deserial_funcs # update parsed files
 
     return change_flag
 
-def fixpoint_iteration_step_binary_asymmetric():
+def fixpoint_iteration_step_binary_asymmetric(parsed_files):
     change_flag = False
 
     for func in ofp.binary_asymmetric_functions:
-        f = open('function_lists/' + func[1] + ".json")
-        deserial_funcs = json.load(f) # list format
+        #f = open('function_lists/' + func[1] + ".json")
+        deserial_funcs = parsed_files[func[1]+".hh"]
+        # deserial_funcs = json.load(f) # list format
 
         for type in ofp.all_types:
             continue
@@ -464,42 +470,42 @@ def fixpoint_iteration_step_binary_asymmetric():
     return change_flag
 
 
-### MAIN ###
-it_count = 0
-max_iterations = 1 # max number of iterations until iteration stops
-change_flag = True # indicate if any changes appeared in current fixpoint step
-
-if not os.path.exists(ofp.function_list_path):
-    os.makedirs(ofp.function_list_path)
-
-# DEBUG
-time_start = time.time() # in seconds
-
-# Fixpoint iteration running for a max number of steps or until convergence
+# ### MAIN ### NOTE: Functionality outsourced to main_pipeline.py!
+# it_count = 0
+# max_iterations = 1 # max number of iterations until iteration stops
+# change_flag = True # indicate if any changes appeared in current fixpoint step
+# 
+# if not os.path.exists(ofp.function_list_path):
+#     os.makedirs(ofp.function_list_path)
+# 
+# # DEBUG
+# time_start = time.time() # in seconds
+# 
+# # Fixpoint iteration running for a max number of steps or until convergence
+# # while change_flag and (it_count < max_iterations):
+# #     change_flag = False
+# #     for type in ofp.all_types:
+# #         if fixpoint_iteration_step(type):
+# #             change_flag = True
+# #     it_count += 1
+# 
 # while change_flag and (it_count < max_iterations):
+#     # DEBUG
+#     print ("iteration: " + str(it_count + 1))
+# 
 #     change_flag = False
-#     for type in ofp.all_types:
-#         if fixpoint_iteration_step(type):
-#             change_flag = True
+# 
+#     change_flag = True if fixpoint_iteration_step_unary() else change_flag
+# 
+#     change_flag = True if fixpoint_iteration_step_binary_symmetric() else change_flag
+# 
+#     change_flag = True if fixpoint_iteration_step_binary_asymmetric() else change_flag
+# 
 #     it_count += 1
-
-while change_flag and (it_count < max_iterations):
-    # DEBUG
-    print ("iteration: " + str(it_count + 1))
-
-    change_flag = False
-
-    change_flag = True if fixpoint_iteration_step_unary() else change_flag
-
-    change_flag = True if fixpoint_iteration_step_binary_symmetric() else change_flag
-
-    change_flag = True if fixpoint_iteration_step_binary_asymmetric() else change_flag
-
-    it_count += 1
-
-
-# DEBUG
-time_end = time.time() # in seconds
-dif = time_end - time_start # in seconds
-print("nbr_iterations: " + str(it_count))
-print("duration in seconds:" + str(dif))
+# 
+# 
+# # DEBUG
+# time_end = time.time() # in seconds
+# dif = time_end - time_start # in seconds
+# print("nbr_iterations: " + str(it_count))
+# print("duration in seconds:" + str(dif))

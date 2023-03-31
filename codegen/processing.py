@@ -16,7 +16,59 @@ default_object_functions_path ="typed-geometry/object_functions.hh" # todo
 function_list_path_test = "function_lists_test/"
 rules_path = "rules/"
 
-# types
+# function files supported
+function_files = [
+    "area.hh",
+    "centroid.hh",
+    "vertices.hh",
+    "edges.hh",
+    "boundary.hh",
+    "closest_points.hh",
+    "contains.hh",
+    "distance.hh",
+    "intersection.hh",
+    "project.hh",
+    "any_point.hh",
+    "aabb.hh",
+    "triangulate.hh",
+    "triangulation.hh",
+    "rasterize.hh",
+    "volume.hh",
+    "faces.hh",
+]
+
+# only these functions will be renamed - supported functions
+functions = [
+    "edges",
+    "faces",
+    "vertices",
+    "volume_of",
+    "area_of",
+    "rasterize",
+    "triangulate",
+    "triangulation_of",
+    "centroid_of",
+    "aabb_of",
+    "any_point",
+    "edges_of",
+    "faces_of",
+    "vertices_of",
+    "signed_distance",
+    "boundary_of",
+
+    #### BINARY ####
+    "intersection",  # representation problem
+    "intersects",
+    "closest_points",
+    "distance",
+    "distance_sqr",
+    "intersection_parameter",
+    "intersection_parameters",
+    "contains",  # potentially impl difficulty
+    "project"
+]
+
+# supported common types
 common_types = [
     #[type_name, file_name]
     ["aabb", "aabb"],
@@ -29,6 +81,7 @@ common_types = [
     ["plane", "plane"]
 ]
 
+# supported advanced files
 advanced_types = [
     #[type_name, file_name]
     ["aabb_boundary", "aabb"],
@@ -69,6 +122,7 @@ advanced_types = [
 # function types
 unary_functions = [
     #[func_name, file_name]
+    ["triangulation", "triangulation"],
     ["edges_of", "edges"],  
     ["faces_of", "faces"],
     ["vertices_of", "vertices"],
@@ -77,7 +131,6 @@ unary_functions = [
     ["boundary_of", "boundary"],
     ["rasterize", "rasterize"],
     ["triangulate", "triangulate"],
-    ["triangulation", "triangulation"],
     ["centroid_of", "centroid"],
     ["aabb_of", "aabb"],
     ["any_point", "any_point"],

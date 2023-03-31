@@ -274,11 +274,11 @@ def generate_object_functions(type):
 
 ### MAIN APP ###
 
-if not os.path.exists(ofp.object_functions_dir_common):
-    os.makedirs(ofp.object_functions_dir_common)
-
-if not os.path.exists(ofp.object_functions_dir_advanced):
-    os.makedirs(ofp.object_functions_dir_advanced)
-
-for type in ofp.all_types:
-    generate_object_functions(type)
+# if not os.path.exists(ofp.object_functions_dir_common):
+#     os.makedirs(ofp.object_functions_dir_common)
+# 
+# if not os.path.exists(ofp.object_functions_dir_advanced):
+#     os.makedirs(ofp.object_functions_dir_advanced)
+# 
+# for type in ofp.all_types:
+#     generate_object_functions(type)

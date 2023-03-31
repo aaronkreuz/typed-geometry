@@ -2,57 +2,6 @@ import json
 import os
 import processing as ofp
 
-function_files = [
-    "area.hh",
-    "centroid.hh",
-    "vertices.hh",
-    "edges.hh",
-    "boundary.hh",
-    "closest_points.hh",
-    "contains.hh",
-    "distance.hh",
-    "intersection.hh",
-    "project.hh",
-    "any_point.hh",
-    "aabb.hh",
-    "triangulate.hh",
-    "triangulation.hh",
-    "rasterize.hh",
-    "volume.hh",
-    "faces.hh",
-]
-
-# only these functions will be renamed
-functions = [
-    "edges",
-    "faces",
-    "vertices",
-    "volume_of",
-    "area_of",
-    "rasterize",
-    "triangulate",
-    "triangulation_of",
-    "centroid_of",
-    "aabb_of",
-    "any_point",
-    "edges_of",
-    "faces_of",
-    "vertices_of",
-    "signed_distance",
-    "boundary_of",
-
-    #### BINARY ####
-    "intersection",  # representation problem
-    "intersects",
-    "closest_points",
-    "distance",
-    "distance_sqr",
-    "intersection_parameter",
-    "intersection_parameters",
-    "contains",  # potentially impl difficulty
-    "project"
-]
-
 def read_type(type_decl: str):
     if "<" in type_decl:
         closing_index = ofp.index_of_closing(type_decl, type_decl.index("<"))
@@ -269,7 +218,7 @@ def get_new_func_name(function_declaration):
     params = function_declaration["parameters"]
 
     # only change functions listed in "functions"
-    if(not function_name in functions):
+    if(not function_name in ofp.functions):
         return function_name
 
     new_funcname = function_name
@@ -381,24 +330,30 @@ def parse_functions(text: str, output_file: str):
 
         line_index += 1
 
+    # TODO: Should overwrite the source files
+    # write renamed functions to file
+    with open(ofp.renamed_files_path + output_file + '.hh', 'w') as f:
+        f.writelines(new_lines)
+
+    # return json dump
+    return functions #json.dumps(functions, indent = 4)    
+
     # write to file json dumps
     with open(ofp.function_list_path + output_file + '.json', 'w') as f:
         json_object = json.dumps(functions, indent = 4)
         f.write(json_object)
 
-    # write renamed functions to file
-    with open(ofp.renamed_files_path + output_file + '.hh', 'w') as f:
-        f.writelines(new_lines)
 
 
-### MAIN APP ###
-if not os.path.exists(ofp.renamed_files_path):
-    os.makedirs(ofp.renamed_files_path)
 
-if not os.path.exists(ofp.function_list_path):
-    os.makedirs(ofp.function_list_path)
-
-for file in function_files:
-    in_file = ofp.src_function_path + file
-    text = open(in_file, "r").read()
-    parse_functions(text, file[:-3])
+### MAIN APP ### NOTE: Functionality outsourced to main_pipeline.py!
+# if not os.path.exists(ofp.renamed_files_path):
+#     os.makedirs(ofp.renamed_files_path)
+# 
+# if not os.path.exists(ofp.function_list_path):
+#     os.makedirs(ofp.function_list_path)
+# 
+# for file in ofp.function_files:
+#     in_file = ofp.src_function_path + file
+#     text = open(in_file, "r").read()
+#     parse_functions(text, file[:-3])
